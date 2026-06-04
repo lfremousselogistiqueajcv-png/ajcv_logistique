@@ -167,7 +167,7 @@ async function connexion() {
       data = await gsRun('gsr_login', [login, mdp]);
     } else {
       const url  = `${CFG.API_URL}?action=login&key=${CFG.API_KEY}&login=${encodeURIComponent(login)}&mdp=${encodeURIComponent(mdp)}`;
-      const resp = await fetch(url);
+      const resp = await fetch(url, { redirect: 'follow' });
       data = await resp.json();
     }
 
@@ -332,7 +332,7 @@ async function chargerLivraisons() {
       data = await gsRun('gsr_getLivraisons', [state.token||'', state.zone||'', getDateSelectionnee()]);
     } else {
       const url  = `${CFG.API_URL}?action=livraisons&key=${CFG.API_KEY}&token=${encodeURIComponent(state.token||'')}&zone=${encodeURIComponent(state.zone||'')}&date=${encodeURIComponent(getDateSelectionnee())}&t=${Date.now()}`;
-      const resp = await fetch(url, { signal: controller.signal });
+      const resp = await fetch(url, { redirect: 'follow', signal: controller.signal });
       data = await resp.json();
     }
     clearTimeout(fetchTimeout);
@@ -1094,7 +1094,7 @@ async function optimiserTournee() {
       data = await gsRun('gsr_optimiserTournee', [state.token||'', state.zone||'', getDateSelectionnee()]);
     } else {
       const url  = `${CFG.API_URL}?action=optimiserTournee&key=${CFG.API_KEY}&token=${encodeURIComponent(state.token||'')}&zone=${encodeURIComponent(state.zone||'')}&date=${encodeURIComponent(getDateSelectionnee())}`;
-      const resp = await fetch(url);
+      const resp = await fetch(url, { redirect: 'follow' });
       data = await resp.json();
     }
 
