@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/livreur",    "destination": "/AJCV_Livreur_PWA_v4.html" },
+    { "source": "/carte",      "destination": "/carte_livraisons_AJCV_v4.html" },
+    { "source": "/commercial", "destination": "/AJCV_Formulaire_Commercial.html" }
+  ]
+}
