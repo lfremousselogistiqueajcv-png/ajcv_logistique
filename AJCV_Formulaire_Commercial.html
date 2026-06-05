@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<title>AJCV — Fiches Clients</title>
+<style>
+:root{--gold:#FFB300;--blue:#1565C0;--bg:#0F1724;--surface:#1A2332;--surface2:#243044;--border:rgba(255,255,255,.1);--text:#F0F4FF;--text2:#8B9EC7;--green:#22C55E;--red:#EF4444;--orange:#E67E22}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+input,select,button,textarea{font-family:inherit}
+#login{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:380px}
+.login-logo{text-align:center;font-size:48px;margin-bottom:8px}
+.login-card h1{font-size:20px;font-weight:700;color:var(--gold);text-align:center;margin-bottom:4px}
+.login-card .sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:24px}
+label{font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px;margin-top:14px}
+input,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:15px;outline:none}
+input:focus,select:focus{border-color:var(--gold)}
+.btn{padding:12px 20px;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:18px}
+.btn-gold{background:var(--gold);color:#0F1724}
+.btn-gold:active{opacity:.85}
+.row-check{display:flex;align-items:center;gap:8px;margin-top:14px}
+.row-check input{width:16px;height:16px;accent-color:var(--gold);cursor:pointer}
+.row-check label{margin:0;text-transform:none;letter-spacing:0;cursor:pointer;font-size:13px}
+.err{display:none;color:var(--red);font-size:13px;margin-top:12px;text-align:center}
+.pwd-wrap{position:relative}
+.pwd-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px}
+#app{display:none;flex-direction:column;min-height:100vh}
+.header{background:var(--surface);border-bottom:2px solid var(--gold);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header h2{font-size:15px;font-weight:700;color:var(--gold)}
+.header-btns{display:flex;gap:8px}
+.icon-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 11px;font-size:13px;cursor:pointer}
+.content{padding:16px;max-width:900px;margin:0 auto;width:100%}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px}
+.chip{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--text2)}
+.chip.active{background:var(--gold);color:#0F1724;border-color:var(--gold)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+.stat-v{font-size:24px;font-weight:700}
+.stat-l{font-size:11px;color:var(--text2);margin-top:2px}
+.ftabs{display:flex;gap:8px;margin-bottom:14px}
+.ftab{flex:1;padding:10px;text-align:center;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--text2)}
+.ftab.active{background:var(--gold);color:#0F1724}
+.search{margin-bottom:14px}
+.client{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.client-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.client-nom{font-size:15px;font-weight:700}
+.client-ville{font-size:12px;color:var(--text2);margin-top:2px}
+.client-zone{font-size:11px;padding:3px 8px;border-radius:10px;background:var(--surface2);white-space:nowrap}
+.client-field{margin-top:10px}
+.save-row{display:flex;gap:8px;margin-top:12px}
+.btn-sm{padding:9px 14px;font-size:13px;border-radius:8px;border:none;cursor:pointer;font-weight:600;flex:1}
+.btn-save{background:var(--green);color:#fff}
+.btn-reset{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.loading{text-align:center;padding:40px;color:var(--text2)}
+.spin{display:inline-block;width:32px;height:32px;border:3px solid var(--surface2);border-top-color:var(--gold);border-radius:50%;animation:s 1s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 20px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;max-width:90%}
+.toast.show{opacity:1}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-bg.active{display:flex}
+.modal{background:var(--surface);border-radius:14px;padding:24px;width:100%;max-width:360px}
+.modal h3{font-size:16px;color:var(--gold);margin-bottom:16px}
+</style>
+</head>
+<body>
+<div id="login">
+  <div class="login-card">
+    <div class="login-logo">📋</div>
+    <h1>Fiches Clients AJCV</h1>
+    <div class="sub">La Réunion — 974</div>
+    <label>Identifiant</label>
+    <input id="iLogin" type="text" placeholder="COM_PRENOM" autocapitalize="characters" autocomplete="username">
+    <label>Mot de passe</label>
+    <div class="pwd-wrap">
+      <input id="iMdp" type="password" placeholder="••••••••" autocomplete="current-password" style="padding-right:42px">
+      <span class="pwd-eye" id="eye" onclick="togglePwd()">👁</span>
+    </div>
+    <div class="row-check">
+      <input type="checkbox" id="remember">
+      <label for="remember">Se souvenir de moi</label>
+    </div>
+    <div class="err" id="loginErr"></div>
+    <button class="btn btn-gold" onclick="connexion()">Se connecter</button>
+  </div>
+</div>
+<div id="app">
+  <div class="header">
+    <h2>📋 Fiches Clients</h2>
+    <div class="header-btns">
+      <span id="userInfo" style="font-size:12px;color:var(--gold);align-self:center;margin-right:4px"></span>
+      <button class="icon-btn" onclick="ouvrirMDP()" title="Changer mon mot de passe">🔒</button>
+      <button class="icon-btn" onclick="logout()">Déco.</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="chips" id="chips">
+      <div class="chip active" onclick="setZone('')">Toutes</div>
+      <div class="chip" onclick="setZone('1')">🟢 Zone 1 — Sud</div>
+      <div class="chip" onclick="setZone('2')">🔵 Zone 2 — Est</div>
+      <div class="chip" onclick="setZone('3')">🟠 Zone 3 — Ouest</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-v" style="color:var(--gold)" id="st-total">0</div><div class="stat-l">Clients</div></div>
+      <div class="stat"><div class="stat-v" style="color:var(--green)" id="st-complet">0</div><div class="stat-l">Renseignés</div></div>
+      <div class="stat"><div class="stat-v" style="color:var(--orange)" id="st-vide">0</div><div class="stat-l">À remplir</div></div>
+    </div>
+    <div class="ftabs">
+      <div class="ftab active" onclick="setFiltre('tous')">Tous</div>
+      <div class="ftab" onclick="setFiltre('vide')">À remplir</div>
+      <div class="ftab" onclick="setFiltre('complet')">Renseignés</div>
+    </div>
+    <div class="search">
+      <input id="search" type="text" placeholder="🔍 Rechercher client ou ville..." oninput="afficher()">
+    </div>
+    <div id="liste"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal-bg" id="modalMDP">
+  <div class="modal">
+    <h3>🔒 Changer mon mot de passe</h3>
+    <label>Ancien mot de passe</label>
+    <input id="m-old" type="password" placeholder="••••••••">
+    <label>Nouveau (8 car. min, 1 maj, 1 chiffre)</label>
+    <input id="m-new" type="password" placeholder="••••••••">
+    <label>Confirmer</label>
+    <input id="m-confirm" type="password" placeholder="••••••••">
+    <div class="err" id="mdpErr"></div>
+    <div class="save-row">
+      <button class="btn-sm btn-reset" onclick="document.getElementById('modalMDP').classList.remove('active')">Annuler</button>
+      <button class="btn-sm btn-save" onclick="changerMDP()">✅ Modifier</button>
+    </div>
+  </div>
+</div>
+<script>
+const API = 'https://ajcvbackend-production.up.railway.app';
+const APP_VERSION = 'v3-clean-2026';
+let S = { token:'', login:'', prenom:'', role:'', zone:'', filtre:'tous', clients:[] };
+
+(function(){
+  if (localStorage.getItem('ajcv_com_v') !== APP_VERSION) {
+    localStorage.removeItem('ajcv_com');
+    localStorage.setItem('ajcv_com_v', APP_VERSION);
+  }
+})();
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function togglePwd(){const i=document.getElementById('iMdp'),e=document.getElementById('eye');i.type=i.type==='password'?'text':'password';e.textContent=i.type==='password'?'👁':'🙈';}
+const ZONES_CP = {
+  '1': ['97480','97410','97432','97430','97421','97436','97427','97450','97425','97414','97442','97413','97429','97411','97422'],
+  '2': ['97417','97400','97490','97438','97440','97441','97412','97470','97439','97431','97433','97437'],
+  '3': ['97460','97423','97420','97419','97424','97426','97435','97434','97418','97416','97415']
+};
+function detecterZone(cp){
+  const c=String(cp||'').trim().slice(0,5);
+  for(const z in ZONES_CP){ if(ZONES_CP[z].includes(c)) return z; }
+  return '';
+}
+const ZONE_FULL = {'1':'🟢 Zone 1 — Livreur 1','2':'🔵 Zone 2 — Livreur 2','3':'🟠 Zone 3 — Livreur 3'};
+
+function zNum(z){const m=String(z||'').match(/[1-3]/);return m?m[0]:'';}
+function zoneLabel(z){const n=zNum(z);return n==='1'?'🟢 Z1':n==='2'?'🔵 Z2':n==='3'?'🟠 Z3':'—';}
+
+async function apiCall(path, opts={}){
+  const headers = Object.assign({'Authorization':'Bearer '+S.token}, opts.headers||{});
+  const resp = await fetch(API+path, Object.assign({}, opts, {headers}));
+  if (resp.status === 401) { sessionExpiree(); throw new Error('401'); }
+  return resp.json();
+}
+
+function sessionExpiree(){
+  localStorage.removeItem('ajcv_com');
+  S.token='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('login').style.display='flex';
+  toast('⚠️ Session expirée, reconnectez-vous');
+}
+
+async function connexion(){
+  const login = document.getElementById('iLogin').value.trim();
+  const mdp   = document.getElementById('iMdp').value.trim();
+  const err   = document.getElementById('loginErr');
+  err.style.display='none';
+  if(!login||!mdp){err.textContent='Remplissez tous les champs';err.style.display='block';return;}
+  try{
+    const resp = await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login,mdp})});
+    const d = await resp.json();
+    if(d.error){err.textContent=d.error;err.style.display='block';return;}
+    if(!d.token){err.textContent='Identifiants incorrects';err.style.display='block';return;}
+    S.token=d.token; S.login=login; S.prenom=d.prenom; S.role=d.role; S.zone=zNum(d.zone||'');
+    if(document.getElementById('remember').checked){
+      localStorage.setItem('ajcv_com_creds',JSON.stringify({login,mdp}));
+    }else{
+      localStorage.removeItem('ajcv_com_creds');
+    }
+    localStorage.setItem('ajcv_com',JSON.stringify({token:S.token,login:S.login,prenom:S.prenom,role:S.role,zone:S.zone}));
+    demarrer();
+  }catch(e){err.textContent='Erreur de connexion';err.style.display='block';}
+}
+
+function logout(){
+  localStorage.removeItem('ajcv_com');
+  S.token='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('login').style.display='flex';
+}
+
+function demarrer(){
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('userInfo').textContent=S.prenom+' · '+S.role;
+  charger();
+}
+
+async function charger(){
+  document.getElementById('liste').innerHTML='<div class="loading"><div class="spin"></div></div>';
+  try{
+    const z = zNum(S.zone||'');
+    const path = z ? '/clients?zone='+z : '/clients';
+    const d = await apiCall(path);
+    S.clients = (d.clients||[]).map(c=>({
+      id:c.id, nom:c.nom, ville:c.ville||'', cp:c.cp||'', zone:c.zone||'',
+      horaires:c.horaires||'', contrainte:c.contrainte||'LIBRE', priorite:c.priorite||'NORMALE'
+    }));
+    // Affichage : si pas de zone, on la déduit du CP (affichage seulement, pas de sauvegarde)
+    S.clients.forEach(c=>{
+      if(!zNum(c.zone) && c.cp){ const z=detecterZone(c.cp); if(z) c.zone=ZONE_FULL[z]; }
+    });
+    majStats(); afficher();
+  }catch(e){
+    if(e.message!=='401') document.getElementById('liste').innerHTML='<div class="loading">❌ Erreur de chargement</div>';
+  }
+}
+
+function majStats(){
+  const total=S.clients.length;
+  const complet=S.clients.filter(c=>c.horaires||c.contrainte!=='LIBRE'||c.priorite!=='NORMALE').length;
+  document.getElementById('st-total').textContent=total;
+  document.getElementById('st-complet').textContent=complet;
+  document.getElementById('st-vide').textContent=total-complet;
+}
+
+function setZone(z){
+  S.zone=z;
+  document.querySelectorAll('.chip').forEach((c,i)=>{const zones=['','1','2','3'];c.classList.toggle('active', zones[i]===z);});
+  charger();
+}
+
+function setFiltre(f){
+  S.filtre=f;
+  document.querySelectorAll('.ftab').forEach((t,i)=>{const filtres=['tous','vide','complet'];t.classList.toggle('active', filtres[i]===f);});
+  afficher();
+}
+
+// ── HORAIRES : génération options + parsing ──────────────────────────────────
+function opt(val,label,current){
+  return '<option value="'+val+'"'+(current===val?' selected':'')+'>'+label+'</option>';
+}
+
+function optionsHeure(selected){
+  let opts = '<option value="">--:--</option>';
+  for(let h=5; h<=22; h++){
+    for(let m=0; m<60; m+=15){
+      const v = ('0'+h).slice(-2)+'h'+('0'+m).slice(-2);
+      opts += '<option value="'+v+'"'+(v===selected?' selected':'')+'>'+v+'</option>';
+    }
+  }
+  return opts;
+}
+
+function parseHoraires(str){
+  // Extrait toutes les heures au format XXhXX
+  const times = (str||'').match(/\d{1,2}h\d{2}/g) || [];
+  if(times.length >= 4) return { coupure:true,  ouv:times[0], pauseD:times[1], pauseF:times[2], ferm:times[3] };
+  if(times.length === 2) return { coupure:false, ouv:times[0], pauseD:'',       pauseF:'',       ferm:times[1] };
+  return { coupure:false, ouv:'', pauseD:'', pauseF:'', ferm:'' };
+}
+
+function construireHoraires(idx){
+  const coupure = document.getElementById('hc-'+idx).checked;
+  const ouv  = document.getElementById('ho-'+idx).value;
+  const ferm = document.getElementById('hf-'+idx).value;
+  if(!ouv || !ferm) return '';
+  if(coupure){
+    const pd = document.getElementById('hpd-'+idx).value;
+    const pf = document.getElementById('hpf-'+idx).value;
+    if(pd && pf) return ouv+'-'+pd+'/'+pf+'-'+ferm;
+    return ouv+'-'+ferm;
+  }
+  return ouv+'-'+ferm;
+}
+
+function toggleCoupure(idx){
+  const on = document.getElementById('hc-'+idx).checked;
+  document.getElementById('pause-'+idx).style.display = on ? 'flex' : 'none';
+}
+
+function afficher(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  let list=S.clients.filter(c=>!q||c.nom.toLowerCase().includes(q)||c.ville.toLowerCase().includes(q));
+  if(S.filtre==='vide') list=list.filter(c=>!c.horaires&&c.contrainte==='LIBRE'&&c.priorite==='NORMALE');
+  if(S.filtre==='complet') list=list.filter(c=>c.horaires||c.contrainte!=='LIBRE'||c.priorite!=='NORMALE');
+  const el=document.getElementById('liste');
+  if(list.length===0){el.innerHTML='<div class="loading">Aucun client trouvé</div>';return;}
+  el.innerHTML=list.map((c)=>{
+    const idx=S.clients.indexOf(c);
+    const H=parseHoraires(c.horaires);
+    return '<div class="client">'+
+      '<div class="client-head">'+
+        '<div><div class="client-nom">'+c.nom+'</div><div class="client-ville">'+c.cp+' '+c.ville+'</div></div>'+
+        '<span class="client-zone">'+zoneLabel(c.zone)+'</span>'+
+      '</div>'+
+      '<div class="client-field">'+
+        '<label>🕐 Horaires d\'ouverture</label>'+
+        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'+
+          '<span style="font-size:12px;color:var(--text2);min-width:60px">Ouvre à</span>'+
+          '<select id="ho-'+idx+'" style="flex:1">'+optionsHeure(H.ouv)+'</select>'+
+        '</div>'+
+        '<label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;margin:8px 0;cursor:pointer">'+
+          '<input type="checkbox" id="hc-'+idx+'" onchange="toggleCoupure('+idx+')" '+(H.coupure?'checked':'')+' style="width:16px;height:16px;accent-color:var(--gold)">'+
+          '<span style="font-size:13px;color:var(--text)">Coupure le midi</span>'+
+        '</label>'+
+        '<div id="pause-'+idx+'" style="display:'+(H.coupure?'flex':'none')+';gap:8px;align-items:center;margin-bottom:8px">'+
+          '<span style="font-size:12px;color:var(--text2);min-width:60px">Pause</span>'+
+          '<select id="hpd-'+idx+'" style="flex:1">'+optionsHeure(H.pauseD)+'</select>'+
+          '<span style="font-size:12px;color:var(--text2)">à</span>'+
+          '<select id="hpf-'+idx+'" style="flex:1">'+optionsHeure(H.pauseF)+'</select>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;align-items:center">'+
+          '<span style="font-size:12px;color:var(--text2);min-width:60px">Ferme à</span>'+
+          '<select id="hf-'+idx+'" style="flex:1">'+optionsHeure(H.ferm)+'</select>'+
+        '</div>'+
+      '</div>'+
+      '<div class="client-field">'+
+        '<label>⚠️ Contrainte de livraison</label>'+
+        '<select id="c-'+idx+'">'+
+          opt('LIBRE','LIBRE — aucune contrainte',c.contrainte)+
+          '<optgroup label="⏰ Créneaux horaires">'+
+            opt('MATIN','MATIN (avant 12h)',c.contrainte)+
+            opt('APRES-MIDI','APRÈS-MIDI (après 14h)',c.contrainte)+
+            opt('AVANT 9H','Avant 9h',c.contrainte)+
+            opt('AVANT 10H','Avant 10h',c.contrainte)+
+            opt('AVANT 11H','Avant 11h',c.contrainte)+
+            opt('APRES 14H','Après 14h',c.contrainte)+
+            opt('APRES 15H','Après 15h',c.contrainte)+
+            opt('PAS LE MIDI','Pas entre 12h et 14h',c.contrainte)+
+          '</optgroup>'+
+          '<optgroup label="🚛 Accès & matériel">'+
+            opt('SUR RDV','Sur rendez-vous',c.contrainte)+
+            opt('LIVRAISON ARRIERE','Livraison par l\'arrière',c.contrainte)+
+            opt('HAYON','Hayon obligatoire',c.contrainte)+
+            opt('TRANSPALETTE','Transpalette nécessaire',c.contrainte)+
+            opt('ACCES DIFFICILE','Accès camion difficile',c.contrainte)+
+            opt('PETIT VEHICULE','Petit véhicule uniquement',c.contrainte)+
+          '</optgroup>'+
+        '</select>'+
+      '</div>'+
+      '<div class="client-field">'+
+        '<label>🚨 Priorité</label>'+
+        '<select id="p-'+idx+'">'+
+          '<option value="NORMALE"'+(c.priorite==='NORMALE'?' selected':'')+'>NORMALE</option>'+
+          '<option value="PRIORITAIRE"'+(c.priorite==='PRIORITAIRE'?' selected':'')+'>PRIORITAIRE</option>'+
+          '<option value="FLEXIBLE"'+(c.priorite==='FLEXIBLE'?' selected':'')+'>FLEXIBLE</option>'+
+        '</select>'+
+      '</div>'+
+      '<div class="save-row">'+
+        '<button class="btn-sm btn-reset" onclick="resetClient('+idx+')">Réinitialiser</button>'+
+        '<button class="btn-sm btn-save" onclick="sauverClient('+idx+')">💾 Enregistrer</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+async function sauverClient(idx){
+  const c=S.clients[idx];
+  const horaires=construireHoraires(idx);
+  const contrainte=document.getElementById('c-'+idx).value;
+  const priorite=document.getElementById('p-'+idx).value;
+  try{
+    await apiCall('/clients/id/'+c.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({horaires,contrainte,priorite})});
+    c.horaires=horaires; c.contrainte=contrainte; c.priorite=priorite;
+    majStats();
+    toast('✅ '+c.nom+' enregistré');
+  }catch(e){ if(e.message!=='401') toast('❌ Erreur'); }
+}
+
+async function resetClient(idx){
+  const c=S.clients[idx];
+  document.getElementById('ho-'+idx).value='';
+  document.getElementById('hf-'+idx).value='';
+  document.getElementById('hc-'+idx).checked=false;
+  document.getElementById('pause-'+idx).style.display='none';
+  if(document.getElementById('hpd-'+idx)) document.getElementById('hpd-'+idx).value='';
+  if(document.getElementById('hpf-'+idx)) document.getElementById('hpf-'+idx).value='';
+  document.getElementById('c-'+idx).value='LIBRE';
+  document.getElementById('p-'+idx).value='NORMALE';
+  try{
+    await apiCall('/clients/id/'+c.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({horaires:'',contrainte:'LIBRE',priorite:'NORMALE'})});
+    c.horaires=''; c.contrainte='LIBRE'; c.priorite='NORMALE';
+    majStats();
+    toast('↺ '+c.nom+' réinitialisé');
+  }catch(e){}
+}
+
+function ouvrirMDP(){document.getElementById('modalMDP').classList.add('active');}
+async function changerMDP(){
+  const ancien=document.getElementById('m-old').value;
+  const nouveau=document.getElementById('m-new').value;
+  const conf=document.getElementById('m-confirm').value;
+  const err=document.getElementById('mdpErr');
+  err.style.display='none';
+  if(!ancien||!nouveau){err.textContent='Remplissez tous les champs';err.style.display='block';return;}
+  if(nouveau!==conf){err.textContent='Les mots de passe ne correspondent pas';err.style.display='block';return;}
+  try{
+    const d=await apiCall('/auth/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ancien,nouveau})});
+    if(d.success){
+      document.getElementById('modalMDP').classList.remove('active');
+      const cr=localStorage.getItem('ajcv_com_creds');
+      if(cr) localStorage.setItem('ajcv_com_creds',JSON.stringify({login:S.login,mdp:nouveau}));
+      toast('✅ Mot de passe modifié');
+      document.getElementById('m-old').value='';document.getElementById('m-new').value='';document.getElementById('m-confirm').value='';
+    }else{err.textContent=d.error||'Erreur';err.style.display='block';}
+  }catch(e){if(e.message!=='401'){err.textContent='Erreur réseau';err.style.display='block';}}
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  try{
+    const cr=JSON.parse(localStorage.getItem('ajcv_com_creds')||'null');
+    if(cr){document.getElementById('iLogin').value=cr.login||'';document.getElementById('iMdp').value=cr.mdp||'';document.getElementById('remember').checked=true;}
+  }catch(_){}
+  try{
+    const sv=JSON.parse(localStorage.getItem('ajcv_com')||'null');
+    if(sv&&sv.token){S.token=sv.token;S.login=sv.login;S.prenom=sv.prenom;S.role=sv.role;S.zone=sv.zone||'';demarrer();}
+  }catch(_){}
+});
+</script>
+</body>
+</html>
