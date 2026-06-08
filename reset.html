@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mot de passe — AJCV Logistique</title>
+<style>
+:root{--gold:#FFB300;--blue:#1565C0;--bg:#0F1724;--surface:#1A2332;--surface2:#243044;--border:rgba(255,255,255,.1);--text:#F0F4FF;--text2:#8B9EC7;--green:#22C55E;--red:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:380px}
+.logo{text-align:center;font-size:48px;margin-bottom:8px}
+h1{font-size:20px;font-weight:700;color:var(--gold);text-align:center;margin-bottom:4px}
+.sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:24px}
+label{font-size:12px;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;margin-top:14px}
+input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;outline:none}
+input:focus{border-color:var(--gold)}
+.hint{font-size:11px;color:var(--text2);margin-top:6px}
+.btn{width:100%;margin-top:20px;background:var(--gold);color:#0F1724;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:700;cursor:pointer}
+.btn:disabled{opacity:.5;cursor:default}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);font-weight:600}
+.msg{font-size:13px;margin-top:14px;text-align:center;line-height:1.5;display:none}
+.msg.err{color:var(--red);display:block}
+.msg.ok{color:var(--green);display:block}
+.pwd-wrap{position:relative}
+.pwd-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;user-select:none}
+.center{text-align:center;margin-top:20px}
+.spin{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:s 1s linear infinite;margin:24px auto}
+@keyframes s{to{transform:rotate(360deg)}}
+.links{display:flex;gap:8px;margin-top:18px}
+.links a{flex:1;text-align:center;text-decoration:none;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:13px;font-weight:600}
+.big-icon{text-align:center;font-size:44px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">🔑</div>
+  <h1>AJCV Logistique</h1>
+  <div class="sub" id="sub">Mot de passe</div>
+
+  <!-- Chargement (vérif du lien) -->
+  <div id="view-loading"><div class="spin"></div></div>
+
+  <!-- Mode 1 : demande de réinitialisation -->
+  <div id="view-request" style="display:none">
+    <label>Votre adresse email</label>
+    <input id="email" type="email" placeholder="vous@exemple.com" autocomplete="email">
+    <div class="hint">Saisissez l'email de votre compte. Vous recevrez un lien pour créer un nouveau mot de passe.</div>
+    <button class="btn" id="btnReq" onclick="demander()">Envoyer le lien</button>
+    <div class="msg" id="msgReq"></div>
+  </div>
+
+  <!-- Mode 2 : création du nouveau mot de passe -->
+  <div id="view-reset" style="display:none">
+    <label>Nouveau mot de passe</label>
+    <div class="pwd-wrap">
+      <input id="p1" type="password" placeholder="••••••••" autocomplete="new-password">
+      <span class="pwd-eye" onclick="toggle('p1',this)">👁</span>
+    </div>
+    <div class="hint">Minimum 8 caractères.</div>
+    <label>Confirmer le mot de passe</label>
+    <div class="pwd-wrap">
+      <input id="p2" type="password" placeholder="••••••••" autocomplete="new-password">
+      <span class="pwd-eye" onclick="toggle('p2',this)">👁</span>
+    </div>
+    <button class="btn" id="btnReset" onclick="reinitialiser()">Valider mon mot de passe</button>
+    <div class="msg" id="msgReset"></div>
+  </div>
+
+  <!-- Lien invalide -->
+  <div id="view-invalid" style="display:none">
+    <div class="big-icon">⚠️</div>
+    <div class="msg err" style="display:block">Ce lien est invalide ou expiré.<br>Les liens sont valables 1 heure et à usage unique.</div>
+    <button class="btn btn-ghost" onclick="goRequest()">Refaire une demande</button>
+  </div>
+
+  <!-- Succès -->
+  <div id="view-success" style="display:none">
+    <div class="big-icon">✅</div>
+    <div class="msg ok" style="display:block">Mot de passe enregistré !<br>Vous pouvez vous connecter à votre application.</div>
+    <div class="links">
+      <a href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/livreur_final.html">App Livreur</a>
+      <a href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/AJCV_Admin.html">Admin</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://ajcvbackend-production.up.railway.app';
+const token = new URLSearchParams(location.search).get('token');
+const $ = id => document.getElementById(id);
+function show(view){ ['loading','request','reset','invalid','success'].forEach(v => $('view-'+v).style.display = (v===view?'block':'none')); }
+function toggle(id,el){ const i=$(id); i.type = i.type==='password'?'text':'password'; el.textContent = i.type==='password'?'👁':'🙈'; }
+function goRequest(){ history.replaceState(null,'',location.pathname); $('sub').textContent='Mot de passe oublié'; show('request'); }
+
+// Au chargement : si token → mode reset (après vérif), sinon → mode demande
+(async function init(){
+  if(!token){ goRequest(); return; }
+  $('sub').textContent='Nouveau mot de passe';
+  show('loading');
+  try{
+    const r = await fetch(API+'/auth/reset/check?token='+encodeURIComponent(token));
+    const d = await r.json();
+    show(d.valid ? 'reset' : 'invalid');
+  }catch(_){ show('invalid'); }
+})();
+
+async function demander(){
+  const email = $('email').value.trim();
+  const m = $('msgReq');
+  m.className='msg';
+  if(!email){ m.className='msg err'; m.textContent='Saisissez votre email.'; return; }
+  $('btnReq').disabled=true; $('btnReq').textContent='Envoi…';
+  try{
+    const r = await fetch(API+'/auth/forgot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const d = await r.json();
+    if(r.status===429){ m.className='msg err'; m.textContent=d.error||'Trop de demandes, réessayez plus tard.'; }
+    else { m.className='msg ok'; m.textContent=d.message||'Si cet email existe, un lien vient d\'être envoyé. Vérifiez vos spams.'; $('email').value=''; }
+  }catch(_){ m.className='msg err'; m.textContent='Erreur réseau, réessayez.'; }
+  $('btnReq').disabled=false; $('btnReq').textContent='Envoyer le lien';
+}
+
+async function reinitialiser(){
+  const p1=$('p1').value, p2=$('p2').value;
+  const m=$('msgReset');
+  m.className='msg';
+  if(p1.length<8){ m.className='msg err'; m.textContent='Minimum 8 caractères.'; return; }
+  if(p1!==p2){ m.className='msg err'; m.textContent='Les deux mots de passe ne correspondent pas.'; return; }
+  $('btnReset').disabled=true; $('btnReset').textContent='Validation…';
+  try{
+    const r = await fetch(API+'/auth/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,nouveau:p1})});
+    const d = await r.json();
+    if(r.ok && d.success){ show('success'); }
+    else { m.className='msg err'; m.textContent=d.error||'Échec, réessayez.'; $('btnReset').disabled=false; $('btnReset').textContent='Valider mon mot de passe'; }
+  }catch(_){ m.className='msg err'; m.textContent='Erreur réseau, réessayez.'; $('btnReset').disabled=false; $('btnReset').textContent='Valider mon mot de passe'; }
+}
+</script>
+</body>
+</html>
