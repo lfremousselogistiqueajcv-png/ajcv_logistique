@@ -1,0 +1,27 @@
+{
+  "version": "2026.06.18.2",
+  "app": "AJCV Logistique",
+  "historique": [
+    {
+      "v": "2026.06.18.2",
+      "date": "18/06/2026",
+      "titre": "Retour aux 3 zones",
+      "notes": [
+        "🗺️ Zones simplifiées : Nord-Est · Ouest · Sud (fin du découpage en 4)",
+        "🤖 Simulation du Plan de tournée par ces 3 zones (Nord et Est regroupés)"
+      ]
+    },
+    {
+      "v": "2026.06.18",
+      "date": "18/06/2026",
+      "titre": "Chargement camion, colis & tournées fiables",
+      "notes": [
+        "🚚 Nouvel onglet Chargement camion : coche chaque commande chargée et confirme le nombre de colis avant de partir",
+        "📦 Le nombre de colis remonte dans les KPI (par zone et par livreur)",
+        "🧭 Optimisation de tournée fiabilisée : calcul côté serveur (OSRM), plus de blocage au-delà de 20 livraisons mélangées",
+        "📥 Import livraisons : une date manquante ne bloque plus l'import",
+        "🔄 Mise à jour automatique de l'application + numéro de version visible"
+      ]
+    }
+  ]
+}
