@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AJCV — Administration</title>
+<style>
+:root{--gold:#FFB300;--blue:#1565C0;--bg:#0F1724;--surface:#1A2332;--surface2:#243044;--border:rgba(255,255,255,.1);--text:#F0F4FF;--text2:#8B9EC7;--green:#22C55E;--red:#EF4444;--orange:#E67E22}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+input,select,button,textarea{font-family:inherit}
+a{color:var(--gold)}
+/* LOGIN */
+#login{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:380px}
+.login-logo{text-align:center;font-size:48px;margin-bottom:8px}
+.login-card h1{font-size:20px;font-weight:700;color:var(--gold);text-align:center;margin-bottom:4px}
+.login-card .sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:24px}
+label{font-size:12px;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;margin-top:14px}
+input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+.btn{padding:11px 18px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+.btn-gold{background:var(--gold);color:#0F1724}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+.btn-gray{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-full{width:100%;margin-top:18px}
+.btn-sm{padding:6px 10px;font-size:12px;border-radius:6px}
+.row-check{display:flex;align-items:center;gap:8px;margin-top:14px}
+.row-check input{width:16px;height:16px;accent-color:var(--gold);cursor:pointer}
+.row-check label{margin:0;cursor:pointer;font-size:13px}
+.err{display:none;color:var(--red);font-size:13px;margin-top:12px;text-align:center}
+.pwd-wrap{position:relative}
+.pwd-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px}
+/* APP */
+#app{display:none}
+.topbar{background:var(--surface);border-bottom:2px solid var(--gold);position:sticky;top:0;z-index:100}
+.topbar-inner{max-width:1300px;margin:0 auto;padding:0 16px;display:flex;align-items:center;gap:4px;overflow-x:auto}
+.nav-tab{padding:16px 14px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px}
+.nav-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.nav-tab:hover{color:var(--text)}
+.topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.content-wrap{max-width:1300px;margin:0 auto;padding:20px 16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+.card h3{font-size:16px;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--surface2);padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);white-space:nowrap}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--text)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.02)}
+.pill{font-size:11px;padding:3px 9px;border-radius:10px;white-space:nowrap;font-weight:600}
+.pill-ok{background:rgba(34,197,94,.15);color:var(--green)}
+.pill-no{background:rgba(239,68,68,.15);color:var(--red)}
+.pill-wait{background:rgba(230,126,34,.15);color:var(--orange)}
+.inline-input{background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text);font-size:12px;padding:3px;width:100%}
+.inline-input:focus{border-bottom-color:var(--gold)}
+.inline-sel{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 6px;color:var(--text);font-size:11px;cursor:pointer}
+/* FORM GRID */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.form-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
+/* STATS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.kpi-v{font-size:28px;font-weight:700}
+.kpi-l{font-size:12px;color:var(--text2);margin-top:4px}
+/* AUTOCOMPLETE */
+.ac-wrap{position:relative}
+.ac-list{position:absolute;top:100%;left:0;right:0;background:var(--surface2);border:1px solid var(--gold);border-radius:0 0 8px 8px;max-height:240px;overflow-y:auto;z-index:999}
+.ac-item{padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border)}
+.ac-item:hover{background:rgba(255,179,0,.12);color:var(--gold)}
+.ac-item .n{font-weight:700}
+.ac-item .d{font-size:11px;color:var(--text2)}
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.modal-bg.active{display:flex}
+.modal{background:var(--surface);border-radius:14px;padding:24px;width:100%;max-width:480px;margin:auto}
+.modal h3{font-size:17px;color:var(--gold);margin-bottom:16px}
+/* DROPZONE */
+.dropzone{border:2px dashed var(--border);border-radius:12px;padding:30px;text-align:center;cursor:pointer;transition:.2s}
+.dropzone:hover{border-color:var(--gold);background:rgba(255,179,0,.04)}
+.loading{text-align:center;padding:40px;color:var(--text2)}
+.spin{display:inline-block;width:32px;height:32px;border:3px solid var(--surface2);border-top-color:var(--gold);border-radius:50%;animation:s 1s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--gold);border-radius:10px;padding:12px 20px;font-size:14px;z-index:9999;opacity:0;transition:.3s;max-width:90%}
+.toast.show{opacity:1}
+.muted{color:var(--text2);font-size:12px}
+.bar{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-top:6px}
+.bar-fill{height:100%;background:var(--gold)}
+.addr-sug{position:absolute;left:0;right:0;top:100%;z-index:60;background:var(--surface,#fff);border:1px solid var(--border,#ddd);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-height:240px;overflow:auto;display:none;margin-top:3px}
+.addr-item{padding:10px 12px;cursor:pointer;font-size:13px;line-height:1.3;border-bottom:1px solid var(--border,#eee);color:var(--text,#222)}
+.addr-item:hover{background:var(--surface2,#f3f4f6)}
+.addr-item:last-child{border-bottom:none}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-card">
+    <div class="login-logo">⚙️</div>
+    <h1>Administration AJCV</h1>
+    <div class="sub">La Réunion — 974</div>
+    <label>Identifiant</label>
+    <input id="iLogin" type="text" placeholder="ADMIN_PRENOM" autocapitalize="characters">
+    <label>Mot de passe</label>
+    <div class="pwd-wrap">
+      <input id="iMdp" type="password" placeholder="••••••••" style="padding-right:42px">
+      <span class="pwd-eye" id="eye" onclick="togglePwd()">👁</span>
+    </div>
+    <div class="row-check"><input type="checkbox" id="remember"><label for="remember">Se souvenir de moi</label></div>
+    <div class="err" id="loginErr"></div>
+    <button class="btn btn-gold btn-full" onclick="connexion()">Se connecter</button>
+    <div style="text-align:center;margin-top:14px"><a href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/reset.html" style="color:#FFB300;font-size:13px;text-decoration:none">Mot de passe oublié ?</a></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="nav-tab active" data-tab="livraisons" onclick="go('livraisons')">📦 Livraisons</div>
+      <div class="nav-tab" data-tab="plan" onclick="go('plan')">🗺️ Plan de tournée</div>
+      <div class="nav-tab" data-tab="impLiv" onclick="go('impLiv')">📥 Import Livraisons</div>
+      <div class="nav-tab" data-tab="impCli" onclick="go('impCli')">📥 Import Clients</div>
+      <div class="nav-tab" data-tab="clients" onclick="go('clients')">🏪 Clients</div>
+      <div class="nav-tab" data-tab="users" onclick="go('users')">🔐 Utilisateurs</div>
+      <div class="nav-tab" data-tab="docs" onclick="go('docs')">📄 Documents</div>
+      <div class="nav-tab" data-tab="flotte" onclick="go('flotte')">🚐 Flotte</div>
+      <div class="nav-tab" data-tab="kpi" onclick="go('kpi')">📊 KPI</div>
+      <div class="nav-tab" data-tab="odoo" onclick="go('odoo')">🔄 Imports Odoo</div>
+      <div class="topbar-right">
+        <span id="userInfo" style="font-size:12px;color:var(--gold)"></span>
+        <button class="btn btn-gray btn-sm" onclick="ouvrirMDP()">🔒</button>
+        <button class="btn btn-gray btn-sm" onclick="logout()">Déco.</button>
+      </div>
+    </div>
+  </div>
+  <div class="content-wrap" id="content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- MODAL CHANGER MDP -->
+<div class="modal-bg" id="modalMDP">
+  <div class="modal">
+    <h3>🔒 Changer mon mot de passe</h3>
+    <label>Ancien mot de passe</label><input id="mdp-old" type="password">
+    <label>Nouveau (8 car. min, 1 maj, 1 chiffre)</label><input id="mdp-new" type="password">
+    <label>Confirmer</label><input id="mdp-conf" type="password">
+    <div class="err" id="mdpErr"></div>
+    <div class="form-actions">
+      <button class="btn btn-gray" onclick="fermerModal('modalMDP')">Annuler</button>
+      <button class="btn btn-gold" onclick="changerMDP()">✅ Modifier</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJOUT UTILISATEUR -->
+<div class="modal-bg" id="modalUser">
+  <div class="modal">
+    <h3>➕ Nouvel utilisateur</h3>
+    <div class="form-grid">
+      <div><label>Identifiant *</label><input id="nu-login" placeholder="LIV_PRENOM" style="text-transform:uppercase"></div>
+      <div><label>Mot de passe *</label><input id="nu-mdp" placeholder="ajcv2024" value="ajcv2024"></div>
+      <div><label>Prénom *</label><input id="nu-prenom"></div>
+      <div><label>Nom</label><input id="nu-nom"></div>
+      <div><label>Rôle</label><select id="nu-role"><option>Livreur</option><option>Commercial</option><option>Depot</option><option>Admin</option></select></div>
+      <div><label>Zone</label><select id="nu-zone"><option value="">Toutes</option><option value="🟢 Zone 1 — Livreur 1">🟢 Zone 1</option><option value="🔵 Zone 2 — Livreur 2">🔵 Zone 2</option><option value="🟠 Zone 3 — Livreur 3">🟠 Zone 3</option></select></div>
+      <div><label>📧 Email</label><input id="nu-email" type="email"></div>
+      <div><label>📱 Téléphone</label><input id="nu-tel" type="tel"></div>
+    </div>
+    <div class="err" id="userErr"></div>
+    <div class="form-actions">
+      <button class="btn btn-gray" onclick="fermerModal('modalUser')">Annuler</button>
+      <button class="btn btn-green" onclick="creerUser()">✅ Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DOCUMENT -->
+<div class="modal-bg" id="modalDoc">
+  <div class="modal" style="max-width:540px">
+    <div id="docContent"></div>
+    <div class="form-actions">
+      <button class="btn btn-gray" onclick="fermerModal('modalDoc')">Fermer</button>
+      <button class="btn btn-blue" onclick="telechargerPNG()">🖼️ Signature PNG</button>
+      <button class="btn btn-green" onclick="telechargerDoc()">📄 Télécharger PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJOUT CLIENT -->
+<div class="modal-bg" id="modalClient">
+  <div class="modal">
+    <h3>➕ Ajouter un client</h3>
+    <div class="form-grid">
+      <div style="grid-column:1/-1"><label>Nom du client *</label><input id="cli-nom" placeholder="Ex: ENGEN GRANDE MONTEE SARL"></div>
+      <div><label>Ville *</label><input id="cli-ville" placeholder="Ex: SAINT BENOIT"></div>
+      <div><label>Code postal *</label><input id="cli-cp" placeholder="Ex: 97470"></div>
+      <div style="grid-column:1/-1;position:relative"><label>Adresse * (autocomplétion Google Maps)</label><input id="cli-adresse" autocomplete="off" placeholder="Tapez l'adresse — le code postal et la commune se remplissent seuls"><div id="cli-sug" class="addr-sug"></div></div>
+      <div><label>Téléphone 1</label><input id="cli-tel1"></div>
+      <div><label>Téléphone 2</label><input id="cli-tel2"></div>
+      <div style="grid-column:1/-1"><label>Email</label><input id="cli-email" type="email"></div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-top:8px">💡 Le GPS est calculé automatiquement depuis l'adresse à la création.</div>
+    <div class="err" id="cliErr"></div>
+    <div class="form-actions">
+      <button class="btn btn-gray" onclick="fermerModal('modalClient')">Annuler</button>
+      <button class="btn btn-green" onclick="creerClient()">✅ Créer le client</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJOUT LIVRAISON -->
+<div class="modal-bg" id="modalLiv">
+  <div class="modal">
+    <h3>➕ Ajouter une livraison</h3>
+    <label>Client (tapez les premières lettres)</label>
+    <div class="ac-wrap">
+      <input id="fl-client" placeholder="Nom du client..." oninput="acClient(this.value)" autocomplete="off">
+      <div id="fl-ac" class="ac-list" style="display:none"></div>
+    </div>
+    <div class="form-grid" style="margin-top:12px">
+      <div><label>Ville</label><input id="fl-ville"></div>
+      <div><label>Code postal</label><input id="fl-cp"></div>
+      <div style="grid-column:1/-1"><label>Adresse</label><input id="fl-adresse"></div>
+      <div><label>N° Bon de Livraison (BLV)</label><input id="fl-bl" placeholder="Ex: BLV231574" onblur="verifierBL()"><div id="fl-bl-warn" style="font-size:12px;margin-top:4px"></div></div>
+      <div><label>Zone (modifiable)</label><select id="fl-zone"><option value="🟢 Zone 1 — Livreur 1">🟢 Zone 1 — Sud</option><option value="🔵 Zone 2 — Livreur 2">🔵 Zone 2 — Est</option><option value="🟠 Zone 3 — Livreur 3">🟠 Zone 3 — Ouest</option></select></div>
+      <div><label>Date de livraison</label><input id="fl-date" type="date"></div>
+      <div><label>Téléphone</label><input id="fl-tel"></div>
+      <div><label>Colis</label><input id="fl-colis" type="number" value="1"></div>
+      <div style="grid-column:1/-1"><label>Email (pour le bon de réception)</label><input id="fl-email" type="email" placeholder="prérempli depuis la fiche client"></div>
+      <div style="grid-column:1/-1"><label>Indications</label><input id="fl-indic" placeholder="Instructions de livraison..."></div>
+      <div style="grid-column:1/-1"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.4);border-radius:8px;padding:9px"><input type="checkbox" id="fl-vendredi" style="width:18px;height:18px;accent-color:#f59e0b"> 🏁 Forcer la tournée du vendredi (sinon auto si reçu jeu. 17h → ven. 12h)</label></div>
+    </div>
+    <div class="err" id="livErr"></div>
+    <div class="form-actions">
+      <button class="btn btn-gray" onclick="fermerModal('modalLiv')">Annuler</button>
+      <button class="btn btn-green" onclick="creerLivraison()">✅ Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://ajcvbackend-production.up.railway.app';
+const APP_VERSION = 'v3-clean-2026';
+let S = { token:'', login:'', prenom:'', role:'', tab:'livraisons' };
+let _clients = null;       // cache liste clients
+let _acMatches = [];       // matches autocomplete
+
+// ── PURGE CACHE ───────────────────────────────────────────────────────────
+(function(){ if(localStorage.getItem('ajcv_admin_v')!==APP_VERSION){localStorage.removeItem('ajcv_admin');localStorage.setItem('ajcv_admin_v',APP_VERSION);} })();
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function togglePwd(){const i=document.getElementById('iMdp'),e=document.getElementById('eye');i.type=i.type==='password'?'text':'password';e.textContent=i.type==='password'?'👁':'🙈';}
+function fermerModal(id){document.getElementById(id).classList.remove('active');}
+function zNum(z){const m=String(z||'').match(/[1-3]/);return m?m[0]:'';}
+function zLabel(z){const n=zNum(z);return n==='1'?'🟢 Z1':n==='2'?'🔵 Z2':n==='3'?'🟠 Z3':'—';}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── API avec gestion 401 ─────────────────────────────────────────────────────
+async function api(method, path, body){
+  const opts = { method, headers:{'Authorization':'Bearer '+S.token} };
+  if(body){ opts.headers['Content-Type']='application/json'; opts.body=JSON.stringify(body); }
+  const r = await fetch(API+path, opts);
+  if(r.status===401){ sessionExpiree(); throw new Error('401'); }
+  return r.json();
+}
+function sessionExpiree(){
+  localStorage.removeItem('ajcv_admin'); S.token='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('login').style.display='flex';
+  toast('⚠️ Session expirée, reconnectez-vous');
+}
+
+// ── CONNEXION ────────────────────────────────────────────────────────────────
+async function connexion(){
+  const login=document.getElementById('iLogin').value.trim();
+  const mdp=document.getElementById('iMdp').value.trim();
+  const err=document.getElementById('loginErr'); err.style.display='none';
+  if(!login||!mdp){err.textContent='Remplissez tous les champs';err.style.display='block';return;}
+  try{
+    const r=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login,mdp})});
+    const d=await r.json();
+    if(d.error){err.textContent=d.error;err.style.display='block';return;}
+    if(!d.token){err.textContent='Identifiants incorrects';err.style.display='block';return;}
+    if(d.role!=='Admin' && d.role!=='Depot'){err.textContent='Accès réservé aux administrateurs';err.style.display='block';return;}
+    S.token=d.token;S.login=login;S.prenom=d.prenom;S.role=d.role;
+    if(document.getElementById('remember').checked) localStorage.setItem('ajcv_admin_creds',JSON.stringify({login,mdp}));
+    else localStorage.removeItem('ajcv_admin_creds');
+    localStorage.setItem('ajcv_admin',JSON.stringify({token:S.token,login:S.login,prenom:S.prenom,role:S.role}));
+    demarrer();
+  }catch(e){err.textContent='Erreur de connexion';err.style.display='block';}
+}
+function logout(){localStorage.removeItem('ajcv_admin');S.token='';document.getElementById('app').style.display='none';document.getElementById('login').style.display='flex';}
+function demarrer(){
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('userInfo').textContent=S.prenom+' · '+S.role;
+  go('livraisons');
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────
+function go(tab){
+  S.tab=tab;
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  const c=document.getElementById('content');
+  c.innerHTML='<div class="loading"><div class="spin"></div></div>';
+  if(tab==='livraisons') renderLivraisons();
+  else if(tab==='plan') renderPlan();
+  else if(tab==='impLiv') renderImportLiv();
+  else if(tab==='impCli') renderImportCli();
+  else if(tab==='clients') renderClients();
+  else if(tab==='users') renderUsers();
+  else if(tab==='docs') renderDocs();
+  else if(tab==='flotte') renderFlotte();
+  else if(tab==='kpi') renderKPI();
+  else if(tab==='odoo') renderImportsOdoo();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PLAN DE TOURNÉE — affectation des livraisons aux livreurs + simulation
+// ════════════════════════════════════════════════════════════════════════════
+let _plan = { date:'', livs:[], drivers:[], prop:null };
+function nomLivreur(u){ return (u.prenom||'') + (u.nom ? ' '+u.nom : ''); }
+function driverOptions(sel){
+  return '<option value="">(non affecté)</option>' + _plan.drivers.map(d=>`<option value="${esc(d.nom)}" ${sel===d.nom?'selected':''}>${esc(d.nom)}</option>`).join('');
+}
+async function renderPlan(){
+  const today = new Date().toISOString().split('T')[0];
+  if(!_plan.date) _plan.date = today;
+  const du = await api('GET','/admin/users').catch(()=>({users:[]}));
+  _plan.drivers = (du.users||[]).filter(u=>u.role==='Livreur').map(u=>({ nom:nomLivreur(u), zone:u.zone||'' }));
+  document.getElementById('content').innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <h3 style="margin:0">🗺️ Plan de tournée</h3>
+        <input type="date" id="planDate" value="${_plan.date}" onchange="_plan.date=this.value;_plan.prop=null;planReload()" style="margin-left:auto">
+      </div>
+      <p class="muted" style="margin:10px 0 0">Affecte les livraisons : une <b>zone entière</b>, une <b>sélection</b>, ou <b>à l'unité</b> (colonne Livreur). Ou lance une <b>simulation</b> pour répartir automatiquement entre plusieurs livreurs.</p>
+    </div>
+    <div class="card">
+      <label style="font-size:12px;font-weight:600">Toper des clients dans plusieurs zones → un livreur</label>
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;align-items:center">
+        <span class="muted" style="font-size:12px">Coche des livraisons (n'importe quelle zone), puis :</span>
+        <select id="planSelDriver">${driverOptions()}</select>
+        <button class="btn btn-sm" onclick="planAffecterSelection()">Affecter la sélection</button>
+      </div>
+    </div>
+    <div class="card" style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.25)">
+      <div style="font-weight:700;color:#7c3aed">🤖 Simulation par secteurs</div>
+      <p class="muted" style="margin:6px 0 10px">Pour chaque livreur, coche les secteurs qu'il couvre. Ex : Clément → Sud + Ouest, Rehan → Nord + Est. La répartition suit ces secteurs.</p>
+      <div class="table-wrap"><table><thead><tr><th>Livreur</th><th style="text-align:center">🟩 Sud</th><th style="text-align:center">🟦 Nord</th><th style="text-align:center">🟧 Est</th><th style="text-align:center">🟨 Ouest</th></tr></thead>
+        <tbody>${_plan.drivers.map(d=>`<tr><td><b>${esc(d.nom)}</b></td>${['Sud','Nord','Est','Ouest'].map(s=>`<td style="text-align:center"><input type="checkbox" class="sect-cb" data-driver="${esc(d.nom)}" value="${s}"></td>`).join('')}</tr>`).join('')||'<tr><td colspan="5" class="muted">Aucun livreur</td></tr>'}</tbody></table></div>
+      <button class="btn btn-sm" style="margin-top:10px;background:#7c3aed;color:#fff" onclick="planSimuler()">Simuler la répartition</button>
+      <div id="planSimResult"></div>
+    </div>
+    <div class="card">
+      <div id="planCharge"></div>
+      <div id="planTable" class="table-wrap" style="margin-top:10px"></div>
+    </div>`;
+  planReload();
+}
+async function planReload(){
+  const r = await api('GET','/livraisons?date='+encodeURIComponent(_plan.date)).catch(()=>({livraisons:[]}));
+  _plan.livs = (r.livraisons||[]).filter(l=>!/livré/i.test(l.statut||''));
+  planRenderCharge();
+  planRenderTable();
+}
+function planRenderCharge(){
+  const el=document.getElementById('planCharge'); if(!el) return;
+  const par={}; _plan.livs.forEach(l=>{ const k=(l.livreur||'').trim()||'— non affecté'; if(!par[k])par[k]={n:0,c:0}; par[k].n++; par[k].c+=(parseInt(l.nb_colis)||1); });
+  const chips=Object.entries(par).map(([k,v])=>`<span style="background:${k.startsWith('—')?'#f1f5f9':'#dbeafe'};color:${k.startsWith('—')?'#64748b':'#1e40af'};padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600">${esc(k)} : ${v.n} liv. · ${v.c} colis</span>`).join(' ');
+  el.innerHTML=`<div style="font-weight:600;margin-bottom:6px">Charge par livreur — ${_plan.livs.length} livraison(s) à affecter/livrer</div><div style="display:flex;gap:8px;flex-wrap:wrap">${chips||'<span class="muted">Aucune livraison ce jour</span>'}</div>`;
+}
+function planRenderTable(){
+  const el=document.getElementById('planTable'); if(!el) return;
+  if(!_plan.livs.length){ el.innerHTML='<p class="muted">Aucune livraison à affecter pour cette date.</p>'; return; }
+  const propMap={}; if(_plan.prop) _plan.prop.proposition.forEach(p=>propMap[p.id]=p.livreur_propose);
+  const showProp=!!_plan.prop;
+  // Brouillon découpé par zone
+  const groupes={}, ordre=[];
+  _plan.livs.forEach(l=>{ const key=zNum(l.zone)||'0'; if(!groupes[key]){groupes[key]=[];ordre.push(key);} groupes[key].push(l); });
+  ordre.sort((a,b)=>(a==='0'?9:parseInt(a))-(b==='0'?9:parseInt(b)));
+  const libZone={'1':'🟢 Zone 1 — Sud','2':'🔵 Zone 2 — Est','3':'🟠 Zone 3 — Ouest','0':'⚪ Hors zone'};
+  el.innerHTML = ordre.map(key=>{
+    const livs=groupes[key];
+    const nAff=livs.filter(l=>(l.livreur||'').trim()).length;
+    return `<div style="margin-top:14px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(148,163,184,.12);padding:8px 10px;border-radius:8px">
+        <b>${libZone[key]||('Zone '+key)}</b>
+        <span class="muted" style="font-size:12px">${livs.length} liv. · ${nAff} affectée(s)</span>
+        ${key!=='0'?`<span style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span style="font-size:12px">Toute la zone →</span>
+          <select id="zoneDriver_${key}" style="font-size:12px">${driverOptions()}</select>
+          <button class="btn btn-sm" onclick="planAffecterZoneDirect('${key}')">Affecter</button></span>`:''}
+      </div>
+      <div class="table-wrap" style="margin-top:6px"><table><thead><tr>
+        <th><input type="checkbox" onclick="this.closest('table').querySelectorAll('.plan-cb').forEach(c=>c.checked=this.checked)"></th>
+        <th>Client</th><th>Ville</th><th>Colis</th><th>Livreur affecté</th>${showProp?'<th>Proposé</th>':''}</tr></thead>
+      <tbody>${livs.map(l=>`<tr>
+        <td><input type="checkbox" class="plan-cb" value="${l.id}"></td>
+        <td>${esc(l.client_nom||'')}</td><td>${esc(l.ville||'')}</td><td>${parseInt(l.nb_colis)||1}</td>
+        <td><select onchange="planAffecterUnite('${l.id}',this.value)" style="font-size:12px">${driverOptions((l.livreur||'').trim())}</select></td>
+        ${showProp?`<td style="font-weight:700;color:#7c3aed">${esc(propMap[l.id]||'—')}</td>`:''}
+      </tr>`).join('')}</tbody></table></div>
+    </div>`;
+  }).join('');
+}
+async function planAffecterZoneDirect(key){
+  const livreur=document.getElementById('zoneDriver_'+key).value;
+  if(!livreur){ toast('Choisis un livreur'); return; }
+  toast('⏳ Affectation...');
+  const r=await api('POST','/livraisons/affecter',{zone:key,date:_plan.date,livreur}).catch(()=>null);
+  if(r&&r.success){ toast('✅ '+r.total+' livraison(s) → '+livreur); planReload(); } else toast('❌ Erreur');
+}
+async function planAffecterZone(){
+  const zone=document.getElementById('planZone').value, livreur=document.getElementById('planZoneDriver').value;
+  if(!livreur){ toast('Choisis un livreur'); return; }
+  toast('⏳ Affectation...');
+  const r=await api('POST','/livraisons/affecter',{zone,date:_plan.date,livreur}).catch(()=>null);
+  if(r&&r.success){ toast('✅ '+r.total+' livraison(s) → '+livreur); planReload(); } else toast('❌ Erreur');
+}
+async function planAffecterSelection(){
+  const ids=[...document.querySelectorAll('.plan-cb:checked')].map(c=>c.value);
+  if(!ids.length){ toast('Coche au moins une livraison'); return; }
+  const livreur=document.getElementById('planSelDriver').value;
+  toast('⏳ Affectation...');
+  const r=await api('POST','/livraisons/affecter',{ids,livreur}).catch(()=>null);
+  if(r&&r.success){ toast('✅ '+r.total+' livraison(s) → '+(livreur||'(désaffecté)')); planReload(); } else toast('❌ Erreur');
+}
+async function planAffecterUnite(id,livreur){
+  const r=await api('POST','/livraisons/affecter',{ids:[id],livreur}).catch(()=>null);
+  if(r&&r.success){ const l=_plan.livs.find(x=>String(x.id)===String(id)); if(l)l.livreur=livreur||null; planRenderCharge(); toast('✅ Affecté'); } else toast('❌ Erreur');
+}
+async function planSimuler(){
+  const map={};
+  document.querySelectorAll('.sect-cb:checked').forEach(c=>{ const d=c.dataset.driver; (map[d]=map[d]||[]).push(c.value); });
+  const plan=Object.keys(map).map(livreur=>({livreur,secteurs:map[livreur]}));
+  if(!plan.length){ toast('Coche au moins un secteur pour un livreur'); return; }
+  toast('🤖 Simulation...');
+  const r=await api('POST','/livraisons/simuler',{date:_plan.date,plan}).catch(()=>null);
+  if(!(r&&r.success)){ toast('❌ '+((r&&r.error)||'Erreur')); return; }
+  _plan.prop=r;
+  const na=r.nonAssignes||[];
+  const nonAff = na.length ? `<div style="margin-top:8px;padding:8px;background:#fef2f2;border-radius:8px;color:#b91c1c;font-size:13px">⚠️ ${na.length} livraison(s) dans un secteur non attribué (resteront non affectées) : ${na.slice(0,6).map(x=>esc(x.ville||'?')+(x.secteur&&x.secteur!=='?'?' ['+x.secteur+']':' [secteur inconnu]')).join(', ')}${na.length>6?'…':''}</div>` : '';
+  document.getElementById('planSimResult').innerHTML=`<div style="margin-top:12px;padding:12px;background:#fff;border-radius:10px;border:1px solid #e2e8f0">
+    <div style="font-weight:700">Proposition — ${r.proposition.length}/${r.total} livraisons attribuées :</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${r.resume.map(s=>{const sec=Object.entries(s.secteurs).map(([k,v])=>k+':'+v).join(' ');return `<span style="background:#ede9fe;color:#5b21b6;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600">${esc(s.livreur)} : ${s.count} liv. · ${s.colis} colis ${sec?'['+sec+']':''}</span>`;}).join(' ')}</div>
+    ${nonAff}
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-green" onclick="planAppliquer()">✅ Appliquer cette répartition</button>
+      <button class="btn btn-sm" onclick="planAnnulerSim()">Annuler</button>
+    </div></div>`;
+  planRenderTable();
+}
+async function planAppliquer(){
+  if(!_plan.prop) return;
+  const groupes={}; _plan.prop.proposition.forEach(p=>{ (groupes[p.livreur_propose]=groupes[p.livreur_propose]||[]).push(p.id); });
+  toast('⏳ Application...');
+  for(const livreur of Object.keys(groupes)){ await api('POST','/livraisons/affecter',{ids:groupes[livreur],livreur}).catch(()=>{}); }
+  _plan.prop=null;
+  document.getElementById('planSimResult').innerHTML='';
+  toast('✅ Répartition appliquée');
+  planReload();
+}
+function planAnnulerSim(){ _plan.prop=null; const e=document.getElementById('planSimResult'); if(e)e.innerHTML=''; planRenderTable(); }
+
+// ── CLIENTS (cache) ────────────────────────────────────────────────────────
+async function getClients(force){
+  if(_clients && !force) return _clients;
+  const d=await api('GET','/clients').catch(()=>({clients:[]}));
+  _clients=d.clients||[];
+  return _clients;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ONGLET LIVRAISONS
+// ════════════════════════════════════════════════════════════════════════════
+// ===== Pagination réutilisable (50/page) =====
+const PAGE_SIZE=50;
+const _pg={};       // index de page courant par clé
+const _pgData={};   // données en cache par clé
+let _livSort={key:'',dir:1};  // tri onglet Livraisons (dir 1=croissant, -1=décroissant)
+let _livAll=[];   // liste complète chargée (avant recherche) pour l'onglet Livraisons
+function pgView(key){
+  const data=_pgData[key]||[];
+  const nb=Math.max(1,Math.ceil(data.length/PAGE_SIZE));
+  let p=_pg[key]||0; if(p>=nb)p=nb-1; if(p<0)p=0; _pg[key]=p;
+  return {rows:data.slice(p*PAGE_SIZE,(p*PAGE_SIZE)+PAGE_SIZE), page:p, nb, total:data.length, debut:p*PAGE_SIZE};
+}
+function pgBar(key, fnName){
+  const data=_pgData[key]||[];
+  const nb=Math.max(1,Math.ceil(data.length/PAGE_SIZE));
+  const p=_pg[key]||0;
+  if(nb<=1) return '';
+  return `<div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap">
+    <button class="btn btn-gray btn-sm" ${p===0?'disabled':''} onclick="_pg['${key}']=${p-1};${fnName}();document.getElementById('${key}-top')?.scrollIntoView({behavior:'smooth',block:'start'})">← Précédent</button>
+    <span class="muted">Page ${p+1} / ${nb} · ${data.length} lignes</span>
+    <button class="btn btn-gray btn-sm" ${p>=nb-1?'disabled':''} onclick="_pg['${key}']=${p+1};${fnName}();document.getElementById('${key}-top')?.scrollIntoView({behavior:'smooth',block:'start'})">Suivant →</button>
+  </div>`;
+}
+
+async function renderLivraisons(){
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('content').innerHTML=`
+    <div class="card">
+      <div class="flex-between">
+        <h3>📦 Livraisons</h3>
+        <button class="btn btn-green btn-sm" onclick="ouvrirAjoutLiv()">➕ Ajouter une livraison</button>
+      </div>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div><label>Date</label><input type="date" id="lv-date" value="${today}" onchange="chargerLivraisons()"></div>
+        <div><label>Zone</label><select id="lv-zone" onchange="chargerLivraisons()">
+          <option value="">Toutes</option><option value="1">🟢 Zone 1</option><option value="2">🔵 Zone 2</option><option value="3">🟠 Zone 3</option>
+        </select></div>
+      </div>
+      <input id="lv-search" placeholder="🔍 Rechercher un client, une ville, un BL ou un livreur..." oninput="filtrerLivraisons()" style="margin-bottom:12px">
+      <span id="liv-top"></span><div id="lv-liste"></div>
+    </div>`;
+  chargerLivraisons();
+}
+async function chargerLivraisons(){
+  const date=document.getElementById('lv-date').value;
+  const zone=document.getElementById('lv-zone').value;
+  const el=document.getElementById('lv-liste');
+  el.innerHTML='<div class="loading"><div class="spin"></div></div>';
+  // Date JJ/MM/AAAA
+  const [y,m,d]=date.split('-');
+  const dFR=d+'/'+m+'/'+y;
+  const q=`/livraisons?zone=${encodeURIComponent(zone)}&date=${encodeURIComponent(dFR)}`;
+  try{
+    const data=await api('GET',q);
+    _livAll=data.livraisons||[];
+    filtrerLivraisons();
+  }catch(e){ if(e.message!=='401') el.innerHTML='<div class="loading">❌ Erreur de chargement</div>'; }
+}
+function filtrerLivraisons(){
+  const el=document.getElementById('lv-search');
+  const q=(el?el.value:'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  let list=_livAll||[];
+  if(q){
+    list=list.filter(l=>{
+      const hay=((l.client_nom||'')+' '+(l.ville||'')+' '+(l.bl||'')+' '+(l.livreur||'')+' '+(l.adresse||''))
+        .toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      return hay.includes(q);
+    });
+  }
+  _pgData['liv']=list; _pg['liv']=0;
+  appliquerTriLiv();
+  renderLivTable();
+}
+function sortArrow(key){ return _livSort.key===key ? (_livSort.dir>0?' ▲':' ▼') : ''; }
+function appliquerTriLiv(){
+  if(!_livSort.key) return;
+  const key=_livSort.key, dir=_livSort.dir;
+  const val=(l)=>{
+    if(key==='client') return (l.client_nom||'').toLowerCase();
+    if(key==='bl')      return (l.bl||'').toLowerCase();
+    if(key==='ville')   return (l.ville||'').toLowerCase();
+    if(key==='zone')    return zNum(l.zone)||'';
+    if(key==='statut')  return (l.statut||'').toLowerCase();
+    if(key==='livreur') return (l.livreur||'').toLowerCase();
+    if(key==='colis')   return parseInt(l.nb_colis||l.colis||0)||0;
+    return '';
+  };
+  (_pgData['liv']||[]).sort((a,b)=>{
+    const va=val(a), vb=val(b);
+    if(typeof va==='number' && typeof vb==='number') return (va-vb)*dir;
+    return String(va).localeCompare(String(vb),'fr',{numeric:true})*dir;
+  });
+}
+function trierLivraisons(key){
+  if(_livSort.key===key) _livSort.dir*=-1; else { _livSort.key=key; _livSort.dir=1; }
+  appliquerTriLiv();
+  _pg['liv']=0;
+  renderLivTable();
+}
+function renderLivTable(){
+  const el=document.getElementById('lv-liste');
+  const v=pgView('liv');
+  if(v.total===0){
+    const sq=(document.getElementById('lv-search')||{}).value||'';
+    el.innerHTML='<div class="loading">'+(sq.trim()?`Aucun résultat pour « ${esc(sq.trim())} »`:'Aucune livraison pour cette date/zone')+'</div>';
+    return;
+  }
+    el.innerHTML=`<div class="muted" style="margin-bottom:10px">${v.total} livraison(s)</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th class="sortable" onclick="trierLivraisons('client')">Client${sortArrow('client')}</th><th class="sortable" onclick="trierLivraisons('bl')">N° BL${sortArrow('bl')}</th><th class="sortable" onclick="trierLivraisons('ville')">Ville${sortArrow('ville')}</th><th class="sortable" onclick="trierLivraisons('zone')">Zone${sortArrow('zone')}</th><th class="sortable" onclick="trierLivraisons('statut')">Statut${sortArrow('statut')}</th><th class="sortable" onclick="trierLivraisons('livreur')">Livreur${sortArrow('livreur')}</th><th class="sortable" onclick="trierLivraisons('colis')">Colis${sortArrow('colis')}</th><th></th></tr></thead>
+      <tbody>${v.rows.map(l=>`<tr>
+        <td><b>${esc(l.client_nom)}</b></td>
+        <td>${l.bl?`<span style="font-family:monospace">${esc(l.bl)}</span>`:'<span class="muted">—</span>'}</td>
+        <td>${esc(l.ville)}</td>
+        <td><select class="inline-sel" onchange="changerZoneLivraison('${l.id}',this.value)">
+          <option value="" ${!l.zone?'selected':''}>—</option>
+          <option value="🟢 Zone 1 — Livreur 1" ${zNum(l.zone)==='1'?'selected':''}>🟢 Z1</option>
+          <option value="🔵 Zone 2 — Livreur 2" ${zNum(l.zone)==='2'?'selected':''}>🔵 Z2</option>
+          <option value="🟠 Zone 3 — Livreur 3" ${zNum(l.zone)==='3'?'selected':''}>🟠 Z3</option>
+          <option value="⛔ NON LIVRÉ" ${/NON LIVR/i.test(l.zone||'')?'selected':''}>⛔ Non livré</option>
+        </select></td>
+        <td>${statutPill(l.statut)}</td>
+        <td>${esc(l.livreur||'—')}</td>
+        <td>${l.nb_colis||l.colis||1}</td>
+        <td><button class="btn btn-sm" style="background:${l.vendredi?'#f59e0b':'#eee'};color:${l.vendredi?'#fff':'#999'}" title="${l.vendredi?'Topée vendredi (cliquer pour retirer)':'Topez pour le vendredi (toute l\'île)'}" onclick="toggleVendredi('${l.id}',${l.vendredi?'true':'false'})">🏁</button> <button class="btn btn-red btn-sm" onclick="suppLivraison('${l.id}','${esc(l.client_nom).replace(/'/g,"\\'")}')">🗑️</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    ${pgBar('liv','renderLivTable')}`;
+}
+function statutPill(s){
+  s=s||'';
+  if(s.includes('Livré')) return '<span class="pill pill-ok">✅ Livré</span>';
+  if(s.includes('Non')||s.includes('Échec')) return '<span class="pill pill-no">❌ Non livré</span>';
+  return '<span class="pill pill-wait">📦 À livrer</span>';
+}
+async function suppLivraison(id,nom){
+  if(!confirm('Supprimer la livraison de '+nom+' ?')) return;
+  const r=await api('DELETE','/livraisons/'+id).catch(()=>null);
+  if(r&&r.success){toast('🗑️ Livraison supprimée');chargerLivraisons();}
+  else toast('❌ Erreur');
+}
+
+// ── AJOUT LIVRAISON + AUTOCOMPLETE ───────────────────────────────────────────
+async function ouvrirAjoutLiv(){
+  await getClients();
+  ['fl-client','fl-ville','fl-cp','fl-adresse','fl-tel','fl-indic','fl-bl','fl-email'].forEach(id=>document.getElementById(id).value='');
+  window._selClientId=null; window._selClientEmail=''; window._selClientTel=''; window._selClientAdresse=''; window._selClientVille=''; window._selClientCp='';
+  document.getElementById('fl-colis').value=1;
+  document.getElementById('fl-vendredi').checked=false;
+  document.getElementById('fl-date').value=document.getElementById('lv-date').value;
+  document.getElementById('livErr').style.display='none';
+  document.getElementById('modalLiv').classList.add('active');
+}
+async function acClient(val){
+  const list=document.getElementById('fl-ac');
+  if(!val||val.length<2){list.style.display='none';return;}
+  const clients=await getClients();
+  const q=val.toLowerCase();
+  _acMatches=clients.filter(c=>c.nom.toLowerCase().includes(q)||(c.ville||'').toLowerCase().includes(q)).slice(0,8);
+  if(_acMatches.length===0){list.style.display='none';return;}
+  list.innerHTML=_acMatches.map((c,i)=>`<div class="ac-item" onclick="choisirClientLiv(${i})">
+    <div class="n">${esc(c.nom)}</div><div class="d">${esc(c.cp||'')} ${esc(c.ville||'')} · ${esc(c.tel1||'—')}</div></div>`).join('');
+  list.style.display='block';
+}
+function choisirClientLiv(i){
+  const c=_acMatches[i]; if(!c) return;
+  document.getElementById('fl-client').value=c.nom;
+  document.getElementById('fl-ville').value=c.ville||'';
+  document.getElementById('fl-cp').value=c.cp||'';
+  document.getElementById('fl-adresse').value=c.adresse||'';
+  document.getElementById('fl-tel').value=c.tel1||'';
+  document.getElementById('fl-email').value=c.email||'';
+  document.getElementById('fl-bl').value='';
+  window._selClientId=c.id; window._selClientEmail=c.email||'';
+  window._selClientTel=c.tel1||''; window._selClientAdresse=c.adresse||'';
+  window._selClientVille=c.ville||''; window._selClientCp=c.cp||'';
+  // Zone : pré-remplir mais modifiable
+  const n=zNum(c.zone);
+  if(n==='1') document.getElementById('fl-zone').value='🟢 Zone 1 — Livreur 1';
+  else if(n==='2') document.getElementById('fl-zone').value='🔵 Zone 2 — Livreur 2';
+  else if(n==='3') document.getElementById('fl-zone').value='🟠 Zone 3 — Livreur 3';
+  document.getElementById('fl-ac').style.display='none';
+}
+async function verifierBL(){
+  const bl=document.getElementById('fl-bl').value.trim();
+  const warn=document.getElementById('fl-bl-warn');
+  if(!bl){ warn.textContent=''; return; }
+  const r=await api('GET','/livraisons/check-bl?bl='+encodeURIComponent(bl)).catch(()=>({exists:false}));
+  if(r.exists){
+    warn.innerHTML='⚠️ Ce N° BL existe déjà'+(r.client?' ('+r.client+')':'')+' — doublon !';
+    warn.style.color='#e74c3c';
+  } else {
+    warn.innerHTML='✅ N° BL disponible';
+    warn.style.color='#27ae60';
+  }
+}
+
+async function creerLivraison(){
+  const client=document.getElementById('fl-client').value.trim();
+  const err=document.getElementById('livErr'); err.style.display='none';
+  if(!client){err.textContent='Sélectionnez un client';err.style.display='block';return;}
+  const date=document.getElementById('fl-date').value;
+  const [y,m,d]=date.split('-');
+  const email=document.getElementById('fl-email').value.trim();
+  const body={
+    client_nom:client, ville:document.getElementById('fl-ville').value.trim(),
+    cp:document.getElementById('fl-cp').value.trim(), adresse:document.getElementById('fl-adresse').value.trim(),
+    zone:document.getElementById('fl-zone').value, date_livraison:y+'-'+m+'-'+d,
+    bl:document.getElementById('fl-bl').value.trim(),
+    tel1:document.getElementById('fl-tel').value.trim(), nb_colis:parseInt(document.getElementById('fl-colis').value)||1,
+    indications:document.getElementById('fl-indic').value.trim(), statut:'📦 À livrer'
+  };
+  if(document.getElementById('fl-vendredi').checked) body.vendredi=true;  // forcer ; sinon règle auto (jeu 17h → ven 12h)
+  // Synchroniser les infos saisies vers la fiche client (email, téléphone, adresse) si modifiées/ajoutées
+  if(window._selClientId){
+    const upd={};
+    const tel=document.getElementById('fl-tel').value.trim();
+    const adr=document.getElementById('fl-adresse').value.trim();
+    const vil=document.getElementById('fl-ville').value.trim();
+    const cpv=document.getElementById('fl-cp').value.trim();
+    if(email && email!==(window._selClientEmail||''))   upd.email=email;
+    if(tel   && tel  !==(window._selClientTel||''))      upd.tel1=tel;
+    if(adr   && adr  !==(window._selClientAdresse||''))  upd.adresse=adr;
+    if(vil   && vil  !==(window._selClientVille||''))    upd.ville=vil;
+    if(cpv   && cpv  !==(window._selClientCp||''))       upd.cp=cpv;
+    if(Object.keys(upd).length){
+      api('PATCH','/clients/id/'+window._selClientId,upd).then(()=>{toast('📇 Fiche client mise à jour');},()=>{});
+    }
+  }
+  const r=await api('POST','/livraisons',body).catch(()=>null);
+  if(r&&r.success){fermerModal('modalLiv');toast('✅ Livraison ajoutée');chargerLivraisons();}
+  else {err.textContent='❌ '+((r&&r.message)||(r&&r.error)||'Erreur');err.style.display='block';}
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// IMPORT CSV
+// ════════════════════════════════════════════════════════════════════════════
+function parseCSV(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2) return [];
+  const sep=lines[0].includes(';')?';':',';
+  const headers=lines[0].split(sep).map(h=>h.trim().toLowerCase().replace(/^["']|["']$/g,''));
+  return lines.slice(1).map(line=>{
+    const vals=line.split(sep).map(v=>v.trim().replace(/^["']|["']$/g,''));
+    const obj={}; headers.forEach((h,i)=>obj[h]=vals[i]||''); return obj;
+  });
+}
+function renderImportLiv(){
+  document.getElementById('content').innerHTML=`
+    <div class="card">
+      <h3>📥 Import Livraisons (Excel ou CSV)</h3>
+      <p class="muted" style="margin-bottom:14px">Colonnes reconnues : <b>N°BLV, Date de livraison, Nom client, Adresse, Code postale, Ville</b> + la colonne <b>email</b>. À l'import : les clients absents de l'appli sont <b>signalés</b> (à créer à la main), l'<b>email</b> est complété sur les fiches existantes vides, et les <b>doublons de BL</b> sont ignorés. Une checklist s'affiche à la fin.</p>
+      <div class="dropzone" onclick="document.getElementById('csvLiv').click()">
+        <div style="font-size:40px">📄</div>
+        <div style="margin-top:8px;font-weight:600">Cliquez pour choisir un fichier .xlsx ou .csv</div>
+        <div class="muted" id="csvLivName">Aucun fichier sélectionné</div>
+      </div>
+      <input type="file" id="csvLiv" accept=".xlsx,.xls,.csv" style="display:none" onchange="previewLiv(this)">
+      <div id="csvLivPreview"></div>
+    </div>`;
+}
+// Date Excel (objet Date) ou texte → JJ/MM/AAAA
+function toFR(v){
+  if(v instanceof Date && !isNaN(v)) return String(v.getDate()).padStart(2,'0')+'/'+String(v.getMonth()+1).padStart(2,'0')+'/'+v.getFullYear();
+  const s=String(v==null?'':v).trim();
+  if(!s) return '';
+  let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if(m){
+    let a=+m[1], b=+m[2], y=+m[3]; if(y<100) y+=2000;
+    let jour, mois;
+    if(a>12){ jour=a; mois=b; }       // JJ/MM
+    else if(b>12){ mois=a; jour=b; }  // MM/JJ (export vosfactures, format américain)
+    else { mois=a; jour=b; }          // ambigu → MM/JJ (source vosfactures)
+    if(mois<1||mois>12||jour<1||jour>31) return s;
+    return String(jour).padStart(2,'0')+'/'+String(mois).padStart(2,'0')+'/'+y;
+  }
+  m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m) return String(+m[3]).padStart(2,'0')+'/'+String(+m[2]).padStart(2,'0')+'/'+m[1];
+  return s;
+}
+// Mappe une ligne vers le format attendu (normalisation forte des en-têtes : espaces multiples, accents, °, parenthèses)
+function mapImportRow(r){
+  const nk = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[°²()\.]/g,' ').replace(/\s+/g,' ').trim();
+  const norm={}; Object.keys(r).forEach(k=>{ norm[nk(k)] = r[k]; });
+  const g=(...names)=>{ for(const n of names){ const v=norm[nk(n)]; if(v!==undefined && String(v).trim()!=='') return String(v).trim(); } return ''; };
+  const gRaw=(...names)=>{ for(const n of names){ const v=norm[nk(n)]; if(v!==undefined && v!=='' && v!==null) return v; } return ''; };
+  return {
+    bl: g('n° blv','n blv','blv','n° bl','n bl','bl','numero bl','numéro bl'),
+    date_livraison: toFR(gRaw('date de livraisons','date de livraison','date livraison','date')),
+    client_nom: g('nom client','nom','client','raison sociale'),
+    adresse: g('n° et nom de rue','n et nom de rue','adresse','adresse 1','rue'),
+    cp: g('code postal','code postale','cp','code_postal','codepostal'),
+    ville: g('ville','commune'),
+    email: g('adresse(s) email','adresses email','adresse email','adresses','email','e-mail','mail','courriel'),
+    tel1: g('telephone','téléphone','tel','tel1','portable','mobile','gsm'),
+    nb_colis: parseInt(g('nb colis','nb_colis','colis','quantite','quantité'))||1,
+    zone: g('zone')
+  };
+}
+let _livRows=[];
+function previewLiv(input){
+  const f=input.files[0]; if(!f) return;
+  document.getElementById('csvLivName').textContent=f.name;
+  const isExcel=/\.xlsx?$/i.test(f.name);
+  const reader=new FileReader();
+  reader.onload=e=>{
+    let raw=[];
+    try{
+      if(isExcel){
+        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const json=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
+        raw=json.map(o=>{ const x={}; Object.keys(o).forEach(k=>{ x[String(k).trim().toLowerCase()]=o[k]; }); return x; });
+      } else {
+        raw=parseCSV(e.target.result);
+      }
+    }catch(err){ document.getElementById('csvLivPreview').innerHTML='<p class="muted" style="margin-top:14px">❌ Lecture impossible : '+esc(err.message)+'</p>'; return; }
+    _livRows=raw.map(mapImportRow).filter(r=>r.client_nom);
+    const el=document.getElementById('csvLivPreview');
+    if(_livRows.length===0){el.innerHTML='<p class="muted" style="margin-top:14px">❌ Aucune ligne valide — vérifiez que le fichier a une colonne nom de client (Nom, Nom client…)</p>';return;}
+    const nMail=_livRows.filter(r=>r.email).length;
+    const nTel=_livRows.filter(r=>r.tel1).length;
+    el.innerHTML=`<div style="margin-top:16px"><b>${_livRows.length} livraisons détectées</b>${nMail?` · ${nMail} avec email`:''}${nTel?` · ${nTel} avec tél`:''} (aperçu 5) :</div>
+      <div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>BL</th><th>Client</th><th>Adresse</th><th>Ville</th><th>CP</th><th>Date</th><th>Email</th><th>Tél</th></tr></thead>
+      <tbody>${_livRows.slice(0,5).map(r=>`<tr><td>${esc(r.bl)}</td><td>${esc(r.client_nom)}</td><td>${esc(r.adresse||'—')}</td><td>${esc(r.ville)}</td><td>${esc(r.cp)}</td><td>${esc(r.date_livraison)}</td><td>${esc(r.email||'—')}</td><td>${esc(r.tel1||'—')}</td></tr>`).join('')}</tbody></table></div>
+      <button class="btn btn-green btn-full" onclick="importerLiv()">✅ Vérifier et importer ${_livRows.length} livraisons</button>`;
+  };
+  if(isExcel) reader.readAsArrayBuffer(f); else reader.readAsText(f,'UTF-8');
+}
+async function importerLiv(){
+  if(_livRows.length===0) return;
+  toast('⏳ Import et vérifications...');
+  const r=await api('POST','/livraisons/import',{livraisons:_livRows}).catch(()=>null);
+  const el=document.getElementById('csvLivPreview');
+  if(!(r&&r.success)){ toast('❌ '+((r&&r.error)||'Erreur')); return; }
+  const R=r.rapport, S=r.resume;
+  const bloc=(titre,couleur,items,rendu)=> !items.length?'':
+    `<div style="margin-top:14px"><div style="font-weight:700;color:${couleur}">${titre} (${items.length})</div>
+     <div class="table-wrap" style="margin-top:6px"><table><tbody>${items.map(rendu).join('')}</tbody></table></div></div>`;
+  const errBanner = r.erreur_insertion ? `<div style="margin-top:16px;padding:14px;border-radius:12px;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c"><b>⚠️ Erreur d'enregistrement en base</b><br>${esc(r.erreur_insertion)}<br><span style="font-size:12px">Les livraisons concernées n'ont pas été enregistrées (souvent : une colonne manquante dans la table livraisons).</span></div>` : '';
+  el.innerHTML=errBanner+`
+    <div style="margin-top:16px;padding:14px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0">
+      <div style="font-size:15px;font-weight:700;color:#166534">Checklist d'import</div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;font-size:13px">
+        <span style="background:#dcfce7;color:#166534;padding:5px 10px;border-radius:999px">✅ ${S.importees} importées</span>
+        <span style="background:#fef9c3;color:#854d0e;padding:5px 10px;border-radius:999px">⚠️ ${S.clients_manquants} clients manquants</span>
+        <span style="background:#e0f2fe;color:#075985;padding:5px 10px;border-radius:999px">📇 ${S.emails_ajoutes} emails ajoutés</span>
+        <span style="background:#ede9fe;color:#5b21b6;padding:5px 10px;border-radius:999px">📞 ${S.tels_ajoutes||0} tél. ajoutés</span>
+        <span style="background:#f1f5f9;color:#475569;padding:5px 10px;border-radius:999px">♻️ ${S.doublons} doublons ignorés</span>
+      </div>
+    </div>
+    ${bloc('⚠️ Clients à créer manuellement','#854d0e',R.clients_manquants,c=>`<tr><td><b>${esc(c.nom)}</b></td><td>${esc(c.ville)}</td><td>${esc(c.cp)}</td></tr>`)}
+    ${bloc('📇 Emails ajoutés aux fiches','#075985',R.emails_ajoutes,c=>`<tr><td>${esc(c.client)}</td><td>${esc(c.email)}</td></tr>`)}
+    ${bloc('📞 Téléphones ajoutés aux fiches','#5b21b6',R.tels_ajoutes||[],c=>`<tr><td>${esc(c.client)}</td><td>${esc(c.tel)}</td></tr>`)}
+    ${bloc('♻️ Doublons de BL ignorés','#475569',R.doublons,c=>`<tr><td>${esc(c.bl)}</td><td>${esc(c.client)}</td></tr>`)}
+    ${R.clients_manquants.length?`<p class="muted" style="margin-top:12px">👉 Crée les clients manquants (onglet Clients), puis réimporte le même fichier : les doublons seront ignorés, seules les lignes manquantes passeront.</p>`:''}`;
+  toast(r.erreur_insertion ? '⚠️ Import incomplet — voir le détail' : ('✅ '+S.importees+' importées'));
+  _livRows=[];
+}
+function renderImportCli(){
+  document.getElementById('content').innerHTML=`
+    <div class="card">
+      <h3>📥 Import CSV Clients</h3>
+      <p class="muted" style="margin-bottom:14px">Colonnes reconnues : nom, ville, cp, adresse, tel1, tel2, zone, horaires, contrainte, priorite. Zone auto-détectée par CP. Géolocalisation GPS automatique en arrière-plan.</p>
+      <div class="dropzone" onclick="document.getElementById('csvCli').click()">
+        <div style="font-size:40px">📄</div>
+        <div style="margin-top:8px;font-weight:600">Cliquez pour choisir un fichier CSV</div>
+        <div class="muted" id="csvCliName">Aucun fichier sélectionné</div>
+      </div>
+      <input type="file" id="csvCli" accept=".csv" style="display:none" onchange="previewCli(this)">
+      <div id="csvCliPreview"></div>
+    </div>`;
+}
+let _cliRows=[];
+function previewCli(input){
+  const f=input.files[0]; if(!f) return;
+  document.getElementById('csvCliName').textContent=f.name;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    _cliRows=parseCSV(e.target.result).map(r=>({
+      nom:r.nom||r.client_nom||r.client||r.raison_sociale||'', ville:r.ville||r.commune||'',
+      cp:r.cp||r.code_postal||r.codepostal||'', adresse:r.adresse||'',
+      tel1:r.tel1||r.tel||r.telephone||'', tel2:r.tel2||'', zone:r.zone||'',
+      horaires:r.horaires||'', contrainte:r.contrainte||'LIBRE', priorite:r.priorite||'NORMALE'
+    })).filter(r=>r.nom);
+    const el=document.getElementById('csvCliPreview');
+    if(_cliRows.length===0){el.innerHTML='<p class="muted" style="margin-top:14px">❌ Aucune ligne valide (vérifiez la colonne nom)</p>';return;}
+    el.innerHTML=`<div style="margin-top:16px"><b>${_cliRows.length} clients détectés</b> (aperçu 5 premiers) :</div>
+      <div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>Nom</th><th>Ville</th><th>CP</th><th>Tél</th></tr></thead>
+      <tbody>${_cliRows.slice(0,5).map(r=>`<tr><td>${esc(r.nom)}</td><td>${esc(r.ville)}</td><td>${esc(r.cp)}</td><td>${esc(r.tel1)}</td></tr>`).join('')}</tbody></table></div>
+      <button class="btn btn-green btn-full" onclick="importerCli()">✅ Importer ${_cliRows.length} clients</button>`;
+  };
+  reader.readAsText(f,'UTF-8');
+}
+async function importerCli(){
+  if(_cliRows.length===0) return;
+  toast('⏳ Import en cours...');
+  const r=await api('POST','/clients/bulk',{clients:_cliRows}).catch(()=>null);
+  if(r&&r.success){toast('✅ '+r.total+' clients importés');document.getElementById('csvCliPreview').innerHTML='<p style="margin-top:14px;color:var(--green)">✅ '+r.message+'</p>';_cliRows=[];_clients=null;}
+  else toast('❌ '+((r&&r.error)||'Erreur'));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ONGLET CLIENTS
+// ════════════════════════════════════════════════════════════════════════════
+async function renderClients(){
+  const clients=await getClients(true);
+  document.getElementById('content').innerHTML=`
+    <div class="card">
+      <div class="flex-between"><h3>🏪 Base clients (${clients.length})</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-green btn-sm" onclick="ajouterClient()">➕ Ajouter un client</button>
+          <button class="btn btn-blue btn-sm" onclick="geocoderClients()">🌍 Géocoder GPS manquants</button>
+          <button class="btn btn-sm" onclick="regeocoderTout()" title="Corrige aussi les clients mal placés (mauvaise commune)">🔁 Re-géocoder TOUT</button>
+          <button class="btn btn-blue btn-sm" onclick="attribuerZones()">🎯 Réattribuer les zones (CP)</button>
+        </div></div>
+      <input id="cl-search" placeholder="🔍 Rechercher un client, une ville ou un ID Odoo..." oninput="filtrerClients(true)" style="margin-bottom:8px;margin-top:12px">
+      <select id="cl-zone" onchange="filtrerClients(true)" style="margin-bottom:14px">
+        <option value="">Toutes les zones</option><option value="1">🟢 Zone 1</option><option value="2">🔵 Zone 2</option><option value="3">🟠 Zone 3</option>
+      </select>
+      <div id="cl-liste"></div>
+    </div>`;
+  filtrerClients();
+}
+let _clientPage = 0;
+const CLIENTS_PAR_PAGE = 50;
+function filtrerClients(resetPage){
+  if(resetPage) _clientPage = 0;
+  const q=(document.getElementById('cl-search').value||'').toLowerCase();
+  const z=document.getElementById('cl-zone').value;
+  let list=_clients.filter(c=>(!q||c.nom.toLowerCase().includes(q)||(c.ville||'').toLowerCase().includes(q)||String(c.odoo_id||'').includes(q))&&(!z||zNum(c.zone)===z));
+  const total=list.length;
+  const nbPages=Math.max(1, Math.ceil(total/CLIENTS_PAR_PAGE));
+  if(_clientPage>=nbPages) _clientPage=nbPages-1;
+  if(_clientPage<0) _clientPage=0;
+  const debut=_clientPage*CLIENTS_PAR_PAGE;
+  const page=list.slice(debut, debut+CLIENTS_PAR_PAGE);
+  const el=document.getElementById('cl-liste');
+  el.innerHTML=`<div class="muted" style="margin-bottom:10px">${total} client(s) — page ${_clientPage+1}/${nbPages}</div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Nom</th><th>ID Odoo</th><th>Ville</th><th>CP</th><th>Zone</th><th>Tél</th><th>Horaires</th><th>Contrainte</th><th></th></tr></thead>
+    <tbody>${page.map(c=>{return `<tr>
+      <td><b>${esc(c.nom)}</b></td>
+      <td class="muted">${c.odoo_id?('#'+c.odoo_id):'—'}</td>
+      <td>${esc(c.ville)}</td>
+      <td>${esc(c.cp)}</td>
+      <td><select class="inline-sel" onchange="changerZoneClient('${c.id}',this.value)">
+        <option value="" ${!c.zone?'selected':''}>—</option>
+        <option value="🟢 Zone 1 — Livreur 1" ${zNum(c.zone)==='1'?'selected':''}>🟢 Z1</option>
+        <option value="🔵 Zone 2 — Livreur 2" ${zNum(c.zone)==='2'?'selected':''}>🔵 Z2</option>
+        <option value="🟠 Zone 3 — Livreur 3" ${zNum(c.zone)==='3'?'selected':''}>🟠 Z3</option>
+        <option value="⛔ NON LIVRÉ" ${/NON LIVR/i.test(c.zone||'')?'selected':''}>⛔ Non livré</option>
+      </select></td>
+      <td>${esc(c.tel1||'—')}</td>
+      <td class="muted">${esc(c.horaires||'—')}</td>
+      <td class="muted">${esc(c.contrainte||'LIBRE')}</td>
+      <td><button class="btn btn-red btn-sm" onclick="suppClient('${c.id}','${esc(c.nom).replace(/'/g,"\\'")}')">🗑️</button></td>
+    </tr>`;}).join('')}</tbody>
+  </table></div>
+  <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:14px">
+    <button class="btn btn-gray btn-sm" ${_clientPage===0?'disabled':''} onclick="pageClients(-1)">← Précédent</button>
+    <span class="muted">Page ${_clientPage+1} / ${nbPages}</span>
+    <button class="btn btn-gray btn-sm" ${_clientPage>=nbPages-1?'disabled':''} onclick="pageClients(1)">Suivant →</button>
+  </div>`;
+}
+function pageClients(delta){
+  _clientPage += delta;
+  filtrerClients();
+  document.getElementById('cl-liste').scrollIntoView({behavior:'smooth',block:'start'});
+}
+// ── Autocomplétion d'adresse Google Places (via proxy backend, clé cachée) ──
+let _cliGeo = null, _sugTimer = null, _lastPreds = [];
+function initAdresseAutocomplete(){
+  const inp = document.getElementById('cli-adresse');
+  const box = document.getElementById('cli-sug');
+  if(!inp || !box || inp._acInit) return;
+  inp._acInit = true;
+  inp.addEventListener('input', ()=>{
+    _cliGeo = null;
+    const q = inp.value.trim();
+    clearTimeout(_sugTimer);
+    if(q.length < 3){ box.style.display='none'; box.innerHTML=''; return; }
+    _sugTimer = setTimeout(async ()=>{
+      try{
+        const r = await api('GET','/places/autocomplete?q='+encodeURIComponent(q));
+        if(r && r.error){
+          box.innerHTML = '<div class="addr-item" style="color:#c0392b;cursor:default">⚠️ '+esc(r.error)+'</div>';
+          box.style.display='block'; return;
+        }
+        const preds = (r && r.predictions) || [];
+        _lastPreds = preds;
+        if(!preds.length){
+          box.innerHTML = '<div class="addr-item" style="color:var(--text3,#888);cursor:default">Aucune adresse — précisez (n° + rue + commune)</div>';
+          box.style.display='block'; return;
+        }
+        box.innerHTML = preds.map((p,i)=>'<div class="addr-item" data-idx="'+i+'">📍 '+esc(p.description)+'</div>').join('');
+        box.style.display='block';
+        box.querySelectorAll('.addr-item').forEach(el=>{ if(el.dataset.idx!==undefined) el.onmousedown = e=>{ e.preventDefault(); choisirAdresse(parseInt(el.dataset.idx)); }; });
+      }catch(e){
+        box.innerHTML = '<div class="addr-item" style="color:#c0392b;cursor:default">⚠️ '+esc(e.message||'Service indisponible (backend déployé ?)')+'</div>';
+        box.style.display='block';
+      }
+    }, 350);
+  });
+  inp.addEventListener('blur', ()=>{ setTimeout(()=>{ box.style.display='none'; }, 150); });
+}
+async function choisirAdresse(idx){
+  const box = document.getElementById('cli-sug');
+  box.style.display='none';
+  const pred = _lastPreds[idx];
+  if(!pred) return;
+  try{
+    let d = pred;
+    if(pred.adresse === undefined){           // prédiction Places → récupérer les détails
+      d = await api('GET','/places/details?place_id='+encodeURIComponent(pred.place_id));
+    }
+    if(d && !d.error){
+      if(d.adresse) document.getElementById('cli-adresse').value = d.adresse;
+      if(d.ville)   document.getElementById('cli-ville').value   = d.ville;
+      if(d.cp)      document.getElementById('cli-cp').value      = d.cp;
+      _cliGeo = (d.lat && d.lng) ? { lat:d.lat, lng:d.lng } : null;
+      toast('📍 Adresse remplie'+(d.cp?' — CP '+d.cp:'')+(d.ville?' · '+d.ville:''));
+    } else {
+      toast('⚠️ '+((d&&d.error)||'Détails indisponibles'));
+    }
+  }catch(_){ toast('⚠️ Erreur adresse'); }
+}
+function ajouterClient(){
+  ['cli-nom','cli-ville','cli-cp','cli-adresse','cli-tel1','cli-tel2','cli-email'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cliErr').textContent='';
+  _cliGeo = null;
+  const box=document.getElementById('cli-sug'); if(box){ box.style.display='none'; box.innerHTML=''; }
+  document.getElementById('modalClient').classList.add('active');
+  initAdresseAutocomplete();
+}
+async function creerClient(){
+  const nom=document.getElementById('cli-nom').value.trim();
+  const ville=document.getElementById('cli-ville').value.trim();
+  const cp=document.getElementById('cli-cp').value.trim();
+  const adresse=document.getElementById('cli-adresse').value.trim();
+  const err=document.getElementById('cliErr');
+  if(!nom||!ville||!cp){ err.textContent='Nom, ville et code postal sont obligatoires'; return; }
+  err.textContent='';
+  const payload={
+    nom, ville, cp, adresse,
+    tel1:document.getElementById('cli-tel1').value.trim(),
+    tel2:document.getElementById('cli-tel2').value.trim(),
+    email:document.getElementById('cli-email').value.trim(),
+    contrainte:'LIBRE', priorite:'NORMALE', actif:true,
+    ...(_cliGeo ? { lat:_cliGeo.lat, lng:_cliGeo.lng } : {})
+  };
+  toast('⏳ Création + géocodage...');
+  const r=await api('POST','/clients',payload).catch(e=>({error:e.message||'Erreur'}));
+  if(r&&r.success){
+    const gps = (r.data&&r.data.lat) ? '📍 GPS trouvé' : '⚠️ GPS non trouvé (adresse à préciser)';
+    toast('✅ Client créé — '+gps);
+    fermerModal('modalClient');
+    _clients=null; renderClients();
+  } else {
+    err.textContent='❌ '+((r&&r.error)||'Erreur');
+  }
+}
+
+async function geocoderClients(){
+  if(!confirm('Géocoder automatiquement les clients sans coordonnées GPS (via leur adresse) ?\n\nCela peut prendre quelques secondes.')) return;
+  toast('🌍 Géocodage en cours...');
+  const r=await api('POST','/admin/geocode-clients').catch(()=>null);
+  if(r&&r.success){
+    let msg='✅ Géocodage terminé\n\n'+r.geocodes+' client(s) géocodé(s) sur '+r.total;
+    if(r.echecs>0){ msg+='\n\n⚠️ '+r.echecs+' échec(s)'; if(r.echecsListe&&r.echecsListe.length) msg+=' :\n'+r.echecsListe.join('\n'); msg+='\n\n(adresse introuvable ou imprécise — à corriger manuellement)'; }
+    alert(msg);
+    _clients=null; renderClients();
+  } else {
+    alert('❌ '+((r&&r.error)||'Erreur'));
+  }
+}
+
+async function regeocoderTout(){
+  if(!confirm('Re-géocoder TOUS les clients ?\n\nCorrige aussi les fiches déjà mal placées (ex. mauvaise commune).\nÇa tourne en arrière-plan ~1 à 2 min — rafraîchis la carte ensuite.')) return;
+  toast('🌍 Re-géocodage lancé...');
+  const r=await api('POST','/admin/geocode-clients',{force:true}).catch(()=>null);
+  if(r&&r.success){
+    alert('✅ '+(r.lances||0)+' client(s) en cours de re-géocodage en arrière-plan.\n\nRafraîchis la carte dans 1 à 2 minutes pour voir les positions corrigées.');
+  } else {
+    alert('❌ '+((r&&r.error)||'Erreur'));
+  }
+}
+
+async function attribuerZones(){
+  if(!confirm('Réattribuer les zones de TOUS les clients selon leur code postal ?\n\nLes zones qui ne correspondent pas au code postal seront corrigées.\n(Les clients dont le CP est inconnu, et ceux marqués « non livré », ne sont pas touchés.)')) return;
+  toast('⏳ Attribution en cours...');
+  const r=await api('POST','/admin/assign-zones',{force:true}).catch(()=>null);
+  if(r&&r.success){toast('✅ '+r.updated+' zone(s) mises à jour — dont '+(r.corrected||0)+' corrigée(s)');_clients=null;renderClients();}
+  else toast('❌ '+((r&&r.error)||'Erreur'));
+}
+
+async function changerZoneClient(id,zone){
+  const r=await api('PATCH','/clients/id/'+id,{zone}).catch(()=>null);
+  if(r&&r.success){toast('✅ Zone mise à jour');const c=_clients.find(x=>x.id===id);if(c)c.zone=zone;}
+  else toast('❌ Erreur');
+}
+async function changerZoneLivraison(id,zone){
+  const r=await api('PATCH','/livraisons/id/'+id,{zone}).catch(()=>null);
+  if(r&&r.success){toast('✅ Zone mise à jour');const arr=_pgData['liv']||[];const l=arr.find(x=>String(x.id)===String(id));if(l)l.zone=zone;}
+  else toast('❌ Erreur');
+}
+async function toggleVendredi(id,current){
+  const nv=!(current===true||current==='true');
+  const r=await api('PATCH','/livraisons/id/'+id,{vendredi:nv}).catch(()=>null);
+  if(r&&r.success){
+    toast(nv?'🏁 Topée pour le vendredi':'Retirée du vendredi');
+    const arr=_pgData['liv']||[];const l=arr.find(x=>String(x.id)===String(id));if(l)l.vendredi=nv;
+    renderLivTable();
+  } else toast('❌ Erreur');
+}
+async function suppClient(id,nom){
+  if(!confirm('Supprimer le client '+nom+' ?\n\nCette action est irréversible.')) return;
+  const r=await api('DELETE','/clients/'+id).catch(()=>null);
+  if(r&&r.success){toast('🗑️ Client supprimé');_clients=null;renderClients();}
+  else toast('❌ Erreur');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ONGLET UTILISATEURS
+// ════════════════════════════════════════════════════════════════════════════
+async function renderUsers(){
+  const [du,da]=await Promise.all([api('GET','/admin/users').catch(()=>({users:[]})),api('GET','/admin/audit').catch(()=>({logs:[]}))]);
+  const users=du.users||[], logs=da.logs||[];
+  document.getElementById('content').innerHTML=`
+    <div class="card">
+      <div class="flex-between"><h3>🔐 Utilisateurs (${users.length})</h3>
+        <button class="btn btn-green btn-sm" onclick="document.getElementById('modalUser').classList.add('active')">➕ Ajouter</button></div>
+      <p class="muted" style="background:rgba(255,179,0,.08);padding:10px;border-radius:8px;margin-bottom:14px">🔒 Sécurité : blocage après 5 tentatives · sessions 8h · mots de passe chiffrés bcrypt</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Login</th><th>Prénom/Nom</th><th>Rôle</th><th>Zone</th><th>📧 Email</th><th>📱 Tél</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody>${users.map(u=>`<tr style="opacity:${u.actif?1:.5}">
+          <td><b style="font-family:monospace">${esc(u.login)}</b></td>
+          <td><input class="inline-input" value="${esc(u.prenom)}" onblur="majUser('${u.login}','prenom',this.value)" style="width:70px"> <input class="inline-input" value="${esc(u.nom||'')}" onblur="majUser('${u.login}','nom',this.value)" style="width:70px"></td>
+          <td><select class="inline-sel" onchange="majUser('${u.login}','role',this.value)">
+            <option ${u.role==='Livreur'?'selected':''}>Livreur</option><option ${u.role==='Commercial'?'selected':''}>Commercial</option>
+            <option ${u.role==='Depot'?'selected':''}>Depot</option><option ${u.role==='Admin'?'selected':''}>Admin</option></select></td>
+          <td><select class="inline-sel" onchange="majUser('${u.login}','zone',this.value)">
+            <option value="" ${!u.zone?'selected':''}>Toutes</option>
+            <option value="🟢 Zone 1 — Livreur 1" ${zNum(u.zone)==='1'?'selected':''}>🟢 Z1</option>
+            <option value="🔵 Zone 2 — Livreur 2" ${zNum(u.zone)==='2'?'selected':''}>🔵 Z2</option>
+            <option value="🟠 Zone 3 — Livreur 3" ${zNum(u.zone)==='3'?'selected':''}>🟠 Z3</option></select></td>
+          <td><input class="inline-input" type="email" value="${esc(u.email||'')}" onblur="majUser('${u.login}','email',this.value)" placeholder="⚠️" style="border-bottom-color:${u.email?'var(--green)':'var(--red)'};width:130px"></td>
+          <td><input class="inline-input" type="tel" value="${esc(u.tel||'')}" onblur="majUser('${u.login}','tel',this.value)" placeholder="⚠️" style="border-bottom-color:${u.tel?'var(--green)':'var(--red)'};width:100px"></td>
+          <td><span class="pill ${u.actif?'pill-ok':'pill-no'}">${u.actif?'Actif':'Inactif'}</span></td>
+          <td style="display:flex;gap:3px">
+            <button class="btn btn-gray btn-sm" onclick="resetMDP('${u.login}','${esc(u.prenom).replace(/'/g,"\\'")}')" title="Reset MDP">🔑</button>
+            <button class="btn ${u.actif?'btn-red':'btn-green'} btn-sm" onclick="majUser('${u.login}','actif',${!u.actif});setTimeout(renderUsers,400)">${u.actif?'🚫':'✅'}</button>
+            <button class="btn btn-gray btn-sm" onclick="debloquer('${u.login}')" title="Débloquer">🔓</button>
+            <button class="btn btn-red btn-sm" onclick="suppUser('${u.login}')">🗑️</button>
+          </td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3>📋 Journal de sécurité</h3>
+      <span id="audit-top"></span><div id="audit-liste"></div>
+    </div>`;
+  _pgData['audit']=logs; _pg['audit']=0;
+  renderAuditTable();
+}
+function renderAuditTable(){
+  const el=document.getElementById('audit-liste'); if(!el) return;
+  const v=pgView('audit');
+  el.innerHTML=`<div class="table-wrap"><table>
+        <thead><tr><th>Horodatage</th><th>Utilisateur</th><th>Action</th><th>Détail</th><th>IP</th></tr></thead>
+        <tbody>${v.rows.map(l=>`<tr>
+          <td class="muted" style="white-space:nowrap">${l.ts.replace('T',' ').slice(0,19)}</td>
+          <td style="font-family:monospace;font-size:11px">${esc(l.login)}</td>
+          <td><span class="pill ${l.action.includes('FAILED')||l.action.includes('BLOCKED')?'pill-no':l.action.includes('OK')?'pill-ok':'pill-wait'}">${esc(l.action)}</span></td>
+          <td class="muted">${esc(l.detail||'')}</td><td class="muted">${esc(l.ip||'')}</td>
+        </tr>`).join('')||'<tr><td colspan="5" class="muted" style="text-align:center">Aucune action</td></tr>'}</tbody>
+      </table></div>
+  ${pgBar('audit','renderAuditTable')}`;
+}
+
+async function majUser(login,champ,val){
+  const r=await api('PATCH','/admin/users/'+login,{[champ]:val}).catch(()=>null);
+  if(r&&r.success) toast('✅ '+champ+' mis à jour');
+  else toast('❌ Erreur');
+}
+async function creerUser(){
+  const err=document.getElementById('userErr'); err.style.display='none';
+  const body={
+    login:document.getElementById('nu-login').value.trim().toUpperCase(),
+    mdp:document.getElementById('nu-mdp').value.trim(),
+    prenom:document.getElementById('nu-prenom').value.trim(),
+    nom:document.getElementById('nu-nom').value.trim(),
+    role:document.getElementById('nu-role').value, zone:document.getElementById('nu-zone').value,
+    email:document.getElementById('nu-email').value.trim(), tel:document.getElementById('nu-tel').value.trim()
+  };
+  if(!body.login||!body.mdp||!body.prenom){err.textContent='Login, MDP et prénom requis';err.style.display='block';return;}
+  const r=await api('POST','/admin/users',body).catch(()=>null);
+  if(r&&r.success){fermerModal('modalUser');toast('✅ Utilisateur créé');['nu-login','nu-prenom','nu-nom','nu-email','nu-tel'].forEach(id=>document.getElementById(id).value='');renderUsers();}
+  else {err.textContent=(r&&r.error)||'Erreur';err.style.display='block';}
+}
+async function resetMDP(login,prenom){
+  const nv=prompt('Nouveau mot de passe pour '+prenom+' :\n(8 car. min, 1 maj, 1 chiffre)','Ajcv2024');
+  if(!nv) return;
+  const r=await api('POST','/admin/reset-mdp',{login,newMdp:nv}).catch(()=>null);
+  if(r&&r.success) toast('🔑 Mot de passe réinitialisé');
+  else toast('❌ '+((r&&r.error)||'Erreur'));
+}
+async function debloquer(login){
+  const r=await api('POST','/admin/unlock/'+login).catch(()=>null);
+  if(r&&r.success) toast('🔓 '+login+' débloqué');
+}
+async function suppUser(login){
+  if(!confirm('Supprimer l\'utilisateur '+login+' ?')) return;
+  const r=await api('DELETE','/admin/users/'+login).catch(()=>null);
+  if(r&&r.success){toast('🗑️ Utilisateur supprimé');renderUsers();}
+  else toast('❌ '+((r&&r.error)||'Erreur'));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ONGLET DOCUMENTS (bons de réception signés)
+// ════════════════════════════════════════════════════════════════════════════
+async function testerGmaps(){
+  toast('⏳ Test Google Maps...');
+  const r=await api('GET','/admin/test-gmaps').catch(()=>({success:false,error:'Erreur réseau'}));
+  let msg = (r.diagnostic || (r.success?'✅ OK':'❌ Échec')) + '\n\n';
+  if(r.directions) msg += 'Directions API : '+r.directions.status+(r.directions.erreur?'\n→ '+r.directions.erreur:'')+'\n';
+  if(r.geocoding) msg += 'Geocoding API : '+r.geocoding.status+(r.geocoding.erreur?'\n→ '+r.geocoding.erreur:'')+'\n';
+  if(r.error) msg += 'Erreur : '+r.error;
+  alert(msg);
+}
+
+async function testerEmail(){
+  toast('⏳ Test de connexion email...');
+  const r=await api('POST','/admin/test-email').catch(e=>({success:false,error:'Erreur réseau'}));
+  if(r&&r.success){
+    alert('✅ '+r.message+'\n\nVérifiez votre boîte mail (et les spams). Si vous le recevez, tout fonctionne !');
+  }else{
+    alert('❌ L\'email ne fonctionne pas.\n\nErreur : '+((r&&r.error)||'inconnue')+'\n\nCauses fréquentes :\n• EMAIL_PASS incorrect (régénérez le mot de passe d\'application Gmail)\n• Railway bloque le port SMTP\n• La 2FA Gmail n\'est pas activée');
+  }
+}
+
+async function renderDocs(){
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('content').innerHTML=`
+    <div class="card">
+      <div class="flex-between"><h3>📄 Bons de réception signés</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-blue btn-sm" onclick="testerGmaps()">🗺️ Tester Google Maps</button>
+          <button class="btn btn-blue btn-sm" onclick="testerEmail()">📧 Tester l'email</button>
+        </div></div>
+      <p class="muted" style="margin:12px 0 14px">Tous les documents signés par les clients à la livraison. Cliquez pour voir et télécharger.</p>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div><label>Date (vide = tous)</label><input type="date" id="doc-date" onchange="chargerDocs()"></div>
+        <div><label>Recherche</label><input id="doc-search" placeholder="Client ou signataire..." oninput="chargerDocs()"></div>
+      </div>
+      <span id="docs-top"></span><div id="docs-liste"></div>
+    </div>`;
+  chargerDocs();
+}
+async function chargerDocs(){
+  const date=document.getElementById('doc-date').value;
+  const search=document.getElementById('doc-search').value;
+  const el=document.getElementById('docs-liste');
+  el.innerHTML='<div class="loading"><div class="spin"></div></div>';
+  let q='/admin/signatures?';
+  if(date){const [y,m,d]=date.split('-');q+='date='+encodeURIComponent(d+'/'+m+'/'+y)+'&';}
+  if(search) q+='search='+encodeURIComponent(search);
+  const r=await api('GET',q).catch(()=>({documents:[]}));
+  const docs=r.documents||[];
+  window._docs=docs; _pgData['docs']=docs; _pg['docs']=0;
+  renderDocsTable();
+}
+function renderDocsTable(){
+  const el=document.getElementById('docs-liste');
+  const v=pgView('docs');
+  if(v.total===0){el.innerHTML='<div class="loading">Aucun document signé</div>';return;}
+  el.innerHTML=`<div class="muted" style="margin-bottom:10px">${v.total} document(s)</div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Date/Heure</th><th>Client</th><th>Signataire</th><th>Livreur</th><th>Colis</th><th>Zone</th><th></th></tr></thead>
+    <tbody>${v.rows.map((d,li)=>`<tr>
+      <td class="muted" style="white-space:nowrap">${(d.date_heure||(d.created_at||'').replace('T',' ').slice(0,16))}</td>
+      <td><b>${esc(d.client)}</b></td>
+      <td>${esc(d.signataire||'—')}</td>
+      <td>${esc(d.livreur||'—')}</td>
+      <td>${d.nb_colis||'—'}</td>
+      <td>${zLabel(d.zone)}</td>
+      <td><button class="btn btn-blue btn-sm" onclick="voirDoc(${v.debut+li})">👁️ Voir</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>
+  ${pgBar('docs','renderDocsTable')}`;
+}
+async function voirDoc(i){
+  const dList=window._docs[i]; if(!dList) return;
+  // La liste est légère (sans image) : on charge le document complet à la demande
+  let d=dList;
+  try{ const r=await api('GET','/admin/signatures/'+dList.id); if(r&&r.document) d=r.document; }catch(_){}
+  const sig=d.signature_base64||'';
+  const html=`
+    <div style="background:#fff;color:#000;padding:24px;border-radius:8px;max-width:500px;margin:auto;font-family:Arial">
+      <div style="text-align:center;border-bottom:2px solid #FFB300;padding-bottom:12px;margin-bottom:16px">
+        <div style="font-size:20px;font-weight:700;color:#1A2332">AJCV LOGISTIQUE</div>
+        <div style="font-size:13px;color:#666">Bon de réception de livraison</div>
+      </div>
+      <table style="width:100%;font-size:13px;color:#000;border-collapse:collapse">
+        <tr><td style="padding:6px 0;color:#666">Client</td><td style="padding:6px 0;font-weight:700;text-align:right">${esc(d.client)}</td></tr>
+        <tr><td style="padding:6px 0;color:#666">Adresse</td><td style="padding:6px 0;text-align:right">${esc(d.ville||'—')}</td></tr>
+        <tr><td style="padding:6px 0;color:#666">N° BL</td><td style="padding:6px 0;text-align:right">${esc(d.bl||'—')}</td></tr>
+        <tr><td style="padding:6px 0;color:#666">Date / Heure</td><td style="padding:6px 0;text-align:right">${esc(d.date_heure||(d.created_at||'').slice(0,16))}</td></tr>
+        <tr><td style="padding:6px 0;color:#666">Livreur</td><td style="padding:6px 0;text-align:right">${esc(d.livreur||'—')}</td></tr>
+        <tr><td style="padding:6px 0;color:#666">Nombre de colis</td><td style="padding:6px 0;font-weight:700;text-align:right">${d.nb_colis||'—'}</td></tr>
+        <tr><td style="padding:6px 0;color:#666">Signataire</td><td style="padding:6px 0;font-weight:700;text-align:right">${esc(d.signataire||'—')}</td></tr>
+        ${d.observations?`<tr><td style="padding:6px 0;color:#c0392b">⚠️ Réserves</td><td style="padding:6px 0;text-align:right;color:#c0392b;font-weight:700">${esc(d.observations)}</td></tr>`:''}
+        <tr><td style="padding:6px 0;color:#666">Conformité</td><td style="padding:6px 0;text-align:right;font-weight:700;color:${d.conforme?'#27AE60':'#999'}">${d.conforme?'✅ Déclarée conforme':'Non confirmée'}</td></tr>
+      </table>
+      <div style="margin-top:16px;border-top:1px solid #ddd;padding-top:12px">
+        <div style="font-size:12px;color:#666;margin-bottom:6px">Signature du client :</div>
+        ${sig?`<img src="${sig}" style="max-width:100%;border:1px solid #ddd;border-radius:6px;background:#fff">`:'<div style="color:#999">Pas de signature</div>'}
+      </div>
+    </div>`;
+  document.getElementById('docContent').innerHTML=html;
+  window._currentDoc=d;
+  document.getElementById('modalDoc').classList.add('active');
+}
+function telechargerPNG(){
+  const d=window._currentDoc; if(!d||!d.signature_base64){toast('Pas de signature');return;}
+  const a=document.createElement('a'); a.href=d.signature_base64;
+  a.download=numeroDoc(d)+'_signature.png'; a.click();
+}
+
+function numeroDoc(d){
+  // Générer un numéro unique BDR-AAAAMMJJ-HHMMSS depuis la date du document
+  let dt = d.created_at ? new Date(d.created_at) : new Date();
+  if(d.date_heure){
+    // date_heure format "27/05/2026 21:49"
+    const m = d.date_heure.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+    if(m) dt = new Date(m[3],m[2]-1,m[1],m[4],m[5]);
+  }
+  const p = n => ('0'+n).slice(-2);
+  return 'BDR-'+dt.getFullYear()+p(dt.getMonth()+1)+p(dt.getDate())+'-'+p(dt.getHours())+p(dt.getMinutes())+p(dt.getSeconds());
+}
+
+function telechargerDoc(){
+  const d=window._currentDoc; if(!d){toast('Aucun document');return;}
+  genererPDF(d);
+}
+
+function genererPDF(d){
+  if(!window.jspdf){ toast('jsPDF non chargé'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm',format:'a4'});
+  const W = 210, M = 18, col2 = 110;
+  const num = numeroDoc(d);
+  const dateHeure = d.date_heure || (d.created_at||'').replace('T',' ').slice(0,16);
+  const dateJour = (dateHeure||'').slice(0,10);
+  const zoneTxt = d.zone || '—';
+  const chequeN = d.cheque_num || d.chequeNum || '';
+  let y = 20;
+
+  // EN-TÊTE
+  doc.setTextColor(26,35,50); doc.setFont('helvetica','bold'); doc.setFontSize(22);
+  doc.text('BON DE RÉCEPTION — AJCV', M, y); y += 6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(110,110,110);
+  doc.text('Service Logistique · 82C Rue Raphaël Babet · 97480 Saint-Joseph, La Réunion', M, y); y += 6;
+  doc.setFont('courier','bold'); doc.setFontSize(11); doc.setTextColor(184,134,11);
+  doc.text(num, M, y); y += 4;
+  doc.setDrawColor(255,179,0); doc.setLineWidth(0.8); doc.line(M, y, W-M, y); y += 11;
+
+  // IDENTIFICATION
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('IDENTIFICATION DU DOCUMENT', M, y); y += 6;
+  const ligne = (lab1,val1,lab2,val2) => {
+    doc.setFontSize(8); doc.setTextColor(110,110,110); doc.setFont('helvetica','normal');
+    doc.text(lab1, M, y); if(lab2) doc.text(lab2, col2, y); y += 4;
+    doc.setFontSize(11); doc.setTextColor(26,35,50); doc.setFont('helvetica','bold');
+    doc.text(String(val1||'—'), M, y); if(lab2) doc.text(String(val2||'—'), col2, y); y += 7;
+  };
+  ligne('N° Document', num, 'Livreur', d.livreur);
+  ligne('Date de livraison', dateHeure, 'Zone', zoneTxt);
+  ligne('Véhicule', d.plaque, '', '');
+  y += 3;
+
+  // PARTIES
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('PARTIES', M, y); y += 6;
+  const yP = y;
+  doc.setDrawColor(21,101,192); doc.setLineWidth(1.2); doc.line(M, y-2, M, y+18);
+  doc.setFontSize(9); doc.setTextColor(21,101,192); doc.setFont('helvetica','bold');
+  doc.text('EXPÉDITEUR', M+3, y); y += 5;
+  doc.setFontSize(11); doc.setTextColor(26,35,50); doc.text('AJCV', M+3, y); y += 5;
+  doc.setFontSize(9); doc.setTextColor(90,90,90); doc.setFont('helvetica','normal');
+  doc.text('82C Rue Raphaël Babet', M+3, y); y += 4;
+  doc.text('97480 Saint-Joseph, La Réunion', M+3, y);
+  let yD = yP;
+  doc.setDrawColor(34,150,80); doc.setLineWidth(1.2); doc.line(col2, yD-2, col2, yD+18);
+  doc.setFontSize(9); doc.setTextColor(34,150,80); doc.setFont('helvetica','bold');
+  doc.text('DESTINATAIRE', col2+3, yD); yD += 5;
+  doc.setFontSize(11); doc.setTextColor(26,35,50); doc.text((d.client||'—').toUpperCase(), col2+3, yD); yD += 5;
+  doc.setFontSize(9); doc.setTextColor(90,90,90); doc.setFont('helvetica','normal');
+  doc.text(d.ville||'', col2+3, yD);
+  y += 13;
+
+  // MARCHANDISE
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('MARCHANDISE LIVRÉE', M, y); y += 6;
+  doc.setDrawColor(220,220,220); doc.setLineWidth(0.3); doc.line(M, y, W-M, y); y += 5;
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','normal');
+  doc.text('N° BL ASSOCIÉ', M, y); doc.text('NB DE COLIS', M+55, y); doc.text('OBSERVATIONS / RÉSERVES', col2, y); y += 5;
+  doc.setFontSize(11); doc.setTextColor(26,35,50); doc.setFont('helvetica','bold');
+  doc.text(String(d.bl||'—'), M, y); doc.text(String(d.nb_colis||'—'), M+55, y);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text(doc.splitTextToSize(String(d.observations||'—'), W-M-col2), col2, y); y += 8;
+  doc.setDrawColor(220,220,220); doc.setLineWidth(0.3); doc.line(M, y, W-M, y); y += 9;
+
+  // RÈGLEMENT (si encaissé)
+  if(d.reglement){
+    doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+    doc.text('RÈGLEMENT ENCAISSÉ', M, y); y += 6;
+    doc.setFontSize(11); doc.setTextColor(26,35,50); doc.setFont('helvetica','bold');
+    let r = d.reglement + (d.montant ? '    —    ' + d.montant + ' €' : '');
+    if(d.reglement === 'Chèque' && chequeN) r += '    (n° ' + chequeN + ')';
+    doc.text(r, M, y); y += 11;
+  }
+
+  // SIGNATURE
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('SIGNATURE DU DESTINATAIRE', M, y); y += 7;
+  const ySig = y;
+  doc.setFontSize(9.5); doc.setTextColor(40,40,40); doc.setFont('helvetica','normal');
+  const conf = d.conforme ? ' et la reconnaît CONFORME à la commande' : '';
+  const txt = 'Je soussigné(e) '+(d.signataire||d.client||'')+', certifie avoir reçu et vérifié la marchandise décrite ci-dessus'+conf+', en date du '+dateJour+'.';
+  doc.text(doc.splitTextToSize(txt, 82), M, y); y += 18;
+  doc.text(doc.splitTextToSize('Livraison effectuée par '+(d.livreur||'')+'.', 82), M, y);
+  doc.setDrawColor(200,200,200); doc.setLineWidth(0.3); doc.roundedRect(col2, ySig-3, 74, 30, 2, 2);
+  if(d.signature_base64){
+    try{ doc.addImage(d.signature_base64, 'PNG', col2+6, ySig+1, 62, 18); }catch(e){}
+  }
+  doc.setFontSize(7); doc.setTextColor(120,120,120);
+  doc.text('Signature électronique — '+dateHeure, col2+6, ySig+24);
+  y = ySig + 40;
+
+  // FOOTER RGPD
+  if(y > 250) y = 250;
+  doc.setFillColor(255,250,235); doc.roundedRect(M, y, W-2*M, 26, 2, 2, 'F');
+  doc.setFontSize(7); doc.setTextColor(120,110,80);
+  const rgpd = 'Valeur légale & RGPD — Ce document constitue un bon de réception opposable. La signature électronique recueillie a une valeur probatoire conformément à l\'article 1366 du Code Civil. Données traitées par AJCV pour la gestion des livraisons, conservées 5 ans. Droits (accès, rectification, suppression) : sav.ajcv@gmail.com — Réf. RGPD : Règlement (UE) 2016/679.';
+  doc.text(doc.splitTextToSize(rgpd, W-2*M-6), M+3, y+5);
+  doc.setFontSize(7); doc.setTextColor(150,150,150);
+  doc.text('AJCV Service Logistique · Document généré automatiquement · '+num, M, 288);
+
+  doc.save(num+'_Bon_Reception.pdf');
+  toast('📄 PDF généré : '+num);
+}
+function imprimerDoc(){
+  const contenu=document.getElementById('docContent').innerHTML;
+  const w=window.open('','_blank');
+  w.document.write('<html><head><title>Bon de réception AJCV</title></head><body>'+contenu+'</body></html>');
+  w.document.close();
+  setTimeout(()=>w.print(),300);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ONGLET FLOTTE (affectations véhicules)
+// ════════════════════════════════════════════════════════════════════════════
+async function renderFlotte(){
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('content').innerHTML=`
+    <div class="card">
+      <div class="flex-between"><h3>🚚 Mes camions</h3>
+        <button class="btn btn-green btn-sm" onclick="ajouterVehicule()">➕ Ajouter un camion</button></div>
+      <p class="muted" style="margin:12px 0 14px">Les plaques enregistrées ici apparaissent dans la liste de choix du livreur (évite les erreurs de saisie).</p>
+      <div id="vehicules-liste"></div>
+    </div>
+    <div class="card">
+      <h3>🚐 Affectations du jour</h3>
+      <p class="muted" style="margin-bottom:14px">Qui conduit quel fourgon, quel jour. Enregistré automatiquement quand le livreur démarre sa tournée.</p>
+      <label>Date</label><input type="date" id="fl-jour" value="${today}" onchange="chargerFlotte()" style="max-width:200px;margin-bottom:14px">
+      <div id="flotte-liste"></div>
+    </div>`;
+  chargerVehicules();
+  chargerFlotte();
+}
+async function chargerVehicules(){
+  const el=document.getElementById('vehicules-liste');
+  el.innerHTML='<div class="loading"><div class="spin"></div></div>';
+  const r=await api('GET','/vehicules').catch(()=>({vehicules:[]}));
+  const v=r.vehicules||[];
+  if(v.length===0){el.innerHTML='<div class="loading">Aucun camion enregistré. Cliquez "➕ Ajouter un camion".</div>';return;}
+  el.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>Plaque</th><th>Description</th><th></th></tr></thead>
+    <tbody>${v.map(x=>`<tr>
+      <td><b style="font-family:monospace;font-size:15px">${esc(x.plaque)}</b></td>
+      <td class="muted">${esc(x.description||'—')}</td>
+      <td><button class="btn btn-red btn-sm" onclick="suppVehicule('${x.id}','${esc(x.plaque)}')">🗑️</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+async function ajouterVehicule(){
+  const plaque=prompt('Plaque du camion (ex: GC-216-MR) :');
+  if(!plaque||!plaque.trim()) return;
+  const desc=prompt('Description (optionnel, ex: Fourgon Master blanc) :')||'';
+  const r=await api('POST','/admin/vehicules',{plaque:plaque.trim(),description:desc.trim()}).catch(e=>({error:e.message}));
+  if(r&&r.success){toast('✅ Camion ajouté');chargerVehicules();}
+  else toast('❌ '+((r&&r.error)||'Erreur'));
+}
+async function suppVehicule(id,plaque){
+  if(!confirm('Supprimer le camion '+plaque+' ?')) return;
+  const r=await api('DELETE','/admin/vehicules/'+id).catch(()=>null);
+  if(r&&r.success){toast('🗑️ Camion supprimé');chargerVehicules();}
+  else toast('❌ Erreur');
+}
+async function chargerFlotte(){
+  const date=document.getElementById('fl-jour').value;
+  const [y,m,d]=date.split('-');
+  const el=document.getElementById('flotte-liste');
+  el.innerHTML='<div class="loading"><div class="spin"></div></div>';
+  const r=await api('GET','/admin/affectations?date='+encodeURIComponent(d+'/'+m+'/'+y)).catch(()=>({affectations:[]}));
+  const aff=r.affectations||[];
+  if(aff.length===0){el.innerHTML='<div class="loading">Aucune affectation ce jour</div>';return;}
+  el.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>Livreur</th><th>🚐 Plaque</th><th>Zone</th><th>Heure de début</th></tr></thead>
+    <tbody>${aff.map(a=>`<tr>
+      <td><b>${esc(a.livreur)}</b></td>
+      <td><span class="pill" style="background:rgba(255,179,0,.15);color:var(--gold);font-family:monospace;font-size:13px">${esc(a.plaque)}</span></td>
+      <td>${zLabel(a.zone)}</td>
+      <td class="muted">${a.heure_debut?new Date(a.heure_debut).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—'}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ONGLET KPI
+// ════════════════════════════════════════════════════════════════════════════
+async function renderKPI(){
+  const d=await api('GET','/kpi').catch(()=>null);
+  if(!d||d.error){document.getElementById('content').innerHTML='<div class="card"><div class="loading">❌ Erreur de chargement des KPI</div></div>';return;}
+  const g=d.global||{};
+  document.getElementById('content').innerHTML=`
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-v" style="color:var(--gold)">${g.total||0}</div><div class="kpi-l">Livraisons totales</div></div>
+      <div class="kpi"><div class="kpi-v" style="color:var(--green)">${g.livres||0}</div><div class="kpi-l">Livrées</div></div>
+      <div class="kpi"><div class="kpi-v" style="color:var(--red)">${g.nonlivres||0}</div><div class="kpi-l">Non livrées</div></div>
+      <div class="kpi"><div class="kpi-v" style="color:var(--orange)">${g.tauxLivraison||0}%</div><div class="kpi-l">Taux de livraison</div></div>
+      <div class="kpi"><div class="kpi-v" style="color:var(--blue)">${g.totalColis||0}</div><div class="kpi-l">Colis</div></div>
+      <div class="kpi"><div class="kpi-v" style="color:var(--gold)">${g.nbSignatures||0}</div><div class="kpi-l">Signatures</div></div>
+    </div>
+    <div class="card">
+      <h3>📊 Par zone</h3>
+      <div class="table-wrap"><table><thead><tr><th>Zone</th><th>Total</th><th>Livrées</th><th>📦 Colis</th><th>Taux</th></tr></thead>
+        <tbody>${(d.parZone||[]).map(z=>`<tr><td>${zLabel(z.zone)} ${esc(z.zone)}</td><td>${z.total}</td><td>${z.livres}</td><td><b>${z.colis||0}</b></td><td>${z.taux||0}%</td></tr>`).join('')||'<tr><td colspan="5" class="muted">—</td></tr>'}</tbody></table></div>
+    </div>
+    <div class="card">
+      <h3>🚚 Par livreur</h3>
+      <div class="table-wrap"><table><thead><tr><th>Livreur</th><th>Total</th><th>Livrées</th><th>📦 Colis</th><th>Taux</th></tr></thead>
+        <tbody>${(d.parLivreur||[]).map(l=>`<tr><td><b>${esc(l.livreur)}</b></td><td>${l.total}</td><td>${l.livres}</td><td><b>${l.colis||0}</b></td><td>${l.taux||0}%</td></tr>`).join('')||'<tr><td colspan="5" class="muted">—</td></tr>'}</tbody></table></div>
+    </div>
+    <div class="card">
+      <h3>⚠️ Clients souvent non livrés</h3>
+      <div class="table-wrap"><table><thead><tr><th>Client</th><th>Ville</th><th>Échecs</th></tr></thead>
+        <tbody>${(d.nonLivresRecurrents||[]).map(c=>`<tr><td>${esc(c.client)}</td><td>${esc(c.ville)}</td><td><span class="pill pill-no">${c.nb}</span></td></tr>`).join('')||'<tr><td colspan="3" class="muted">Aucun</td></tr>'}</tbody></table></div>
+    </div>`;
+}
+
+async function renderImportsOdoo(){
+  const d=await api('GET','/admin/imports-odoo').catch(()=>null);
+  if(!d||d.error){document.getElementById('content').innerHTML='<div class="card"><div class="loading">❌ Erreur de chargement</div></div>';return;}
+  const imports=d.imports||[];
+  _pgData['odoo']=imports;                 // alimente le paginateur
+  const fmt=(x)=>{try{return new Date(x).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(_){return x||'';}};
+  let html='<div class="card" id="odoo-top"><h3>🔄 Réceptions depuis Odoo</h3><p class="muted" style="margin:4px 0 0">Chaque envoi depuis Odoo est enregistré ici : combien de BLV reçus, combien importés, et le détail de ceux qui manquent d\'informations.</p></div>';
+  if(imports.length===0){
+    html+='<div class="card"><div class="muted" style="text-align:center;padding:20px">Aucun import Odoo reçu pour l\'instant.</div></div>';
+    document.getElementById('content').innerHTML=html;return;
+  }
+  html+=pgView('odoo').rows.map(im=>{
+    const importes=(im.nouvelles||0)+(im.maj||0);
+    const recu=im.recu||0;
+    const rej=im.rejetes||0;
+    const okColor= rej===0 ? 'var(--green)' : 'var(--orange)';
+    const dets=Array.isArray(im.details)?im.details:[];
+    const detailHtml = rej>0 ? `
+      <details style="margin-top:10px">
+        <summary style="cursor:pointer;color:var(--red);font-weight:600">⚠️ Voir les ${rej} BLV rejetés</summary>
+        <div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>N° BLV</th><th>Client</th><th>Info(s) manquante(s)</th></tr></thead>
+          <tbody>${dets.map(r=>`<tr><td>${esc(r.blv||'—')}</td><td>${esc(r.client||'—')}</td><td><span class="pill pill-no">${esc((r.champs_manquants||[]).join(', '))}</span></td></tr>`).join('')||'<tr><td colspan="3" class="muted">—</td></tr>'}</tbody></table></div>
+      </details>` : '';
+    return `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div style="font-weight:600">📅 ${fmt(im.created_at)}</div>
+        <div style="font-size:22px;font-weight:800;color:${okColor}">${importes}/${recu} <span style="font-size:13px;font-weight:600;color:var(--muted,#8B9EC7)">importés</span></div>
+      </div>
+      <div class="muted" style="margin-top:6px;font-size:13px">${recu} reçus · ${importes} importés (${im.nouvelles||0} nouvelles, ${im.maj||0} mises à jour) · ${rej} rejetés</div>
+      ${detailHtml}
+    </div>`;
+  }).join('');
+  html+=pgBar('odoo','renderImportsOdoo');
+  document.getElementById('content').innerHTML=html;
+}
+
+// ── CHANGER MDP ──────────────────────────────────────────────────────────────
+function ouvrirMDP(){document.getElementById('modalMDP').classList.add('active');}
+async function changerMDP(){
+  const ancien=document.getElementById('mdp-old').value,nouveau=document.getElementById('mdp-new').value,conf=document.getElementById('mdp-conf').value;
+  const err=document.getElementById('mdpErr'); err.style.display='none';
+  if(!ancien||!nouveau){err.textContent='Remplissez tous les champs';err.style.display='block';return;}
+  if(nouveau!==conf){err.textContent='Les mots de passe ne correspondent pas';err.style.display='block';return;}
+  const r=await api('POST','/auth/change-password',{ancien,nouveau}).catch(()=>null);
+  if(r&&r.success){fermerModal('modalMDP');const cr=localStorage.getItem('ajcv_admin_creds');if(cr)localStorage.setItem('ajcv_admin_creds',JSON.stringify({login:S.login,mdp:nouveau}));toast('✅ Mot de passe modifié');['mdp-old','mdp-new','mdp-conf'].forEach(id=>document.getElementById(id).value='');}
+  else {err.textContent=(r&&r.error)||'Erreur';err.style.display='block';}
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  try{const cr=JSON.parse(localStorage.getItem('ajcv_admin_creds')||'null');if(cr){document.getElementById('iLogin').value=cr.login||'';document.getElementById('iMdp').value=cr.mdp||'';document.getElementById('remember').checked=true;}}catch(_){}
+  try{const sv=JSON.parse(localStorage.getItem('ajcv_admin')||'null');if(sv&&sv.token){S.token=sv.token;S.login=sv.login;S.prenom=sv.prenom;S.role=sv.role;demarrer();}}catch(_){}
+  // Fermer autocomplete au clic extérieur
+  document.addEventListener('click',e=>{if(!e.target.closest('#fl-client')&&!e.target.closest('#fl-ac')){const l=document.getElementById('fl-ac');if(l)l.style.display='none';}});
+});
+</script>
+</body>
+</html>

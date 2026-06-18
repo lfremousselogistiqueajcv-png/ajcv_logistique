@@ -1,0 +1,2454 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0D1B4B">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="preconnect" href="https://router.project-osrm.org">
+<link rel="preconnect" href="https://maps.googleapis.com">
+<link rel="dns-prefetch" href="https://tile.googleapis.com">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AJCV Livraisons">
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22AJCV%20Livreur%22%2C%22short_name%22%3A%22AJCV%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230D1B4B%22%2C%22theme_color%22%3A%22%230D1B4B%22%7D">
+<title>AJCV Livraisons</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root {
+  --navy:#0D1B4B; --navy2:#1A2B5F; --gold:#FFB300; --gold2:#FFC933;
+  --dark:#080F28; --surface:#111827; --surface2:#1F2937;
+  --green:#22C55E; --red:#EF4444; --blue:#3B82F6; --orange:#F97316; --purple:#A855F7;
+  --text:#F9FAFB; --text2:#9CA3AF; --text3:#6B7280;
+  --border:rgba(255,255,255,0.08);
+  --r:14px; --rs:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── SPLASH ────────────────────────────────────── */
+#splash{position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s}
+#splash.hidden{opacity:0;pointer-events:none}
+.splash-logo{font-size:52px;margin-bottom:16px}
+.splash-title{font-size:24px;font-weight:700;color:var(--text);letter-spacing:.5px}
+.splash-sub{font-size:13px;color:var(--gold);margin-top:6px;letter-spacing:1px}
+.splash-bar{width:200px;height:3px;background:rgba(255,255,255,.15);border-radius:2px;margin-top:32px;overflow:hidden}
+.splash-fill{height:100%;background:var(--gold);border-radius:2px;animation:fill 1.8s ease-out forwards}
+@keyframes fill{from{width:0}to{width:100%}}
+
+/* ── LOGIN ─────────────────────────────────────── */
+#login{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:var(--dark)}
+#login.active{display:flex}
+.login-logo{font-size:40px;margin-bottom:12px}
+.login-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:32px}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;width:100%;max-width:340px}
+.login-label{font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:block}
+.login-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.livreur-btn{padding:14px 8px;background:var(--surface2);border:2px solid var(--border);border-radius:var(--rs);text-align:center;cursor:pointer;transition:all .2s}
+.livreur-btn:active{transform:scale(.97)}
+.livreur-btn.sel{background:rgba(255,179,0,.12);border-color:var(--gold)}
+.livreur-avatar{width:40px;height:40px;border-radius:50%;background:var(--navy2);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--gold)}
+.livreur-name{font-size:13px;font-weight:600;color:var(--text)}
+.zone-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+.zone-btn{padding:12px 8px;background:var(--surface2);border:2px solid var(--border);border-radius:var(--rs);text-align:center;cursor:pointer;transition:all .2s;font-size:12px;font-weight:600;color:var(--text2)}
+.zone-btn.sel-z1{background:rgba(34,197,94,.1);border-color:var(--green);color:var(--green)}
+.zone-btn.sel-z2{background:rgba(59,130,246,.1);border-color:var(--blue);color:var(--blue)}
+.zone-btn.sel-z3{background:rgba(249,115,22,.1);border-color:var(--orange);color:var(--orange)}
+.code-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 16px;color:var(--text);font-size:16px;letter-spacing:4px;text-align:center;margin-bottom:16px}
+.code-input::placeholder{letter-spacing:0;color:var(--text3);font-size:13px}
+.btn-login{width:100%;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-login:active{transform:scale(.98)}
+.btn-login:disabled{opacity:.4;pointer-events:none}
+
+/* ── APP PRINCIPAL ─────────────────────────────── */
+#app{display:none;flex-direction:column;min-height:100vh}
+#app.active{display:flex}
+
+/* ── HEADER ─────────────────────────────────────── */
+.app-header{background:var(--navy);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--gold);position:sticky;top:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-avatar{width:36px;height:36px;border-radius:50%;background:var(--gold);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.header-name{font-size:14px;font-weight:700;color:var(--text)}
+.header-zone{font-size:11px;color:var(--gold)}
+.header-right{display:flex;gap:8px;align-items:center}
+.header-btn{background:rgba(255,255,255,.08);border:none;border-radius:var(--rs);padding:7px 10px;color:var(--text);font-size:12px;cursor:pointer}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px}
+
+/* ── TABS ────────────────────────────────────────── */
+.tab-bar{background:var(--surface);display:flex;border-bottom:1px solid var(--border)}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-icon{font-size:18px;display:block;margin-bottom:2px}
+
+/* ── CONTENT ─────────────────────────────────────── */
+.content{flex:1;overflow-y:auto;padding-bottom:20px}
+
+/* ── BANNER KPI ─────────────────────────────────── */
+.kpi-banner{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin-bottom:1px}
+.kpi-tile{background:var(--surface);padding:12px 6px;text-align:center}
+.kpi-val{font-size:22px;font-weight:700}
+.kpi-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.kpi-val.g{color:var(--green)}.kpi-val.r{color:var(--red)}.kpi-val.o{color:var(--orange)}.kpi-val.b{color:var(--blue)}
+
+/* ── OPTIMIZE BANNER ─────────────────────────────── */
+.optimize-bar{background:linear-gradient(135deg,var(--navy),var(--navy2));border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.optimize-info{font-size:12px;color:var(--text2)}
+.optimize-info strong{color:var(--gold);display:block;font-size:13px}
+.btn-optimize{background:var(--gold);color:var(--navy);border:none;border-radius:var(--rs);padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer}
+.btn-optimize:active{transform:scale(.97)}
+.btn-optimize.loading{opacity:.6;pointer-events:none;position:relative}
+.btn-optimize.loading::after{content:'';position:absolute;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;right:10px;top:50%;transform:translateY(-50%)}
+@keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
+
+/* ── LIVRAISON CARDS ─────────────────────────────── */
+.list-section{padding:0 12px}
+.section-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;padding:12px 0 6px}
+.liv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
+.liv-card:active{transform:scale(.99);border-color:var(--gold)}
+.liv-card.done{opacity:.6}
+.liv-order{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--gold);color:var(--navy);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.liv-card-inner{padding:14px}
+.liv-client{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
+.liv-adresse{font-size:12px;color:var(--text2);margin-bottom:8px}
+.liv-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.pill-z1{background:rgba(34,197,94,.15);color:var(--green)}
+.pill-z2{background:rgba(59,130,246,.15);color:var(--blue)}
+.pill-z3{background:rgba(249,115,22,.15);color:var(--orange)}
+.pill-livre{background:rgba(34,197,94,.15);color:var(--green)}
+.pill-nonlivre{background:rgba(239,68,68,.15);color:var(--red)}
+.pill-attente{background:rgba(255,179,0,.15);color:var(--gold)}
+.pill-reporte{background:rgba(168,85,247,.15);color:var(--purple)}
+.pill-rappel{background:rgba(59,130,246,.15);color:var(--blue)}
+.liv-actions{display:flex;border-top:1px solid var(--border);background:var(--surface2)}
+.liv-action{flex:1;padding:10px 4px;text-align:center;font-size:10px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--text2);transition:all .2s}
+.liv-action:active{background:rgba(255,255,255,.05)}
+.liv-action .icon{font-size:18px;display:block;margin-bottom:2px}
+.liv-action.call .icon{color:var(--green)}
+.liv-action.waze .icon{color:var(--blue)}
+.liv-action.sig .icon{color:var(--gold)}
+.liv-action.statut .icon{color:var(--orange)}
+
+/* ── CARTE ───────────────────────────────────────── */
+#map-container{height:calc(100vh - 160px)}
+#map{height:100%}
+
+/* ── DETAIL ──────────────────────────────────────── */
+#detail-view{display:none;position:fixed;inset:0;background:var(--dark);z-index:200;overflow-y:auto;flex-direction:column}
+#detail-view.active{display:flex}
+.detail-header{background:var(--navy);padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--gold);position:sticky;top:0}
+.detail-back{background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;padding:0 8px 0 0}
+.detail-title{font-size:16px;font-weight:700;color:var(--text)}
+.detail-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.detail-body{padding:14px;flex:1}
+.detail-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+.detail-section-title{padding:10px 14px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border)}
+.detail-row:last-child{border-bottom:none}
+.detail-label{font-size:12px;color:var(--text3)}
+.detail-val{font-size:13px;font-weight:600;color:var(--text);text-align:right;max-width:60%}
+.detail-val a{color:var(--blue);text-decoration:none}
+.detail-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.btn-action{padding:14px;border:none;border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+.btn-action:active{transform:scale(.97)}
+.btn-call{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.btn-waze{background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+.btn-sig{background:var(--gold);color:var(--navy)}
+.btn-statut-d{background:rgba(249,115,22,.15);color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+.btn-full{grid-column:1/-1}
+
+/* ── MODAL STATUT ───────────────────────────────── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:flex-end;justify-content:center}
+.modal-bg.active{display:flex}
+.modal-sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:500px}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--text2);margin-bottom:16px}
+.modal-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;color:var(--text);font-size:14px;margin-bottom:12px;appearance:none}
+.modal-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;color:var(--text);font-size:14px;margin-bottom:12px}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-confirm{padding:13px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer}
+.btn-cancel{padding:13px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--rs);font-size:14px;cursor:pointer}
+
+/* ── MODAL SIGNATURE ─────────────────────────────── */
+#sig-modal{display:none;position:fixed;inset:0;background:var(--dark);z-index:600;flex-direction:column}
+#sig-modal.active{display:flex}
+.sig-header{background:var(--navy);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--gold)}
+.sig-header h3{font-size:15px;font-weight:700;color:var(--text)}
+.sig-close{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer}
+.sig-body{flex:1;overflow-y:auto;padding:14px}
+.sig-field-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:block}
+.sig-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;color:var(--text);font-size:14px;margin-bottom:14px}
+.sig-canvas-wrap{border:2px solid var(--border);border-radius:var(--rs);background:#fff;position:relative;touch-action:none;margin-bottom:14px}
+.sig-canvas-wrap canvas{display:block;width:100%;height:160px;touch-action:none}
+.sig-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;color:#ccc;pointer-events:none;transition:opacity .3s}
+.sig-clear-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.9);border:1px solid #ddd;border-radius:6px;padding:4px 10px;font-size:11px;color:#666;cursor:pointer}
+.rgpd-box{background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.2);border-radius:var(--rs);padding:10px 12px;font-size:11px;color:var(--text2);line-height:1.5}
+.rgpd-box strong{color:var(--gold)}
+.sig-footer{background:var(--surface);padding:14px 16px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 2fr;gap:10px}
+.btn-sig-cancel{padding:13px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--rs);font-size:13px;cursor:pointer}
+.btn-sig-valider{padding:13px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer}
+.btn-sig-valider:disabled{opacity:.4;pointer-events:none}
+
+/* ── TOASTS ──────────────────────────────────────── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 20px;font-size:13px;color:var(--text);z-index:9000;opacity:0;transition:opacity .3s;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.toast.show{opacity:1}
+.toast.success{border-color:rgba(34,197,94,.4)}
+.toast.error{border-color:rgba(239,68,68,.4)}
+
+/* ── ROUTE OPTIMISÉE ─────────────────────────────── */
+.route-info{background:var(--surface);border:1px solid rgba(255,179,0,.3);border-radius:var(--rs);padding:10px 12px;margin:0 12px 10px;display:flex;align-items:center;gap:10px}
+.route-stat{text-align:center;flex:1}
+.route-val{font-size:16px;font-weight:700;color:var(--gold)}
+.route-lbl{font-size:10px;color:var(--text3)}
+.route-divider{width:1px;height:32px;background:var(--border)}
+
+/* ── EMPTY STATE ─────────────────────────────────── */
+.empty{text-align:center;padding:60px 24px;color:var(--text3)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-title{font-size:16px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.empty-sub{font-size:13px}
+
+/* ── NOTIFICATIONS ───────────────────────────────── */
+.notif-btn{position:relative}
+.notif-badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--red);border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;display:none}
+.notif-badge.show{display:flex}
+.conf-btn{flex:1;padding:12px;border:2px solid var(--border);background:var(--surface2);color:var(--text2);border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer}
+.conf-btn.conf-on-green{background:rgba(34,197,94,.12);border-color:var(--green);color:var(--green)}
+.conf-btn.conf-on-amber{background:rgba(245,158,11,.14);border-color:#f59e0b;color:#b45309}
+.res-chip{padding:7px 11px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);border-radius:999px;font-size:12px;font-weight:600;cursor:pointer}
+.res-chip.chip-on{background:#f59e0b;border-color:#f59e0b;color:#fff}
+.charge-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.charge-card.charge-ok{border-color:var(--green);background:rgba(34,197,94,.10)}
+.charge-check{font-size:26px;cursor:pointer;line-height:1;user-select:none}
+.charge-info{flex:1;cursor:pointer;min-width:0}
+.charge-client{font-weight:700;font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.charge-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.charge-colis{display:flex;align-items:center;gap:8px}
+.charge-colis button{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer;line-height:1}
+.charge-colis button:active{background:rgba(255,255,255,.18)}
+.charge-colis span{min-width:48px;text-align:center;font-weight:700;font-size:17px;color:var(--gold);display:flex;flex-direction:column;line-height:1.15}
+.charge-colis span small{font-size:9px;font-weight:600;color:var(--text2)}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">🚚</div>
+  <div class="splash-title">AJCV Livraisons</div>
+  <div class="splash-sub">SERVICE LOGISTIQUE · LA RÉUNION</div>
+  <div class="splash-bar"><div class="splash-fill"></div></div>
+</div>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-logo">🚚</div>
+  <div class="login-title">Connexion livreur</div>
+  <div class="login-sub">AJCV Service Logistique</div>
+  <div class="login-card">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:36px;margin-bottom:8px">🚚</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text)">AJCV Logistique</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px">Connexion sécurisée</div>
+    </div>
+
+    <label class="login-label">Identifiant</label>
+    <input id="loginInput" type="text" placeholder="ex: LIV_REHAN"
+      style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 16px;color:var(--text);font-size:15px;margin-bottom:14px;outline:none"
+      oninput="checkLogin()" autocomplete="username" autocapitalize="none">
+
+    <label class="login-label">Mot de passe</label>
+    <div style="position:relative;margin-bottom:8px">
+      <input id="mdpInput" type="password" placeholder="Votre mot de passe"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 40px 12px 16px;color:var(--text);font-size:15px;outline:none"
+        oninput="checkLogin()" autocomplete="current-password">
+      <span onclick="toggleMdp()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text2);font-size:18px" id="eyeIcon">👁</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:0 2px">
+      <input type="checkbox" id="rememberMdp" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
+      <label for="rememberMdp" style="font-size:12px;color:var(--text2);cursor:pointer">Se souvenir du mot de passe</label>
+    </div>
+
+    <div id="loginError" style="display:none;background:rgba(239,68,68,.15);border:1px solid var(--red);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;text-align:center"></div>
+
+    <button id="btnLogin" class="btn-login" onclick="connexion()" disabled>Se connecter</button>
+    <div style="text-align:center;margin-top:14px"><a href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/reset.html" style="color:#FFB300;font-size:13px;text-decoration:none">Mot de passe oublié ?</a></div>
+
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text3)">
+      🔒 Session sécurisée · Expiration automatique 8h<br>
+      En cas de problème : sav.ajcv@gmail.com
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="app-header">
+    <div class="header-left">
+      <div class="header-avatar" id="hAvatar">?</div>
+      <div>
+        <div class="header-name" id="hName">Livreur</div>
+        <div class="header-zone" id="hZone" onclick="toggleTouteIle()" style="cursor:pointer" title="Basculer Ma zone / Toute l'île">Zone —</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <input type="date" id="datePicker" onchange="changerDate()"
+        style="border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:#fff;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer;margin-right:6px;">
+      <button id="btnInstall" onclick="installerApp()"
+        style="display:none;align-items:center;gap:4px;padding:4px 10px;background:#FFB300;color:#0D1B4B;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">
+        📲 Installer
+      </button>
+      <button class="header-btn notif-btn" onclick="checkNotifications()">
+        🔔<span class="notif-badge" id="notifBadge">0</span>
+      </button>
+      <button class="header-btn" onclick="logout()">Déco.</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active" onclick="switchTab('livraisons')">
+      <span class="tab-icon">📦</span>Livraisons
+    </div>
+    <div class="tab" onclick="switchTab('chargement')">
+      <span class="tab-icon">🚚</span>Chargement
+    </div>
+    <div class="tab" onclick="switchTab('carte')">
+      <span class="tab-icon">🗺️</span>Carte
+    </div>
+    <div class="tab" onclick="switchTab('done')">
+      <span class="tab-icon">✅</span>Effectuées
+    </div>
+  </div>
+
+  <div class="content" id="content">
+    <div class="empty"><div class="empty-icon">⏳</div><div class="empty-title">Chargement...</div></div>
+  </div>
+</div>
+
+<!-- MAP CONTAINER STATIQUE - Ne jamais détruire ! -->
+<div id="map-container" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:10"><div id="map" style="height:100%;width:100%"></div></div>
+
+<!-- DETAIL VIEW -->
+<div id="detail-view">
+  <div class="detail-header">
+    <button class="detail-back" onclick="closeDetail()">←</button>
+    <div>
+      <div class="detail-title" id="detail-title">—</div>
+      <div class="detail-sub" id="detail-sub">—</div>
+    </div>
+  </div>
+  <div class="detail-body" id="detail-body"></div>
+</div>
+
+<!-- MODAL STATUT -->
+<div class="modal-bg" id="modalStatut">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Mettre à jour le statut</div>
+    <div class="modal-sub" id="modal-client-info"></div>
+    <select class="modal-select" id="modal-statut">
+      <option value="À livrer">À livrer</option>
+      <option value="❌ Non livré">❌ Non livré</option>
+      <option value="🔄 Reporté">🔄 Reporté</option>
+      <option value="📞 À rappeler">📞 À rappeler</option>
+    </select>
+    <div style="font-size:11px;color:var(--text3);margin:-4px 0 10px;padding:0 2px">💡 Pour valider une livraison réussie, utilisez <strong>« Signer »</strong> (statut "Livré" automatique).</div>
+    <input type="text" class="modal-input" id="modal-remarque" placeholder="Remarque (optionnel)">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fermerModal()">Annuler</button>
+      <button class="btn-confirm" onclick="confirmerStatut()">✅ Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SIGNATURE -->
+<div id="sig-modal">
+  <div class="sig-header">
+    <h3>✍️ Bon de réception</h3>
+    <button class="sig-close" onclick="fermerSignature()">✕</button>
+  </div>
+  <div class="sig-body">
+    <div id="sig-recap" style="background:var(--surface2);border-radius:var(--rs);padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text2);"></div>
+    <span class="sig-field-label" style="font-size:13px;font-weight:700">Résultat de la livraison *</span>
+    <select class="sig-input" id="sigStatut" onchange="sigStatutChange()" style="margin-bottom:14px">
+      <option value="✅ Livré">✅ Livré (avec signature)</option>
+      <option value="❌ Non livré">❌ Non livré</option>
+      <option value="🔄 Reporté">🔄 Reporté</option>
+      <option value="📞 À rappeler">📞 À rappeler</option>
+    </select>
+    <div id="sigFormLivre">
+    <span class="sig-field-label">N° Bon de Livraison (BL)</span>
+    <input type="text" class="sig-input" id="sigBL" placeholder="Ex: BLV231574">
+    <span class="sig-field-label">Nom du destinataire *</span>
+    <input type="text" class="sig-input" id="sigNom" placeholder="Nom et prénom">
+    <span class="sig-field-label">Nb de colis reçus *</span>
+    <input type="number" class="sig-input" id="sigColis" placeholder="Ex: 3" min="1">
+    <span class="sig-field-label">Règlement récupéré</span>
+    <select class="sig-input" id="sigReglement" onchange="sigReglementChange()">
+      <option value="">Aucun</option>
+      <option value="Espèces">Espèces</option>
+      <option value="Chèque">Chèque</option>
+      <option value="Carte bancaire">Carte bancaire</option>
+      <option value="Virement">Virement</option>
+    </select>
+    <div id="sigReglementDetails" style="display:none">
+      <span class="sig-field-label">Montant (€)</span>
+      <input type="number" class="sig-input" id="sigMontant" placeholder="Ex: 150.00" min="0" step="0.01" inputmode="decimal">
+      <div id="sigChequeWrap" style="display:none">
+        <span class="sig-field-label">N° de chèque</span>
+        <input type="text" class="sig-input" id="sigChequeNum" placeholder="Ex: 0001234" inputmode="numeric">
+      </div>
+    </div>
+    <span class="sig-field-label">Email destinataire</span>
+    <div style="position:relative">
+      <input type="email" class="sig-input" id="sigEmail" placeholder="email@client.fr (optionnel)">
+      <div id="sigEmailInfo" style="font-size:11px;color:var(--text3);margin-top:-10px;margin-bottom:14px;padding:0 2px">
+        Laissez vide si déjà renseigné dans la fiche client
+      </div>
+    </div>
+    <span class="sig-field-label">Signature du destinataire *</span>
+    <div class="sig-canvas-wrap" id="sigWrap">
+      <canvas id="sigCanvas"></canvas>
+      <div class="sig-hint" id="sigHint">✍️ Signez ici avec le doigt</div>
+      <button class="sig-clear-btn" onclick="clearSig()">Effacer</button>
+    </div>
+    <div style="margin:14px 0">
+      <span class="sig-field-label">Observations / réserve (optionnel)</span>
+      <div id="reserveChips" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px">
+        <button type="button" class="res-chip" onclick="addReserve('Produit manquant')">Produit manquant</button>
+        <button type="button" class="res-chip" onclick="addReserve('Produit abîmé')">Produit abîmé</button>
+        <button type="button" class="res-chip" onclick="addReserve('Erreur de référence')">Erreur de référence</button>
+        <button type="button" class="res-chip" onclick="addReserve('Quantité incorrecte')">Quantité incorrecte</button>
+        <button type="button" class="res-chip" onclick="addReserve('Colis manquant')">Colis manquant</button>
+      </div>
+      <input type="text" class="sig-input" id="sigObs" placeholder="Ex: produit manquant — 3 cartons de jus d'orange">
+      <label style="display:flex;align-items:center;gap:10px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.4);border-radius:var(--rs);padding:11px;margin-top:10px;cursor:pointer">
+        <input type="checkbox" id="sigReserve" onchange="majMentionConf()" style="width:20px;height:20px;accent-color:#f59e0b;flex-shrink:0">
+        <span style="font-size:12px;color:var(--text);line-height:1.35"><strong>⚠️ Émettre une réserve</strong> — la livraison sera notée <strong>non conforme</strong> (réserves émises). Laissez décoché si tout est conforme.</span>
+      </label>
+      <div id="confMention" style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.4">Sans réserve cochée, le destinataire déclare la marchandise <strong>conforme</strong> à la commande.</div>
+    </div>
+    <div class="rgpd-box">
+      <strong>🔒 RGPD</strong> — Signature électronique collectée pour justifier la réception (valeur probatoire, art. 1366 Code Civil). Données conservées 5 ans, hébergées en Europe. Droits d'accès/rectification/suppression : sarl.ajcv@gmail.com — Règlement (UE) 2016/679.
+    </div>
+  </div>
+  </div><!-- fin sigFormLivre -->
+  <div id="sigFormNonLivre" style="display:none">
+    <span class="sig-field-label">Motif / Remarque</span>
+    <input type="text" class="sig-input" id="sigRaisonNL" placeholder="Ex: Client absent, refus, adresse incorrecte...">
+  </div>
+  <div style="text-align:center;padding:8px 16px 0;font-size:11px;color:var(--text3)" id="lienSansSignature">
+    Client absent, refus ou problème ? Choisissez un statut « non livré » en haut — la signature reste obligatoire pour valider une livraison.
+  </div>
+  <div class="sig-footer">
+    <button class="btn-sig-cancel" onclick="fermerSignature()">Annuler</button>
+    <button class="btn-sig-valider" id="btnValiderSig" onclick="envoyerSignature()">✅ Valider et livrer</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ════════════════════════════════════════
+// CONFIG — À modifier
+// ════════════════════════════════════════
+const CFG = {
+  API_URL:  'https://ajcvbackend-production.up.railway.app',
+  MAP_TILES_KEY: 'AIzaSyANCuTbj18tPJ9ZzreJpRgsR9j-Ijt-26g',  // Clé Google Map Tiles (restreinte: sites AJCV + Map Tiles API)
+  DEPOT:    { lat: -21.372694, lng: 55.602137 },
+  // Serveur OSRM (moteur d'itinéraire). Par défaut = serveur de démo public.
+  // >>> Pour basculer sur TON serveur : remplace par 'https://osrm.tondomaine.re' <<<
+  OSRM_URL: 'https://router.project-osrm.org',
+  REFRESH:  30 * 60 * 1000, // 30 min — le cache affiche les données instantanément
+};
+
+// ════════════════════════════════════════
+// MODE APPS SCRIPT HTML vs DRIVE
+// ════════════════════════════════════════
+const GSR = typeof google !== 'undefined' && google.script && google.script.run;
+
+// Appel serveur unifié : google.script.run (Apps Script) ou fetch (Drive)
+function gsRun(fnName, args) {
+  return new Promise((resolve, reject) => {
+    if (GSR) {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(e => reject(new Error(e.message || String(e))))
+        [fnName](...(Array.isArray(args) ? args : [args]));
+    } else {
+      reject(new Error('Mode Drive — utiliser fetch'));
+    }
+  });
+}
+
+// ════════════════════════════════════════
+// ÉTAT
+// ════════════════════════════════════════
+let state = {
+  livreur: null, zone: null, code: null, modeAffecte: false,
+  livraisons: [], livActive: null,
+  activeTab: 'livraisons',
+  ordreOptimise: null, routeInfo: null,
+  lastCount: 0, mapInited: false,
+};
+let map, markersLayer;
+
+// ════════════════════════════════════════
+// SPLASH + INIT
+// ════════════════════════════════════════
+setTimeout(() => {
+  document.getElementById('splash').classList.add('hidden');
+  try {
+    const saved = localStorage.getItem('ajcv_session');
+    if (saved) {
+      const s = JSON.parse(saved);
+      // Vérifier expiration STRICTE — déconnexion si expiré
+      if (s.token && s.tokenExpiry && Date.now() < s.tokenExpiry) {
+        Object.assign(state, s);
+        lancerApp();
+        return;
+      } else {
+        // Token expiré → déconnexion forcée
+        try { localStorage.removeItem('ajcv_session'); } catch(_) {}
+        console.log('Session expirée — reconnexion requise');
+      }
+    }
+  } catch(_) {
+    // localStorage bloqué dans iframe — aller au login
+  }
+  // Pré-remplir login/MDP si sauvegardés
+  try {
+    const creds = localStorage.getItem('ajcv_credentials');
+    if (creds) {
+      const { login: savedLogin, mdp: savedMdp } = JSON.parse(creds);
+      const loginInput = document.getElementById('loginInput');
+      const mdpInput   = document.getElementById('mdpInput');
+      const remember   = document.getElementById('rememberMdp');
+      if (loginInput && savedLogin) loginInput.value = savedLogin;
+      if (mdpInput   && savedMdp)   mdpInput.value   = savedMdp;
+      if (remember) remember.checked = true;
+      checkLogin();
+    }
+  } catch(_) {}
+  document.getElementById('login').classList.add('active');
+}, 1500);
+
+// ════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════
+function selectLivreur(el, nom) {
+  document.querySelectorAll('.livreur-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  state.livreur = nom;
+  checkLogin();
+}
+function selectZone(el, zone, cls) {
+  document.querySelectorAll('.zone-btn').forEach(b => b.className = 'zone-btn');
+  el.classList.add('sel-' + cls);
+  state.zone = zone;
+  checkLogin();
+}
+// Sélecteur de zone pour livreurs remplaçants (zone non assignée)
+function afficherSelecteurZone() {
+  document.getElementById('login').classList.remove('active');
+  // Afficher un mini-écran de sélection de zone
+  const loginDiv = document.getElementById('login');
+  loginDiv.innerHTML = `
+    <div class="login-card">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:32px">🗺️</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">Choisissez votre zone</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">Bonjour ${state.prenom} — Sélectionnez votre zone du jour</div>
+      </div>
+      <button onclick="choisirZone('${Z1}')"
+        style="width:100%;padding:14px;background:#e8f5e9;border:2px solid #2e7d32;border-radius:10px;font-size:14px;font-weight:700;color:#2e7d32;cursor:pointer;margin-bottom:10px">
+        🟢 Zone 1 — Sud & Sud-Ouest
+      </button>
+      <button onclick="choisirZone('${Z2}')"
+        style="width:100%;padding:14px;background:#e3f2fd;border:2px solid #1565C0;border-radius:10px;font-size:14px;font-weight:700;color:#1565C0;cursor:pointer;margin-bottom:10px">
+        🔵 Zone 2 — Est & Nord-Est
+      </button>
+      <button onclick="choisirZone('${Z3}')"
+        style="width:100%;padding:14px;background:#fff3e0;border:2px solid #e65100;border-radius:10px;font-size:14px;font-weight:700;color:#e65100;cursor:pointer;margin-bottom:10px">
+        🟠 Zone 3 — Ouest & Nord
+      </button>
+      <div style="height:1px;background:var(--border);margin:8px 0"></div>
+      <button onclick="choisirTouteIle()"
+        style="width:100%;padding:14px;background:#fffde7;border:2px solid #f9a825;border-radius:10px;font-size:14px;font-weight:700;color:#f57f17;cursor:pointer;margin-bottom:10px">
+        🏝️ Toute l'île — un seul livreur (vendredi)
+      </button>
+      <button onclick="logout()" style="width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-top:6px">
+        ← Changer de compte
+      </button>
+    </div>`;
+  loginDiv.classList.add('active');
+}
+
+const Z1 = '🟢 Zone 1 — Livreur 1';
+const Z2 = '🔵 Zone 2 — Livreur 2';
+const Z3 = '🟠 Zone 3 — Livreur 3';
+
+function choisirZone(zone) {
+  state.zone = zone;
+  state.touteIle = false;
+  try { 
+    const saved = JSON.parse(localStorage.getItem('ajcv_session')||'{}');
+    saved.zone = zone;
+    localStorage.setItem('ajcv_session', JSON.stringify(saved));
+  } catch(_) {}
+  document.getElementById('login').classList.remove('active');
+  demanderPlaque();
+}
+
+// Choix direct "Toute l'île" depuis l'écran de sélection (vendredi mono-livreur)
+function choisirTouteIle() {
+  state.touteIle = true;
+  state.zone = '';
+  document.getElementById('login').classList.remove('active');
+  demanderPlaque();
+}
+
+// ── SAISIE PLAQUE VÉHICULE (début de tournée) ────────────────────────────────
+async function demanderPlaque() {
+  const today = new Date().toISOString().split('T')[0];
+  let plaqueJour = '';
+  try {
+    const pj = JSON.parse(localStorage.getItem('ajcv_plaque')||'null');
+    if (pj && pj.date === today) plaqueJour = pj.plaque;
+  } catch(_) {}
+
+  // Récupérer la liste des camions enregistrés
+  let vehicules = [];
+  try {
+    const resp = await fetch(`${CFG.API_URL}/vehicules`, { headers:{'Authorization':`Bearer ${state.token||''}`} });
+    const data = await resp.json();
+    vehicules = data.vehicules || [];
+  } catch(_) {}
+
+  const loginDiv = document.getElementById('login');
+  const zoneLbl = state.touteIle ? "🏝️ Toute l'île" : (state.zone === Z1 ? '🟢 Zone 1 — Sud' : state.zone === Z2 ? '🔵 Zone 2 — Est' : state.zone === Z3 ? '🟠 Zone 3 — Ouest' : state.zone);
+
+  // Champ de sélection : liste déroulante si camions enregistrés, sinon saisie texte
+  let champPlaque;
+  if (vehicules.length > 0) {
+    const estFlotte = vehicules.some(v => v.plaque === plaqueJour);
+    const autreSel = !!(plaqueJour && !estFlotte);   // plaque mémorisée hors flotte = location
+    champPlaque = `
+      <select id="plaqueSelect" onchange="plaqueSelectChange()"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;color:var(--text);font-size:17px;text-align:center;outline:none">
+        <option value="">— Choisir le camion —</option>
+        ${vehicules.map(v=>`<option value="${v.plaque}" ${v.plaque===plaqueJour?'selected':''}>${v.plaque}${v.description?' · '+v.description:''}</option>`).join('')}
+        <option value="__AUTRE__" ${autreSel?'selected':''}>➕ Autre / camion de location…</option>
+      </select>
+      <input id="plaqueAutre" type="text" placeholder="Plaque du camion de location" value="${autreSel?plaqueJour:''}"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;color:var(--text);font-size:18px;text-align:center;text-transform:uppercase;letter-spacing:2px;outline:none;display:${autreSel?'block':'none'};margin-top:10px"
+        oninput="this.value=this.value.toUpperCase()">`;
+  } else {
+    champPlaque = `
+      <input id="plaqueInput" type="text" placeholder="Ex: AB-123-CD" value="${plaqueJour}"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;color:var(--text);font-size:18px;text-align:center;text-transform:uppercase;letter-spacing:2px;outline:none"
+        oninput="this.value=this.value.toUpperCase()">`;
+  }
+
+  loginDiv.innerHTML = `
+    <div class="login-card">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:32px">🚐</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">Véhicule du jour</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">Bonjour ${state.prenom} · ${zoneLbl}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${vehicules.length>0?'Sélectionnez votre fourgon':'Saisissez la plaque de votre fourgon'}</div>
+      </div>
+      ${champPlaque}
+      <button onclick="validerPlaque()" 
+        style="width:100%;padding:14px;background:var(--gold);border:none;border-radius:8px;font-size:15px;font-weight:700;color:#0F1724;cursor:pointer;margin-top:16px">
+        ✅ Démarrer ma tournée
+      </button>
+      <button onclick="logout()" style="width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-top:8px">
+        ← Changer de compte
+      </button>
+    </div>`;
+  loginDiv.classList.add('active');
+}
+
+function plaqueSelectChange() {
+  const sel = document.getElementById('plaqueSelect');
+  const autre = document.getElementById('plaqueAutre');
+  if (!sel || !autre) return;
+  if (sel.value === '__AUTRE__') { autre.style.display = 'block'; try { autre.focus(); } catch(_){} }
+  else { autre.style.display = 'none'; }
+}
+
+async function validerPlaque() {
+  const sel = document.getElementById('plaqueSelect');
+  const inp = document.getElementById('plaqueInput');
+  const autre = document.getElementById('plaqueAutre');
+  let plaque;
+  if (sel && sel.value === '__AUTRE__') {
+    plaque = ((autre ? autre.value : '')||'').trim().toUpperCase();
+  } else {
+    plaque = ((sel ? sel.value : (inp ? inp.value : ''))||'').trim().toUpperCase();
+  }
+  if (!plaque || plaque.length < 4) { showToast('⚠️ Choisissez un camion', 'error'); return; }
+  state.plaque = plaque;
+  const today = new Date().toISOString().split('T')[0];
+  try { localStorage.setItem('ajcv_plaque', JSON.stringify({ date: today, plaque })); } catch(_) {}
+  // Enregistrer côté backend
+  try {
+    await fetch(`${CFG.API_URL}/affectation`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
+      body: JSON.stringify({ plaque, zone: state.zone||'', date: getDateSelectionnee ? getDateSelectionnee() : today })
+    });
+  } catch(_) {}
+  document.getElementById('login').classList.remove('active');
+  lancerApp();
+}
+
+function checkLogin() {
+  const login = document.getElementById('loginInput').value.trim();
+  const mdp   = document.getElementById('mdpInput').value.trim();
+  document.getElementById('btnLogin').disabled = !(login && mdp);
+}
+
+async function connexion() {
+  const login    = document.getElementById('loginInput').value.trim();
+  const mdp      = document.getElementById('mdpInput').value.trim();
+  const btnLogin = document.getElementById('btnLogin');
+  const errDiv   = document.getElementById('loginError');
+
+  btnLogin.disabled = true;
+  btnLogin.textContent = 'Connexion...';
+  errDiv.style.display = 'none';
+
+  try {
+    let data;
+    if (GSR) {
+      data = await gsRun('gsr_login', [login, mdp]);
+    } else {
+      const resp = await fetch(`${CFG.API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ login, mdp })
+      });
+      data = await resp.json();
+    }
+
+    if (data.error) {
+      errDiv.textContent = '❌ ' + data.error;
+      errDiv.style.display = 'block';
+      btnLogin.disabled = false;
+      btnLogin.textContent = 'Se connecter';
+      return;
+    }
+
+    // Stocker le token avec expiration
+    const tokenExpiry = Date.now() + (data.expiresIn * 60 * 1000);
+    state.token       = data.token;
+    state.role        = data.role;
+    state.prenom      = data.prenom;
+    state.livreur     = data.prenom + (data.nom ? ' ' + data.nom : '');
+    state.login       = login;
+    state.tokenExpiry = tokenExpiry;
+    state.zone        = data.zone || '';
+
+    // Sauvegarder MDP si case cochée
+    const rememberMdp = document.getElementById('rememberMdp');
+    try {
+      if (rememberMdp && rememberMdp.checked) {
+        localStorage.setItem('ajcv_credentials', JSON.stringify({ login, mdp }));
+      } else {
+        localStorage.removeItem('ajcv_credentials');
+      }
+    } catch(_) {}
+
+    try { localStorage.setItem('ajcv_session', JSON.stringify({
+      token: state.token, tokenExpiry, role: state.role,
+      prenom: state.prenom, livreur: state.livreur,
+      login, zone: state.zone
+    })); } catch(_) {}
+
+    // Livreur → demande la plaque puis l'appli (plus de sélection de zone : il voit ses livraisons affectées)
+    if (state.role === 'Livreur') {
+      document.getElementById('login').classList.remove('active');
+      demanderPlaque();
+    } else {
+      document.getElementById('login').classList.remove('active');
+      lancerApp();
+    }
+
+  } catch(err) {
+    errDiv.textContent = '❌ Erreur de connexion. Vérifiez votre réseau.';
+    errDiv.style.display = 'block';
+    btnLogin.disabled = false;
+    btnLogin.textContent = 'Se connecter';
+  }
+}
+
+function toggleMdp() {
+  const inp = document.getElementById('mdpInput');
+  const eye = document.getElementById('eyeIcon');
+  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+  else { inp.type = 'password'; eye.textContent = '👁'; }
+}
+
+function logout() {
+  localStorage.removeItem('ajcv_session');
+  location.reload();
+}
+
+function sessionExpiree() {
+  localStorage.removeItem('ajcv_session');
+  showToast('⚠️ Session expirée, reconnectez-vous', 'error');
+  setTimeout(() => location.reload(), 1500);
+}
+
+function lancerApp() {
+  document.getElementById('app').classList.add('active');
+  document.getElementById('hAvatar').textContent = state.prenom ? state.prenom[0] : (state.livreur ? state.livreur[0] : '?');
+  document.getElementById('hName').textContent   = state.prenom || state.livreur || 'Livreur';
+  // Afficher la zone simplifiée dans le header
+  majLabelZone();
+  // Initialiser le calendrier à aujourd'hui
+  const dp = document.getElementById('datePicker');
+  if (dp) dp.value = new Date().toISOString().split('T')[0];
+  chargerLivraisons();
+  setInterval(chargerLivraisons, CFG.REFRESH);
+}
+
+// ════════════════════════════════════════
+// CHARGEMENT DONNÉES
+// ════════════════════════════════════════
+function majLabelZone() {
+  const el = document.getElementById('hZone');
+  if (!el) return;
+  if (state.touteIle) {
+    el.textContent = '🏝️ Toute l\'île ⇄';
+    el.style.color = '#ffd54f';
+    el.style.fontWeight = '700';
+  } else if (state.modeAffecte) {
+    el.textContent = '📋 Mes livraisons ⇄';
+    el.style.color = '#81d4fa';
+    el.style.fontWeight = '700';
+  } else {
+    const z = state.zone === '🟢 Zone 1 — Livreur 1' ? 'Zone 1 — Sud' :
+              state.zone === '🔵 Zone 2 — Livreur 2' ? 'Zone 2 — Est' :
+              state.zone === '🟠 Zone 3 — Livreur 3' ? 'Zone 3 — Ouest' :
+              state.zone || state.role || '';
+    el.textContent = (z ? z + ' (repli)' : 'Aucune affectation') + ' ⇄';
+    el.style.color = '';
+    el.style.fontWeight = '';
+  }
+}
+function toggleTouteIle() {
+  if (!state.touteIle) {
+    if (!confirm("Afficher TOUTES les livraisons de l'île (toutes zones) ?\n\nÀ utiliser le vendredi quand un seul livreur fait tout.")) return;
+  }
+  state.touteIle = !state.touteIle;
+  state.ordreOptimise = null;   // l'optimisation par zone n'est plus valable
+  state.routeInfo = null;
+  majLabelZone();
+  showToast(state.touteIle ? '🏝️ Mode toute l\'île activé' : '📍 Retour à ma zone', '');
+  chargerLivraisons();
+}
+
+function getDateSelectionnee() {
+  const picker = document.getElementById('datePicker');
+  if (!picker || !picker.value) return '';
+  // Format JJ/MM/AAAA pour l'API
+  const d = new Date(picker.value);
+  return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+}
+
+function getJourSelectionne() {
+  const picker = document.getElementById('datePicker');
+  if (!picker || !picker.value) return '';  // vide = toutes les dates
+  const d = new Date(picker.value);
+  return ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'][d.getDay()];
+}
+
+function changerDate() {
+  chargerLivraisons();
+}
+
+// ── Clé de cache pour la date et zone actuelles ──────────────────────────────
+// Forcer le rafraîchissement manuellement
+async function rafraichirMaintenant() {
+  // Vider le cache de la date actuelle pour forcer rechargement
+  try { localStorage.removeItem(cacheKey()); } catch(_) {}
+  showToast('🔄 Rechargement...', '');
+  await chargerLivraisons();
+}
+
+function cacheKey() {
+  const seg = state.touteIle ? 'TOUTE' : (state.modeAffecte ? 'MOI' : (state.zone||''));
+  return 'ajcv_livraisons_' + seg + '_' + getDateSelectionnee();
+}
+function cacheKeyOptim() {
+  const seg = state.touteIle ? 'TOUTE' : (state.modeAffecte ? 'MOI' : (state.zone||''));
+  return 'ajcv_optim_' + seg + '_' + getDateSelectionnee();
+}
+function sauvegarderOptimCache(ordre, routeInfo) {
+  try { localStorage.setItem(cacheKeyOptim(), JSON.stringify({ ordre, routeInfo, ts: Date.now() })); } catch(_) {}
+}
+function restaurerOptimCache() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(cacheKeyOptim()) || 'null');
+    if (!cached || !cached.ordre || !cached.ordre.length) return false;
+    if (Date.now() - (cached.ts||0) > 20 * 3600 * 1000) return false; // expire 20h
+    state.ordreOptimise = cached.ordre;
+    state.routeInfo     = cached.routeInfo;
+    return true;
+  } catch(_) { return false; }
+}
+
+async function chargerLivraisons() {
+  // 1. Afficher le cache instantanément si disponible
+  try {
+    const cached = localStorage.getItem(cacheKey());
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed.livraisons && parsed.livraisons.length > 0) {
+        state.livraisons = parsed.livraisons;
+        state.lastCount  = parsed.livraisons.length;
+        // Restaurer aussi l'optimisation si disponible
+        const optimRestauree = restaurerOptimCache();
+        renderTab();
+        if (state.mapInited) updateMapMarkers();
+        if (optimRestauree) {
+          showToast('📦 Données et tournée restaurées', '');
+        } else {
+          showToast('🔄 Actualisation...', '');
+        }
+      }
+    }
+  } catch(_) {}
+
+  // 2. Charger les données fraîches en arrière-plan (timeout 45s)
+  try {
+    let data;
+    const controller = new AbortController();
+    const fetchTimeout = setTimeout(() => controller.abort(), 45000); // timeout 45s
+    const d   = encodeURIComponent(getDateSelectionnee());
+    const tok = state.token || '';
+    const H   = { headers: {'Authorization': `Bearer ${tok}`}, signal: controller.signal };
+    if (GSR) {
+      // Chemin Google Apps Script (pas d'affectation) → comportement par zone
+      const zoneReq = state.touteIle ? '' : (state.zone||'');
+      data = await gsRun('gsr_getLivraisons', [tok, zoneReq, getDateSelectionnee()]);
+      state.modeAffecte = false;
+    } else if (state.touteIle) {
+      // Mode vendredi « toute l'île » → uniquement les topées
+      const resp = await fetch(`${CFG.API_URL}/livraisons?zone=&date=${d}&vendredi=only`, H);
+      if (resp.status === 401) { clearTimeout(fetchTimeout); sessionExpiree(); return; }
+      data = await resp.json();
+      state.modeAffecte = false;
+    } else {
+      // Dispatch : le livreur voit UNIQUEMENT ses livraisons affectées par l'admin
+      const resp = await fetch(`${CFG.API_URL}/livraisons?livreur=${encodeURIComponent(state.livreur||'')}&date=${d}`, H);
+      if (resp.status === 401) { clearTimeout(fetchTimeout); sessionExpiree(); return; }
+      data = await resp.json();
+      state.modeAffecte = true;
+    }
+    clearTimeout(fetchTimeout);
+    majLabelZone();
+
+    const prev = state.lastCount;
+    const nouvelles = data.livraisons || [];
+
+    // Mettre en cache pour le prochain chargement
+    try {
+      localStorage.setItem(cacheKey(), JSON.stringify({ livraisons: nouvelles, ts: Date.now() }));
+    } catch(_) {}
+
+    state.livraisons = nouvelles;
+    state.lastCount  = nouvelles.length;
+
+    // Notification si nouvelles livraisons
+    if (prev > 0 && state.lastCount > prev) {
+      const diff = state.lastCount - prev;
+      notifier(`${diff} nouvelle(s) livraison(s) ajoutée(s) !`);
+      const badge = document.getElementById('notifBadge');
+      badge.textContent = diff;
+      badge.classList.add('show');
+    }
+
+    renderTab();
+    if (state.mapInited) updateMapMarkers();
+    showToast('', ''); // masquer le toast
+
+  } catch(err) {
+    // Timeout ou erreur réseau
+    if (state.livraisons.length === 0) {
+      showToast('❌ Pas de connexion — réessayez', 'error');
+    } else {
+      // Cache disponible — afficher l'heure de la dernière synchro
+      try {
+        const cached = JSON.parse(localStorage.getItem(cacheKey()) || 'null');
+        if (cached && cached.ts) {
+          const heure = new Date(cached.ts).toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+          showToast('📦 Cache du ' + heure + ' · Vérifiez votre connexion', '');
+        }
+      } catch(_) {
+        showToast('⚠️ Données en cache — connexion lente', '');
+      }
+    }
+  }
+}
+
+// ════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════
+function switchTab(tab) {
+  state.activeTab = tab;
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['livraisons','chargement','carte','done'][i] === tab);
+  });
+  renderTab();
+  // Fix Leaflet dans iframe : forcer redimensionnement quand on arrive sur la carte
+  if (tab === 'carte') {
+    setTimeout(() => { if (map) { map.invalidateSize(true); } }, 100);
+    setTimeout(() => { if (map) { map.invalidateSize(true); updateMapMarkers(); } }, 500);
+    setTimeout(() => { if (map) map.invalidateSize(true); }, 1000);
+  }
+}
+
+function renderTab() {
+  if (state.activeTab === 'livraisons') renderLivraisons(false);
+  else if (state.activeTab === 'chargement') renderChargement();
+  else if (state.activeTab === 'carte') renderCarte();
+  else if (state.activeTab === 'done') renderLivraisons(true);
+}
+
+// ════════════════════════════════════════
+// CHARGEMENT CAMION
+// ════════════════════════════════════════
+function chargeKey() { return 'ajcv_charge_' + (state.livreur||'') + '_' + getDateSelectionnee(); }
+function chargeSet() {
+  try { return new Set(JSON.parse(localStorage.getItem(chargeKey()) || '[]').map(String)); }
+  catch(_) { return new Set(); }
+}
+function chargeSave(set) { try { localStorage.setItem(chargeKey(), JSON.stringify([...set])); } catch(_) {} }
+function colisDe(l) { return parseInt(l.nb_colis != null ? l.nb_colis : l.nbColis) || 1; }
+function estCharge(l) { return l.charge === true || chargeSet().has(String(l.id)); }
+function trouverLiv(id) { return state.livraisons.find(l => String(l.id) === String(id)); }
+
+function renderChargement() {
+  const mapContainer = document.getElementById('map-container');
+  if (mapContainer) mapContainer.style.display = 'none';
+  const content = document.getElementById('content');
+  content.style.display = 'block';
+
+  const livs = state.livraisons.filter(l => l.statut !== '✅ Livré');
+  const charges = livs.filter(estCharge).length;
+  const totalColis = livs.reduce((s,l) => s + colisDe(l), 0);
+
+  if (livs.length === 0) {
+    content.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>
+      <div class="empty-title">Aucune livraison à charger</div>
+      <div class="empty-sub">Le dispatch ne t'a pas encore affecté de tournée.</div></div>`;
+    return;
+  }
+
+  let html = `<div class="kpi-banner">
+    <div class="kpi-tile"><div class="kpi-val b">${livs.length}</div><div class="kpi-lbl">Commandes</div></div>
+    <div class="kpi-tile"><div class="kpi-val g">${charges}</div><div class="kpi-lbl">Chargées</div></div>
+    <div class="kpi-tile"><div class="kpi-val o">${livs.length - charges}</div><div class="kpi-lbl">Restantes</div></div>
+    <div class="kpi-tile"><div class="kpi-val b">${totalColis}</div><div class="kpi-lbl">Colis</div></div>
+  </div>`;
+
+  html += `<div class="optimize-bar"><div class="optimize-info"><strong>🚚 Chargement du camion</strong>
+    Coche chaque commande chargée et vérifie le nombre de colis</div>
+    <button class="btn-optimize" onclick="toutCharger()">✓ Tout</button></div>`;
+
+  html += `<div class="list-section"><div class="section-label">${charges}/${livs.length} commandes chargées</div>`;
+  livs.forEach(l => {
+    const ok = estCharge(l), n = colisDe(l);
+    html += `<div class="charge-card${ok ? ' charge-ok' : ''}">
+      <div class="charge-check" onclick="toggleCharge('${l.id}')">${ok ? '✅' : '⬜'}</div>
+      <div class="charge-info" onclick="toggleCharge('${l.id}')">
+        <div class="charge-client">${l.client || ''}</div>
+        <div class="charge-sub">${l.ville || ''} · BL ${l.bl || '—'}</div>
+      </div>
+      <div class="charge-colis">
+        <button onclick="ajusterColisCharge('${l.id}',-1)">−</button>
+        <span>${n}<small>colis</small></span>
+        <button onclick="ajusterColisCharge('${l.id}',1)">+</button>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+async function toggleCharge(id) {
+  const l = trouverLiv(id); if (!l) return;
+  const set = chargeSet();
+  const ok = !(l.charge === true || set.has(String(id)));
+  if (ok) set.add(String(id)); else set.delete(String(id));
+  chargeSave(set);
+  l.charge = ok;
+  renderChargement();
+  envoyerChargement(l, ok);
+}
+
+function ajusterColisCharge(id, delta) {
+  const l = trouverLiv(id); if (!l) return;
+  const n = Math.max(1, colisDe(l) + delta);
+  l.nb_colis = n; l.nbColis = n;
+  renderChargement();
+  envoyerChargement(l, estCharge(l));
+}
+
+function toutCharger() {
+  const set = chargeSet();
+  state.livraisons.filter(l => l.statut !== '✅ Livré').forEach(l => { set.add(String(l.id)); l.charge = true; envoyerChargement(l, true); });
+  chargeSave(set);
+  renderChargement();
+  showToast('✅ Tout est marqué chargé', 'success');
+}
+
+async function envoyerChargement(l, charge) {
+  try {
+    await fetch(`${CFG.API_URL}/livraisons/chargement`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
+      body: JSON.stringify({ id: l.id, charge, colis: colisDe(l) }),
+    });
+  } catch(_) { /* le localStorage conserve l'état côté livreur */ }
+}
+
+// ════════════════════════════════════════
+// LISTE LIVRAISONS
+// ════════════════════════════════════════
+function renderLivraisons(showDone) {
+  // Cacher la carte, montrer le content normal
+  const mapContainer = document.getElementById('map-container');
+  if (mapContainer) mapContainer.style.display = 'none';
+  const content = document.getElementById('content');
+  content.style.display = 'block';
+  const livs    = state.livraisons.filter(l => showDone
+    ? l.statut === '✅ Livré'
+    : l.statut !== '✅ Livré');
+
+  const total  = state.livraisons.length;
+  const livres = state.livraisons.filter(l => l.statut === '✅ Livré').length;
+  const nl     = state.livraisons.filter(l => l.statut === '❌ Non livré').length;
+  const att    = state.livraisons.filter(l => !l.statut || l.statut === 'À livrer').length;
+
+  let html = `<div class="kpi-banner">
+    <div class="kpi-tile"><div class="kpi-val b">${total}</div><div class="kpi-lbl">Total</div></div>
+    <div class="kpi-tile"><div class="kpi-val g">${livres}</div><div class="kpi-lbl">Livrés</div></div>
+    <div class="kpi-tile"><div class="kpi-val r">${nl}</div><div class="kpi-lbl">Non livrés</div></div>
+    <div class="kpi-tile"><div class="kpi-val o">${att}</div><div class="kpi-lbl">En attente</div></div>
+  </div>`;
+
+  if (!showDone) {
+    // Bannière optimisation
+    if (state.routeInfo) {
+      html += `<div class="route-info">
+        <div class="route-stat"><div class="route-val">${state.routeInfo.totalKm} km</div><div class="route-lbl">Distance totale</div></div>
+        <div class="route-divider"></div>
+        <div class="route-stat"><div class="route-val">${state.routeInfo.totalMin} min</div><div class="route-lbl">Durée estimée</div></div>
+        <div class="route-divider"></div>
+        <div class="route-stat" style="cursor:pointer" onclick="ouvrirMaps()">
+          <div class="route-val" style="font-size:20px">🗺️</div>
+          <div class="route-lbl">Google Maps</div>
+        </div>
+      </div>`;
+      const _src = String(state.routeInfo.sourceDistance || '');
+      const _routier = _src.includes('google') || _src.includes('osrm');
+      html += `<div style="text-align:center;font-size:11px;font-weight:600;margin:-2px 0 8px;color:${_routier ? '#22C55E' : '#FFB300'}">${
+        _routier
+          ? '🛣️ Itinéraire routier réel (OSRM)'
+          : '📐 Estimation à vol d\'oiseau — détours montagne (Salazie, Cilaos) non optimisés'
+      }</div>`;
+    }
+    html += `<div class="optimize-bar">
+      <div class="optimize-info">
+        <strong>🧭 Optimisation de tournée</strong>
+        Routes réelles (OSRM) · 2-opt + or-opt
+      </div>
+      <button onclick="rafraichirMaintenant()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:8px 10px;font-size:14px;cursor:pointer;margin-right:6px" title="Rafraîchir les données">🔄</button>
+      <button class="btn-optimize" id="btnOptimize" onclick="optimiserTournee()" title="Calculer l'ordre optimal des livraisons">
+        ✨ Optimiser
+      </button>
+    </div>`;
+  }
+
+  if (livs.length === 0) {
+    const rien = state.livraisons.length === 0;
+    html += `<div class="empty">
+      <div class="empty-icon">${rien ? '📭' : (showDone ? '🎉' : '🎉')}</div>
+      <div class="empty-title">${rien ? 'Aucune livraison affectée' : (showDone ? 'Aucune livraison effectuée' : 'Toutes les livraisons sont faites !')}</div>
+      <div class="empty-sub">${rien ? "Le dispatch ne t'a pas encore affecté de tournée pour cette date." : (showDone ? '' : 'Excellent travail ! 🎉')}</div>
+    </div>`;
+    content.innerHTML = html;
+    return;
+  }
+
+  // Trier selon l'ordre optimisé si disponible
+  let sorted = [...livs];
+  if (state.ordreOptimise && !showDone) {
+    // Normaliser : minuscules + sans espaces multiples pour comparaison fiable
+    const norm = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+    const ordreMap = {};
+    state.ordreOptimise.forEach((s, i) => {
+      const cle = norm(s.client) + '|' + norm(s.ville);
+      ordreMap[cle] = i + 1;
+      if (s.bl) ordreMap['bl:' + s.bl] = i + 1;
+    });
+    sorted.sort((a, b) => {
+      const posA = ordreMap['bl:' + a.bl] || ordreMap[norm(a.client) + '|' + norm(a.ville)] || 999;
+      const posB = ordreMap['bl:' + b.bl] || ordreMap[norm(b.client) + '|' + norm(b.ville)] || 999;
+      return posA - posB;
+    });
+  }
+
+  html += '<div class="list-section">';
+  html += `<div class="section-label">${showDone ? 'Livrées aujourd\'hui' : `${livs.length} à livrer`}</div>`;
+
+  sorted.forEach((l, i) => {
+    // Trouver le segment optimisé — comparaison normalisée
+    const normStr = v => String(v || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    let seg = null;
+    if (state.ordreOptimise) {
+      if (l.bl) seg = state.ordreOptimise.find(s => s.bl && s.bl === l.bl);
+      if (!seg)  seg = state.ordreOptimise.find(s =>
+        normStr(s.client) === normStr(l.client) && normStr(s.ville) === normStr(l.ville)
+      );
+      if (!seg)  seg = state.ordreOptimise.find(s =>
+        normStr(s.client) === normStr(l.client)
+      );
+    }
+    // Utiliser l'ordre réel du segment, pas i+1
+    const ordre   = seg ? seg.ordre : (state.ordreOptimise ? (i + 1) : null);
+    const statCls = getStatutClass(l.statut);
+    const est     = seg ? seg.segment : null;
+    // indexOf utilise la référence exacte de l'objet — fiable même avec doublons
+    const idxReel = state.livraisons.indexOf(l);
+    html += `<div class="liv-card ${l.statut === '✅ Livré' ? 'done' : ''}" onclick="ouvrirDetail(${idxReel})">
+      ${ordre ? `<div class="liv-order">${ordre}</div>` : ''}
+      <div class="liv-card-inner">
+        <div class="liv-client">${l.client}</div>
+        <div class="liv-adresse">📍 ${l.adresse ? l.adresse + ' · ' : ''}${l.ville || '—'}${est ? ` · ⏱ ${est.description}` : ''}</div>
+        ${((l.contrainte && l.contrainte !== 'LIBRE') || (seg && seg.contrainte && seg.contrainte !== 'LIBRE')) ? `<div style="font-size:11px;color:#FF8F00;font-weight:600;margin-top:3px">⚠️ ${l.contrainte || seg.contrainte}</div>` : ''}
+        ${(l.horaires || (seg && seg.horaires)) ? `<div style="font-size:11px;color:#64B5F6;margin-top:2px">🕐 ${l.horaires || seg.horaires}</div>` : ''}
+        ${((l.priorite && l.priorite.includes('PRIORITAIRE')) || (seg && seg.priorite && seg.priorite.includes('PRIORITAIRE'))) ? `<div style="font-size:11px;color:#EF5350;font-weight:700;margin-top:2px">🚨 PRIORITAIRE</div>` : ''}
+        <div class="liv-meta">
+          <span class="pill ${statCls}">${l.statut || 'À livrer'}</span>
+          ${l.bl ? `<span style="font-size:11px;color:var(--text3)">BL: ${l.bl}</span>` : ''}
+          ${l.nbColis ? `<span style="font-size:11px;color:var(--text3)">${l.nbColis} colis</span>` : ''}
+        </div>
+      </div>
+      <div class="liv-actions">
+        <button class="liv-action call" onclick="event.stopPropagation();appeler('${l.tel1}')">
+          <span class="icon">📞</span>Appeler
+        </button>
+        <button class="liv-action waze" onclick="event.stopPropagation();ouvrirWaze(${JSON.stringify(l).replace(/"/g,'&quot;')})">
+          <span class="icon">🚗</span>Waze
+        </button>
+        <button class="liv-action sig" onclick="event.stopPropagation();ouvrirSignature(${idxReel})">
+          <span class="icon">✍️</span>Signer
+        </button>
+
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+// ════════════════════════════════════════
+// CARTE
+// ════════════════════════════════════════
+// ===== Tuiles Google officielles (Map Tiles API) =====
+let _tileSession = null;
+async function getTileSession() {
+  // Réutiliser une session valide (les sessions Google durent ~2 semaines)
+  if (_tileSession && _tileSession.expiry > Date.now() + 60000) return _tileSession.session;
+  try {
+    const c = JSON.parse(localStorage.getItem('ajcv_tile_session') || 'null');
+    if (c && c.session && c.expiry > Date.now() + 60000) { _tileSession = c; return c.session; }
+  } catch(_) {}
+  const resp = await fetch(`https://tile.googleapis.com/v1/createSession?key=${CFG.MAP_TILES_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mapType: 'roadmap', language: 'fr-FR', region: 'RE' })
+  });
+  const data = await resp.json();
+  if (!data.session) throw new Error('Session Google Tiles non obtenue');
+  const expiryMs = data.expiry ? parseInt(data.expiry) * 1000 : Date.now() + 13*24*3600*1000;
+  _tileSession = { session: data.session, expiry: expiryMs };
+  try { localStorage.setItem('ajcv_tile_session', JSON.stringify(_tileSession)); } catch(_) {}
+  return data.session;
+}
+
+function renderCarte() {
+  // Cacher le content normal, montrer le map-container statique
+  document.getElementById('content').style.display = 'none';
+  const mapContainer = document.getElementById('map-container');
+  mapContainer.style.display = 'block';
+  // Positionner sous le header + tabbar dynamiquement
+  const header = document.querySelector('.app-header');
+  const tabbar = document.querySelector('.tab-bar');
+  const topOffset = (header ? header.offsetHeight : 60) + (tabbar ? tabbar.offsetHeight : 56);
+  mapContainer.style.top = topOffset + 'px';
+
+  // Badge source d'itinéraire — visible directement sur la carte
+  let badge = document.getElementById('map-src-badge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'map-src-badge';
+    badge.style.cssText = 'position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:1000;padding:5px 12px;border-radius:14px;font-size:11px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.35);white-space:nowrap;pointer-events:none';
+    mapContainer.appendChild(badge);
+  }
+  if (state.routeInfo && state.routeInfo.sourceDistance) {
+    const routier = String(state.routeInfo.sourceDistance).includes('google') || String(state.routeInfo.sourceDistance).includes('osrm');
+    badge.style.background = routier ? '#22C55E' : '#FFB300';
+    badge.style.color = routier ? '#fff' : '#1a1a2e';
+    badge.textContent = routier ? '🛣️ Itinéraire routier réel (OSRM)' : '📐 Estimation à vol d\'oiseau';
+    badge.style.display = 'block';
+  } else {
+    badge.style.display = 'none';
+  }
+
+  setTimeout(async () => {
+    if (map) { map.invalidateSize(true); }
+    if (!state.mapInited) {
+      map = L.map('map', { center: [CFG.DEPOT.lat, CFG.DEPOT.lng], zoom: 11 });
+      // Tuiles Google officielles (Map Tiles API) — repli OpenStreetMap si indisponible
+      try {
+        const session = await getTileSession();
+        L.tileLayer(`https://tile.googleapis.com/v1/2dtiles/{z}/{x}/{y}?session=${session}&key=${CFG.MAP_TILES_KEY}`, {
+          attribution: '© Google', maxZoom: 20
+        }).addTo(map);
+      } catch (e) {
+        console.warn('Google Tiles indisponible, repli OpenStreetMap :', e.message);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap', maxZoom: 19
+        }).addTo(map);
+      }
+      markersLayer = L.layerGroup().addTo(map);
+
+      // Marqueur dépôt
+      const depotIcon = L.divIcon({
+        html: '<div style="width:20px;height:20px;border-radius:50%;background:#FFB300;border:3px solid #0D1B4B;display:flex;align-items:center;justify-content:center;font-size:10px">🏭</div>',
+        iconSize: [20,20], iconAnchor: [10,10], className: ''
+      });
+      L.marker([CFG.DEPOT.lat, CFG.DEPOT.lng], { icon: depotIcon })
+        .bindTooltip('Dépôt AJCV — Saint-Joseph', { permanent: false })
+        .addTo(map);
+
+      state.mapInited = true;
+
+      // Fix iframe — redimensionnement
+      setTimeout(() => { map.invalidateSize(); }, 300);
+      setTimeout(() => { map.invalidateSize(); }, 800);
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && state.activeTab === 'carte') setTimeout(() => { map.invalidateSize(); }, 300);
+      });
+      window.addEventListener('resize', () => {
+        if (state.activeTab === 'carte') setTimeout(() => { map.invalidateSize(); }, 200);
+      });
+    } else {
+      setTimeout(() => { map.invalidateSize(true); }, 150);
+    }
+    updateMapMarkers();
+  }, 100);
+}
+
+function updateMapMarkers() {
+  if (!markersLayer) return;
+  markersLayer.clearLayers();
+
+  const COMMUNE_COORDS = {
+    'SAINT-PIERRE':[-21.3393,55.4781],'LE TAMPON':[-21.2706,55.5140],
+    'SAINT-JOSEPH':[-21.3791,55.6188],'SAINT-LOUIS':[-21.2708,55.4072],
+    "L'ÉTANG-SALÉ":[-21.2619,55.3497],'LES AVIRONS':[-21.2328,55.3261],
+    'ENTRE-DEUX':[-21.2208,55.4833],'SAINT-PHILIPPE':[-21.3600,55.7700],
+    'CILAOS':[-21.1333,55.4667],'PETITE-ÎLE':[-21.3333,55.5833],
+    'SAINT-DENIS':[-20.8823,55.4504],'SAINT-BENOÎT':[-21.0338,55.7203],
+    'SAINT-ANDRÉ':[-20.9639,55.6531],'SAINTE-MARIE':[-20.8978,55.5236],
+    'SAINTE-SUZANNE':[-20.9137,55.5939],'BRAS-PANON':[-21.0014,55.6494],
+    'SAINTE-ROSE':[-21.1167,55.8000],'SAINT-PAUL':[-21.0043,55.2692],
+    'LE PORT':[-20.9340,55.2899],'LA POSSESSION':[-20.9276,55.3367],
+    'SAINT-LEU':[-21.1557,55.2843],'TROIS-BASSINS':[-21.1000,55.3000],
+  };
+
+  state.livraisons.forEach((l, idx) => {
+    let lat = parseFloat(l.lat), lng = parseFloat(l.lng);
+    // Valider que les coords sont bien à La Réunion
+    if (!coordsValides(lat, lng)) {
+      const key = (l.ville || '').toUpperCase().trim();
+      const coords = COMMUNE_COORDS[key];
+      if (!coords) return;
+      lat = coords[0] + (Math.random()-.5)*.008;
+      lng = coords[1] + (Math.random()-.5)*.008;
+    }
+
+    let col = '#FFB300';
+    if (l.statut === '✅ Livré')         col = '#22C55E';
+    else if (l.statut === '❌ Non livré') col = '#EF4444';
+    else if (l.statut === '🔄 Reporté')  col = '#A855F7';
+
+    let ordre = '';
+    if (state.ordreOptimise) {
+      let idx = -1;
+      if (l.bl) idx = state.ordreOptimise.findIndex(s => s.bl && s.bl === l.bl);
+      if (idx === -1) idx = state.ordreOptimise.findIndex(s => s.client === l.client && s.ville === l.ville);
+      ordre = idx !== -1 ? idx + 1 : '';
+    }
+
+    const icon = L.divIcon({
+      html: `<div style="width:28px;height:28px;border-radius:50%;background:${col};border:2.5px solid rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4)">${ordre || '·'}</div>`,
+      iconSize: [28,28], iconAnchor: [14,14], className: ''
+    });
+
+    const m = L.marker([lat, lng], { icon }).addTo(markersLayer);
+    m.bindTooltip(`<b>${l.client}</b><br>${l.ville}<br>${l.statut || 'À livrer'}`, { direction:'top' });
+    // Utiliser client+ville comme clé unique (BL peut être vide)
+    m.on('click', () => ouvrirDetailParClient(l.client, l.ville));
+  });
+
+  // Ajuster la vue sur les marqueurs
+  try {
+    const bounds = markersLayer.getBounds();
+    if (bounds.isValid()) map.fitBounds(bounds, { padding: [30,30] });
+  } catch(_) {}
+
+  // Tracer la route optimisée via OSRM (vraies routes routières)
+  if (state.ordreOptimise && state.ordreOptimise.length > 1) {
+    tracerRouteOSRM();
+  }
+}
+
+// ── Validation coordonnées La Réunion ────────────────────────────────────────
+// Bounds stricts : lat [-21.45, -20.85] / lng [55.20, 55.85]
+function coordsValides(lat, lng) {
+  const la = parseFloat(String(lat).replace(',','.')), lo = parseFloat(String(lng).replace(',','.'));
+  return !isNaN(la) && !isNaN(lo) &&
+         la >= -21.45 && la <= -20.85 &&
+         lo >= 55.20  && lo <= 55.85;
+}
+
+async function tracerRouteOSRM() {
+  // Filtrer STRICTEMENT les stops avec coordonnées valides dans La Réunion
+  const coordsStops = state.ordreOptimise.filter(s =>
+    coordsValides(s.lat, s.lng)
+  );
+
+  if (coordsStops.length === 0) return;
+
+  // Si certains stops ont des coords hors Réunion → fallback direct
+  const totalStops = state.ordreOptimise.length;
+  const stopsHorsReunion = totalStops - coordsStops.length;
+  if (stopsHorsReunion > 0) {
+    console.warn(stopsHorsReunion + ' stop(s) avec coordonnées hors La Réunion ignorés');
+  }
+
+  try {
+    const coordsList = [
+      { lat: CFG.DEPOT.lat, lng: CFG.DEPOT.lng },
+      ...coordsStops,
+      { lat: CFG.DEPOT.lat, lng: CFG.DEPOT.lng }
+    ];
+
+    // OSRM attend : lng,lat
+    const coordsStr = coordsList.map(c => `${c.lng},${c.lat}`).join(';');
+    const osrmUrl   = `${CFG.OSRM_URL}/route/v1/driving/${coordsStr}?overview=full&geometries=geojson&steps=false`;
+
+    const resp = await fetch(osrmUrl);
+    if (!resp.ok) throw new Error('OSRM HTTP ' + resp.status);
+    const data = await resp.json();
+
+    if (!data.routes || !data.routes[0]) throw new Error('Pas de route');
+
+    // Vérifier que la route reste dans La Réunion (bbox)
+    const coords = data.routes[0].geometry.coordinates;
+    const horsReunion = coords.some(c => !coordsValides(c[1], c[0]));
+    if (horsReunion) throw new Error('Route hors La Réunion détectée');
+
+    // Convertir GeoJSON [lng,lat] → Leaflet [lat,lng]
+    const latlngs = coords.map(c => [c[1], c[0]]);
+    L.polyline(latlngs, { color: '#FFB300', weight: 4, opacity: 0.85 }).addTo(markersLayer);
+
+    // Mettre à jour km/min avec valeurs OSRM
+    const totalKmOSRM  = Math.round(data.routes[0].distance / 100) / 10;
+    const totalMinOSRM = Math.round(data.routes[0].duration / 60);
+    if (state.routeInfo) {
+      state.routeInfo.totalKm  = totalKmOSRM;
+      state.routeInfo.totalMin = totalMinOSRM;
+      const rvKm  = document.querySelector('.route-val');
+      const rvMin = document.querySelectorAll('.route-val')[1];
+      if (rvKm)  rvKm.textContent  = totalKmOSRM + ' km';
+      if (rvMin) rvMin.textContent = totalMinOSRM + ' min';
+    }
+
+  } catch(err) {
+    // Fallback propre : lignes droites entre stops (reste sur l'île)
+    console.warn('OSRM fallback :', err.message);
+    const points = [
+      [CFG.DEPOT.lat, CFG.DEPOT.lng],
+      ...coordsStops.map(s => [parseFloat(s.lat), parseFloat(s.lng)]),
+      [CFG.DEPOT.lat, CFG.DEPOT.lng]
+    ];
+    L.polyline(points, { color: '#FFB300', weight: 3, opacity: .6, dashArray: '8,4' }).addTo(markersLayer);
+  }
+}
+
+// ════════════════════════════════════════
+// OPTIMISATION TOURNÉE — côté navigateur
+// OSRM appelé directement depuis le téléphone (pas via Apps Script)
+// ════════════════════════════════════════
+
+// ── Validation coordonnées La Réunion ────
+function estDansReunion(lat, lng) {
+  const la = parseFloat(String(lat).replace(',','.')), lo = parseFloat(String(lng).replace(',','.'));
+  return !isNaN(la) && !isNaN(lo) && la >= -21.45 && la <= -20.85 && lo >= 55.20 && lo <= 55.85;
+}
+
+// ── Matrice OSRM depuis le navigateur ────
+async function getMatriceOSRM(depot, stops) {
+  const points = [depot, ...stops];
+  const coordsStr = points.map(p => `${p.lng},${p.lat}`).join(';');
+  const url = `${CFG.OSRM_URL}/table/v1/driving/${coordsStr}?annotations=duration,distance`;
+
+  // Timeout compatible tous navigateurs Android (pas AbortSignal.timeout)
+  const fetchAvecTimeout = (url, ms) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    return fetch(url, { signal: controller.signal })
+      .then(r => { clearTimeout(timer); return r; })
+      .catch(e => { clearTimeout(timer); throw e; });
+  };
+
+  // Afficher l'info dans un toast pour debug sur téléphone
+  showToast('📡 OSRM ' + points.length + ' points...', '');
+
+  try {
+    const resp = await fetchAvecTimeout(url, 20000); // 20 secondes
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (data.code === 'Ok' && data.durations) {
+      const total = data.durations.flat().reduce((a,b) => a + (b||0), 0);
+      if (total > 0) {
+        showToast('✅ OSRM OK — ' + points.length + ' points', 'success');
+        return { durations: data.durations, distances: data.distances, source: 'osrm' };
+      }
+    }
+    throw new Error('Réponse OSRM invalide: ' + JSON.stringify(data).substring(0,50));
+  } catch(e) {
+    showToast('⚠️ OSRM: ' + e.message.substring(0,40), 'error');
+    return construireMatriceHaversine(depot, stops);
+  }
+}
+
+// Distance grand-cercle (km) — était utilisée sans être définie (bug latent corrigé)
+function haversineClient(lat1, lng1, lat2, lng2) {
+  const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// Matrice haversine de secours — au moins les distances sont correctes
+function construireMatriceHaversine(depot, stops) {
+  const points = [depot, ...stops];
+  const n = points.length;
+  const durations = [], distances = [];
+  for (let i = 0; i < n; i++) {
+    durations.push([]); distances.push([]);
+    for (let j = 0; j < n; j++) {
+      if (i === j) { durations[i].push(0); distances[i].push(0); continue; }
+      // haversine retourne des km — facteur 1.3 pour tenir compte des routes en lacets
+      const kmVol  = haversineClient(points[i].lat, points[i].lng, points[j].lat, points[j].lng);
+      const kmRoute = kmVol * 1.3;
+      distances[i].push(kmRoute * 1000);          // en mètres
+      durations[i].push(kmRoute / 30 * 3600);     // 30 km/h moyenne La Réunion → secondes
+    }
+  }
+  return { durations, distances, source: 'haversine' };
+}
+
+function durM(m, from, to) { return (m.durations[from] && m.durations[from][to]) || 9999; }
+function disM(m, from, to) { return (m.distances[from] && m.distances[from][to]) || 0; }
+
+function coutTotalClient(route, m) {
+  if (!route.length) return 0;
+  let t = durM(m, 0, route[0] + 1);
+  for (let i = 0; i < route.length - 1; i++) t += durM(m, route[i] + 1, route[i+1] + 1);
+  t += durM(m, route[route.length-1] + 1, 0);
+  return t;
+}
+
+function nnOSRM(m, n, start) {
+  const restants = Array.from({length: n}, (_, i) => i);
+  const route = [];
+  let current = start || 0;
+  if (start > 0) { route.push(start - 1); restants.splice(start - 1, 1); current = start; }
+  while (restants.length > 0) {
+    let minD = Infinity, minPos = 0;
+    restants.forEach((idx, pos) => { const d = durM(m, current, idx+1); if (d < minD) { minD = d; minPos = pos; } });
+    route.push(restants[minPos]); current = restants[minPos] + 1; restants.splice(minPos, 1);
+  }
+  return route;
+}
+
+// 2-opt contraint : n'échange que des stops du même secteur (Est/Centre/Ouest)
+function twoOptSecteur(route, m, stops, pivotLng) {
+  function sec(s) { return s.lng >= pivotLng ? 0 : s.lng >= 55.38 ? 1 : 2; }
+  let best = route.slice(), imp = true;
+  while (imp) {
+    imp = false;
+    for (let i = 0; i < best.length - 1; i++) {
+      for (let j = i + 1; j < best.length; j++) {
+        const si = sec(stops[best[i]]), sj = sec(stops[best[j]]);
+        if (si !== sj) continue;
+        const avant = durM(m, i===0?0:best[i-1]+1, best[i]+1) + durM(m, best[j]+1, j===best.length-1?0:best[j+1]+1);
+        const apres = durM(m, i===0?0:best[i-1]+1, best[j]+1) + durM(m, best[i]+1, j===best.length-1?0:best[j+1]+1);
+        if (apres < avant - 1) {
+          best = best.slice(0,i).concat(best.slice(i,j+1).reverse()).concat(best.slice(j+1));
+          imp = true;
+        }
+      }
+    }
+  }
+  return best;
+}
+
+function twoOptClient(route, m) {
+  let best = route.slice(), imp = true;
+  while (imp) {
+    imp = false;
+    for (let i = 0; i < best.length - 1; i++) {
+      for (let j = i + 1; j < best.length; j++) {
+        const avant = durM(m, i===0?0:best[i-1]+1, best[i]+1) + durM(m, best[j]+1, j===best.length-1?0:best[j+1]+1);
+        const apres = durM(m, i===0?0:best[i-1]+1, best[j]+1) + durM(m, best[i]+1, j===best.length-1?0:best[j+1]+1);
+        if (apres < avant - 1) { best = best.slice(0,i).concat(best.slice(i,j+1).reverse()).concat(best.slice(j+1)); imp = true; }
+      }
+    }
+  }
+  return best;
+}
+
+function orOptClient(route, m, segLen) {
+  let best = route.slice(), imp = true;
+  while (imp) {
+    imp = false;
+    for (let i = 0; i < best.length - segLen + 1; i++) {
+      const seg = best.slice(i, i + segLen);
+      const sans = best.slice(0, i).concat(best.slice(i + segLen));
+      const coutBase = coutTotalClient(best, m);
+      for (let j = 0; j <= sans.length; j++) {
+        const cand = sans.slice(0, j).concat(seg).concat(sans.slice(j));
+        if (coutTotalClient(cand, m) < coutBase - 1) { best = cand; imp = true; break; }
+      }
+    }
+  }
+  return best;
+}
+
+function optimiserHaversineClient(stops, depot) {
+  const restants = stops.slice(), ordre = [];
+  let cur = depot;
+  while (restants.length > 0) {
+    let minD=Infinity, minI=0;
+    restants.forEach((s,i)=>{ const d=haversineClient(cur.lat,cur.lng,s.lat,s.lng); if(d<minD){minD=d;minI=i;} });
+    ordre.push(restants[minI]); cur=restants[minI]; restants.splice(minI,1);
+  }
+  let totalKm=0, totalMin=0;
+  const ordreFinal = ordre.map((s,i)=>{
+    const prev=i===0?depot:ordre[i-1];
+    const km=Math.round(haversineClient(prev.lat,prev.lng,s.lat,s.lng)*10)/10;
+    const min=Math.round(km*3.5);
+    totalKm+=km; totalMin+=min;
+    return Object.assign({},s,{ordre:i+1,segment:{km,min,description:'Estimé'}});
+  });
+  const waypoints=ordreFinal.map(s=>s.lat+','+s.lng).join('/');
+  const mapsUrl=`https://www.google.com/maps/dir/${depot.lat},${depot.lng}/${waypoints}/${depot.lat},${depot.lng}`;
+  return { ordre:ordreFinal, totalKm:Math.round(totalKm*10)/10, totalMin:Math.round(totalMin), mapsUrl };
+}
+
+// ── OSRM TRIP : OSRM calcule lui-même l'ordre optimal (TSP) sur son serveur ──
+// → aucun calcul lourd sur le téléphone, donc plus de gel même à 30-60 stops mélangés.
+async function optimiserViaTripOSRM(depot, stops) {
+  const points = [depot, ...stops];
+  const coordsStr = points.map(p => `${p.lng},${p.lat}`).join(';');
+  const url = `${CFG.OSRM_URL}/trip/v1/driving/${coordsStr}?source=first&roundtrip=true&overview=false&steps=false`;
+  const fetchTO = (u, ms) => {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), ms);
+    return fetch(u, { signal: c.signal }).then(r => { clearTimeout(t); return r; }).catch(e => { clearTimeout(t); throw e; });
+  };
+  showToast('📡 Optimisation OSRM ' + points.length + ' points...', '');
+  const resp = await fetchTO(url, 20000);
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const data = await resp.json();
+  if (data.code !== 'Ok' || !data.trips || !data.trips[0] || !data.waypoints) {
+    throw new Error('trip invalide: ' + JSON.stringify(data).substring(0,40));
+  }
+  const trip = data.trips[0];
+  // Ordre optimal : trier les stops (index d'entrée > 0, le 0 = dépôt) par waypoint_index
+  const ordreIdx = data.waypoints
+    .map((w, i) => ({ inp: i, wi: w.waypoint_index }))
+    .filter(x => x.inp > 0)
+    .sort((a, b) => a.wi - b.wi)
+    .map(x => x.inp - 1);              // → index dans stops[]
+  // Legs en ordre optimal (roundtrip : depot→s1→…→sn→depot) ; leg[pos] arrive au stop pos
+  const legs = trip.legs || [];
+  let totalKm = 0, totalMin = 0;
+  const ordreFinal = ordreIdx.map((stopIdx, pos) => {
+    const leg = legs[pos] || {};
+    const km  = Math.round((leg.distance || 0) / 100) / 10;
+    const min = Math.round((leg.duration || 0) / 60);
+    totalKm += km; totalMin += min;
+    return Object.assign({}, stops[stopIdx], { ordre: pos+1, segment: { km, min, description: min > 0 ? min+' min' : 'Direct' } });
+  });
+  const waypointsUrl = ordreFinal.map(s => s.lat+','+s.lng).join('/');
+  const mapsUrl = `https://www.google.com/maps/dir/${depot.lat},${depot.lng}/${waypointsUrl}/${depot.lat},${depot.lng}`;
+  showToast('✅ Tournée optimisée — ' + ordreFinal.length + ' stops', 'success');
+  return { ordre: ordreFinal, totalKm: Math.round(totalKm*10)/10, totalMin: Math.round(totalMin), mapsUrl, sourceDistance: 'osrm' };
+}
+
+// 2-opt borné en temps : garde-fou anti-gel (s'arrête au budget, quel que soit n)
+function twoOptBudget(route, m, budgetMs) {
+  const t0 = Date.now();
+  let best = route.slice(), imp = true;
+  while (imp) {
+    imp = false;
+    for (let i = 0; i < best.length - 1; i++) {
+      for (let j = i + 1; j < best.length; j++) {
+        const avant = durM(m, i===0?0:best[i-1]+1, best[i]+1) + durM(m, best[j]+1, j===best.length-1?0:best[j+1]+1);
+        const apres = durM(m, i===0?0:best[i-1]+1, best[j]+1) + durM(m, best[i]+1, j===best.length-1?0:best[j+1]+1);
+        if (apres < avant - 1) { best = best.slice(0,i).concat(best.slice(i,j+1).reverse()).concat(best.slice(j+1)); imp = true; }
+      }
+      if (Date.now() - t0 > budgetMs) return best;   // budget dépassé → on rend la meilleure trouvée
+    }
+  }
+  return best;
+}
+
+// ── Optimisation OSRM (routes réelles, SANS Google) : TRIP serveur, repli borné ──
+async function optimiserTourneeClient() {
+  const stops = state.livraisons
+    .filter(l => l.statut !== '✅ Livré' && estDansReunion(parseFloat(l.lat), parseFloat(l.lng)))
+    .map(l => ({ ...l, lat: parseFloat(l.lat), lng: parseFloat(l.lng) }));
+  if (stops.length === 0) { showToast('❌ Aucun stop GPS valide', 'error'); return null; }
+  const depot = { lat: CFG.DEPOT.lat, lng: CFG.DEPOT.lng };
+  if (stops.length === 1) {
+    return { ordre: [{ ...stops[0], ordre:1, segment:{km:0,min:0,description:'Direct'} }],
+      totalKm:0, totalMin:0,
+      mapsUrl:`https://www.google.com/maps/dir/${depot.lat},${depot.lng}/${stops[0].lat},${stops[0].lng}/${depot.lat},${depot.lng}`,
+      sourceDistance:'osrm' };
+  }
+  // 1) OSRM TRIP : l'ordre optimal est calculé sur le serveur OSRM → plus aucun gel du téléphone.
+  try {
+    const viaTrip = await optimiserViaTripOSRM(depot, stops);
+    if (viaTrip && viaTrip.ordre && viaTrip.ordre.length) return viaTrip;
+  } catch (e) { console.warn('trip OSRM:', e.message); }
+
+  // 2) Repli BORNÉ : matrice (OSRM ou haversine) + 1 NN + 2-opt limité à 2,5 s. Jamais de boucle qui fige.
+  try {
+    const matrice = await getMatriceOSRM(depot, stops);
+    let route = nnOSRM(matrice, stops.length, 0);
+    route = twoOptBudget(route, matrice, 2500);
+    let totalKm = 0, totalMin = 0;
+    const ordreFinal = route.map((idx, i) => {
+      const s = stops[idx];
+      const prev = i === 0 ? 0 : route[i-1] + 1;
+      const curr = idx + 1;
+      const min = Math.round(durM(matrice, prev, curr) / 60);
+      const km  = Math.round(disM(matrice, prev, curr) / 100) / 10;
+      totalKm += km; totalMin += min;
+      return Object.assign({}, s, { ordre: i+1, segment: { km, min, description: min > 0 ? min+' min' : 'Direct' } });
+    });
+    const waypoints = ordreFinal.map(s => s.lat+','+s.lng).join('/');
+    const mapsUrl = `https://www.google.com/maps/dir/${depot.lat},${depot.lng}/${waypoints}/${depot.lat},${depot.lng}`;
+    return { ordre: ordreFinal, totalKm: Math.round(totalKm*10)/10, totalMin: Math.round(totalMin), mapsUrl,
+             sourceDistance: (matrice.source === 'osrm' ? 'osrm' : 'estimation') };
+  } catch(err) {
+    console.warn('OSRM client error:', err.message);
+    return null;
+  }
+}
+
+async function optimiserTournee() {
+  const btn = document.getElementById('btnOptimize');
+  if (btn) { btn.classList.add('loading'); btn.textContent = '⏳ Calcul...'; }
+  try {
+    showToast('🗺️ Optimisation (routes réelles)...', '');
+    // Méthode OSRM (sans Google). Repli ultime : Haversine pur si la matrice échoue.
+    let result = await optimiserTourneeClient();
+    if (!result || !result.ordre || !result.ordre.length) {
+      showToast('⚠️ Calcul local...', '');
+      const stopsLocal = state.livraisons
+        .filter(l => l.statut !== '✅ Livré' && estDansReunion(parseFloat(l.lat), parseFloat(l.lng)))
+        .map(l => ({ ...l, lat: parseFloat(l.lat), lng: parseFloat(l.lng) }));
+      result = stopsLocal.length > 0 ? optimiserHaversineClient(stopsLocal, { lat: CFG.DEPOT.lat, lng: CFG.DEPOT.lng }) : null;
+      if (result) result.sourceDistance = 'estimation';
+    }
+    if (result && result.ordre) {
+      state.ordreOptimise = result.ordre;
+      if (map) { setTimeout(()=>map.invalidateSize(true),200); setTimeout(()=>map.invalidateSize(true),600); }
+      state.routeInfo = { totalKm: result.totalKm, totalMin: result.totalMin, mapsUrl: result.mapsUrl, sourceDistance: result.sourceDistance || 'osrm' };
+      sauvegarderOptimCache(result.ordre, state.routeInfo);
+      renderLivraisons(false);
+      if (state.activeTab === 'carte') { setTimeout(() => updateMapMarkers(), 300); }
+      showToast(`✅ ${result.totalKm} km · ${result.totalMin} min — tournée sauvegardée`, 'success');
+    } else {
+      showToast('❌ Optimisation impossible', 'error');
+    }
+  } catch(err) {
+    showToast('❌ Erreur : ' + (err.message||'réseau'), 'error');
+  }
+  if (btn) { btn.classList.remove('loading'); btn.textContent = '✨ Optimiser'; }
+  if (state.activeTab === 'carte') updateMapMarkers();
+}
+
+function ouvrirMaps() {
+  if (state.routeInfo && state.routeInfo.mapsUrl) {
+    window.open(state.routeInfo.mapsUrl, '_blank');
+  }
+}
+
+// ════════════════════════════════════════
+// DÉTAIL CLIENT
+// ════════════════════════════════════════
+function ouvrirDetailBL(bl) {
+  const idx = state.livraisons.findIndex(l => l.bl === bl);
+  if (idx === -1) return;
+  ouvrirDetail(idx);
+}
+
+function ouvrirDetailParClient(client, ville) {
+  const norm = v => String(v || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  let idx = state.livraisons.findIndex(l =>
+    norm(l.client) === norm(client) && norm(l.ville) === norm(ville)
+  );
+  if (idx === -1) idx = state.livraisons.findIndex(l => norm(l.client) === norm(client));
+  if (idx !== -1) ouvrirDetail(idx);
+}
+
+function ouvrirDetail(idx) {
+  const l = idx === -1 ? state.livActive : state.livraisons[idx];
+  if (!l) return;
+  state.livActive = l;
+
+  document.getElementById('detail-title').textContent = l.client;
+  document.getElementById('detail-sub').textContent   = `${l.ville || '—'} · BL: ${l.bl || '—'}`;
+
+  const statCls = getStatutClass(l.statut);
+  let tel2html  = l.tel2 ? `<div class="detail-row"><span class="detail-label">Tél 2</span><span class="detail-val"><a href="tel:${l.tel2}">${l.tel2}</a></span></div>` : '';
+  let emailHtml = l.email ? `<div class="detail-row"><span class="detail-label">Email</span><span class="detail-val" style="font-size:11px;color:var(--blue)">${l.email}</span></div>` : '';
+  let obsHtml   = l.indications ? `<div class="detail-row"><span class="detail-label">Indications</span><span class="detail-val" style="color:var(--orange);font-size:12px">${l.indications}</span></div>` : '';
+
+  // Segment route si optimisé
+  let routeHtml = '';
+  if (state.ordreOptimise) {
+    // Chercher par BL si disponible, sinon par client+ville
+    let seg = l.bl ? state.ordreOptimise.find(s => s.bl && s.bl === l.bl) : null;
+    if (!seg) seg = state.ordreOptimise.find(s => s.client === l.client && s.ville === l.ville);
+    if (seg && seg.segment) {
+      routeHtml = `<div class="detail-section">
+        <div class="detail-section-title">🧭 Trajet optimisé</div>
+        <div class="detail-row"><span class="detail-label">Distance</span><span class="detail-val" style="color:var(--gold)">${seg.segment.km.toFixed(1)} km</span></div>
+        <div class="detail-row"><span class="detail-label">Durée estimée</span><span class="detail-val" style="color:var(--gold)">${seg.segment.description}</span></div>
+        <div class="detail-row"><span class="detail-label">Ordre de passage</span><span class="detail-val" style="color:var(--gold)">N° ${seg.ordre}</span></div>
+      </div>`;
+    }
+  }
+
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-section">
+      <div class="detail-section-title">Informations client</div>
+      <div class="detail-row"><span class="detail-label">Adresse</span><span class="detail-val">${l.adresse || '—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Ville</span><span class="detail-val">${l.cp || ''} ${l.ville || '—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Tél 1</span><span class="detail-val"><a href="tel:${l.tel1 || ''}">${l.tel1 || '—'}</a></span></div>
+      ${tel2html}${emailHtml}${obsHtml}
+    </div>
+    ${(l.contrainte && l.contrainte !== 'LIBRE') || l.horaires || (l.priorite && l.priorite.includes('PRIORITAIRE')) ? `
+    <div class="detail-section" style="border-left:3px solid #FF8F00;padding-left:10px;background:rgba(255,143,0,0.05);border-radius:6px;margin-bottom:8px">
+      <div class="detail-section-title" style="color:#FF8F00">⚠️ Contraintes de livraison</div>
+      ${l.priorite && l.priorite.includes('PRIORITAIRE') ? '<div class="detail-row"><span class="detail-label">Priorité</span><span style="color:#EF5350;font-weight:700">🚨 PRIORITAIRE</span></div>' : ''}
+      ${l.contrainte && l.contrainte !== 'LIBRE' ? '<div class="detail-row"><span class="detail-label">Contrainte</span><span style="color:#FF8F00;font-weight:600">' + l.contrainte + '</span></div>' : ''}
+      ${l.horaires ? '<div class="detail-row"><span class="detail-label">Horaires</span><span style="color:#64B5F6;font-weight:600">🕐 ' + l.horaires + '</span></div>' : ''}
+    </div>` : ''}
+    <div class="detail-section">
+      <div class="detail-section-title">Livraison</div>
+      <div class="detail-row"><span class="detail-label">Jour</span><span class="detail-val">${l.jour || '—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Date</span><span class="detail-val">${l.date || '—'}</span></div>
+      <div class="detail-row"><span class="detail-label">N° BL</span><span class="detail-val" style="font-family:monospace">${l.bl || '—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Nb colis</span><span class="detail-val">${l.nbColis || '—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Statut</span><span class="detail-val"><span class="pill ${statCls}">${l.statut || 'À livrer'}</span></span></div>
+    </div>
+    ${routeHtml}
+    <div class="detail-actions">
+      <button class="btn-action btn-call" onclick="appeler('${l.tel1 || ''}')">📞 Appeler</button>
+      <button class="btn-action btn-waze" onclick="ouvrirWaze(${JSON.stringify(l).replace(/"/g,'&quot;')})">🚗 Waze</button>
+      <button class="btn-action btn-sig btn-full" onclick="ouvrirSignature(-1)">✍️ Signer & valider la livraison</button>
+
+    </div>`;
+
+  document.getElementById('detail-view').classList.add('active');
+}
+
+function closeDetail() {
+  document.getElementById('detail-view').classList.remove('active');
+}
+
+// ════════════════════════════════════════
+// ACTIONS
+// ════════════════════════════════════════
+function appeler(tel) {
+  if (!tel) { showToast('Numéro non disponible', 'error'); return; }
+  window.location.href = 'tel:' + tel;
+}
+
+function ouvrirWaze(l) {
+  let url;
+  // Utiliser les coordonnées GPS seulement si elles sont valides ET dans La Réunion
+  if (coordsValides(l.lat, l.lng)) {
+    url = `https://waze.com/ul?ll=${l.lat},${l.lng}&navigate=yes&z=17`;
+  } else {
+    // Recherche par adresse avec "La Réunion" forcé pour éviter la France métro
+    const adresse = [l.adresse, l.cp, l.ville, 'La Réunion'].filter(Boolean).join(' ');
+    url = `https://waze.com/ul?q=${encodeURIComponent(adresse)}&navigate=yes`;
+  }
+  window.open(url, '_blank');
+}
+
+// ════════════════════════════════════════
+// MODAL STATUT
+// ════════════════════════════════════════
+function ouvrirModalStatut(idx) {
+  const l = idx === -1 ? state.livActive : state.livraisons[idx];
+  if (!l) return;
+  state.livActive = l;
+  document.getElementById('modal-client-info').textContent = `${l.client} · BL: ${l.bl || '—'}`;
+  document.getElementById('modal-statut').value = l.statut || 'À livrer';
+  document.getElementById('modal-remarque').value = '';
+  document.getElementById('modalStatut').classList.add('active');
+}
+
+function fermerModal() {
+  document.getElementById('modalStatut').classList.remove('active');
+}
+
+async function confirmerStatut() {
+  const l        = state.livActive;
+  const statut   = document.getElementById('modal-statut').value;
+  const remarque = document.getElementById('modal-remarque').value.trim();
+
+  fermerModal();
+
+  try {
+    let data;
+    if (GSR) {
+      data = await gsRun('gsr_marquerLivre', [state.token||'', l.bl||'', l.zone||'', statut, l.client||'', l.ville||'']);
+    } else {
+      const resp = await fetch(`${CFG.API_URL}/livraisons/statut`, {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
+        body: JSON.stringify({ id: l.id, bl: l.bl, zone: l.zone||'', statut, remarque })
+      });
+      if (resp.status === 401) { sessionExpiree(); return; }
+      data = await resp.json();
+    }
+
+    if (data.success) {
+      l.statut = statut;
+      showToast('✅ Statut mis à jour', 'success');
+      renderTab();
+      closeDetail();
+    } else {
+      showToast('❌ ' + (data.error || 'Code incorrect'), 'error');
+    }
+  } catch(_) {
+    showToast('❌ Erreur réseau', 'error');
+  }
+}
+
+// ════════════════════════════════════════
+// SIGNATURE
+// ════════════════════════════════════════
+const canvas  = document.getElementById('sigCanvas');
+const ctx     = canvas.getContext('2d');
+let drawing   = false, hasSig = false;
+
+function ouvrirSignature(idx) {
+  const l = idx === -1 ? state.livActive : state.livraisons[idx];
+  if (!l) return;
+
+  // Si déjà livré/signé → demander confirmation (annule et remplace)
+  if (l.statut === '✅ Livré') {
+    if (!confirm('⚠️ Cette livraison est déjà signée.\n\nVoulez-vous enregistrer une NOUVELLE signature ?\n\nL\'ancienne sera archivée et un email "annule et remplace" sera envoyé.')) {
+      return;
+    }
+    l._remplacement = true;
+  }
+
+  state.livActive = l;
+
+  document.getElementById('sig-recap').innerHTML =
+    `<strong style="color:var(--text)">${l.client}</strong> · ${l.ville || ''}<br>BL: <strong style="color:var(--gold)">${l.bl || '—'}</strong> · ${l.nb_colis || l.nbColis || '—'} colis`;
+  document.getElementById('sigStatut').value = '✅ Livré';
+  sigStatutChange();
+  document.getElementById('sigBL').value    = l.bl || '';
+  document.getElementById('sigNom').value   = '';
+  document.getElementById('sigColis').value = l.nb_colis || l.nbColis || '';
+  document.getElementById('sigObs').value   = '';
+  document.getElementById('sigEmail').value = '';
+  document.getElementById('sigReserve').checked = false;
+  majMentionConf();
+  document.getElementById('sigReglement').value = '';
+  document.getElementById('sigMontant').value = '';
+  document.getElementById('sigChequeNum').value = '';
+  sigReglementChange();
+  // Afficher info si email déjà dans la fiche
+  const emailInfo = document.getElementById('sigEmailInfo');
+  if (l.email) {
+    emailInfo.textContent = '✅ Email fiche client : ' + l.email + ' (sera utilisé automatiquement)';
+    emailInfo.style.color = 'var(--green)';
+  } else {
+    emailInfo.textContent = 'Aucun email dans la fiche client — saisir ici si nécessaire';
+    emailInfo.style.color = 'var(--text3)';
+  }
+  clearSig();
+  document.getElementById('sig-modal').classList.add('active');
+  setTimeout(resizeCanvas, 150);
+}
+
+function fermerSignature() {
+  document.getElementById('sig-modal').classList.remove('active');
+}
+
+function resizeCanvas() {
+  const wrap  = document.getElementById('sigWrap');
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width  = wrap.offsetWidth * ratio;
+  canvas.height = 160 * ratio;
+  ctx.scale(ratio, ratio);
+  ctx.strokeStyle = '#111827';
+  ctx.lineWidth   = 2.5;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+}
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  if (e.touches) return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+canvas.addEventListener('mousedown',  e => { drawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); });
+canvas.addEventListener('mousemove',  e => { if(!drawing) return; const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); setSigned(true); });
+canvas.addEventListener('mouseup',    () => drawing=false);
+canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); }, {passive:false});
+canvas.addEventListener('touchmove',  e => { e.preventDefault(); if(!drawing) return; const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); setSigned(true); }, {passive:false});
+canvas.addEventListener('touchend',   () => drawing=false);
+
+function setSigned(v) {
+  hasSig = v;
+  document.getElementById('sigHint').style.opacity = v ? '0' : '1';
+}
+function clearSig() {
+  if (canvas.width) ctx.clearRect(0, 0, canvas.width/(window.devicePixelRatio||1), canvas.height/(window.devicePixelRatio||1));
+  setSigned(false);
+}
+
+function sigStatutChange() {
+  const st = document.getElementById('sigStatut').value;
+  const livré = st === '✅ Livré';
+  document.getElementById('sigFormLivre').style.display = livré ? '' : 'none';
+  document.getElementById('sigFormNonLivre').style.display = livré ? 'none' : '';
+  document.getElementById('lienSansSignature').style.display = livré ? '' : 'none';
+  const btnValider = document.getElementById('btnValiderSig');
+  btnValider.textContent = livré ? '✅ Valider et livrer' : '📋 Confirmer le statut';
+}
+
+function sigReglementChange() {
+  const type = document.getElementById('sigReglement').value;
+  document.getElementById('sigReglementDetails').style.display = type ? '' : 'none';
+  document.getElementById('sigChequeWrap').style.display = (type === 'Chèque') ? '' : 'none';
+  if (!type) document.getElementById('sigMontant').value = '';
+  if (type !== 'Chèque') document.getElementById('sigChequeNum').value = '';
+}
+
+async function validerSansSignature() {
+  const l = state.livActive;
+  if (!l) return;
+  const colis = document.getElementById('sigColis').value.trim() || (l.nb_colis || l.nbColis || '1');
+  if (!confirm('Marquer "'+(l.client||'')+'" comme LIVRÉ sans signature ?\n\n(Client absent / dépôt sans contact)\nLa livraison sera archivée.')) return;
+  try {
+    const resp = await fetch(`${CFG.API_URL}/livraisons/statut`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
+      body: JSON.stringify({ id: l.id, bl: l.bl, statut: '✅ Livré', remarque: 'Livré sans signature (client absent) — ' + colis + ' colis' })
+    });
+    if (resp.status === 401) { sessionExpiree(); return; }
+    const data = await resp.json();
+    if (data.success) {
+      l.statut = '✅ Livré';
+      fermerSignature();
+      closeDetail();
+      renderTab();
+      showToast('✅ Livré sans signature — archivé', 'success');
+    } else {
+      showToast('❌ ' + (data.error || 'Erreur'), 'error');
+    }
+  } catch(_) { showToast('❌ Erreur réseau', 'error'); }
+}
+
+function numeroBDR(d){
+  let dt = new Date();
+  if(d.date_heure){
+    const m = d.date_heure.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+    if(m) dt = new Date(m[3],m[2]-1,m[1],m[4],m[5]);
+  }
+  const p = n => ('0'+n).slice(-2);
+  return 'BDR-'+dt.getFullYear()+p(dt.getMonth()+1)+p(dt.getDate())+'-'+p(dt.getHours())+p(dt.getMinutes())+p(dt.getSeconds());
+}
+
+// Génère le Bon de Réception complet (PDF) et renvoie le base64 brut
+function genererBDRpdf(d){
+  if(!window.jspdf) throw new Error('jsPDF non chargé');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm',format:'a4'});
+  const W = 210, M = 18, col2 = 110;
+  const num = numeroBDR(d);
+  const dateHeure = d.date_heure || '';
+  const dateJour = (dateHeure||'').slice(0,10);
+  const zoneTxt = d.zone || '—';
+  const chequeN = d.cheque_num || d.chequeNum || '';
+  let y = 20;
+
+  // EN-TÊTE
+  doc.setTextColor(26,35,50); doc.setFont('helvetica','bold'); doc.setFontSize(22);
+  doc.text('BON DE RÉCEPTION — AJCV', M, y); y += 6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(110,110,110);
+  doc.text('Service Logistique · 82C Rue Raphaël Babet · 97480 Saint-Joseph, La Réunion', M, y); y += 6;
+  doc.setFont('courier','bold'); doc.setFontSize(11); doc.setTextColor(184,134,11);
+  doc.text(num, M, y); y += 4;
+  doc.setDrawColor(255,179,0); doc.setLineWidth(0.8); doc.line(M, y, W-M, y); y += 11;
+
+  // IDENTIFICATION
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('IDENTIFICATION DU DOCUMENT', M, y); y += 6;
+  const ligne = (lab1,val1,lab2,val2) => {
+    doc.setFontSize(8); doc.setTextColor(110,110,110); doc.setFont('helvetica','normal');
+    doc.text(lab1, M, y); if(lab2) doc.text(lab2, col2, y); y += 4;
+    doc.setFontSize(11); doc.setTextColor(26,35,50); doc.setFont('helvetica','bold');
+    doc.text(String(val1||'—'), M, y); if(lab2) doc.text(String(val2||'—'), col2, y); y += 7;
+  };
+  ligne('N° Document', num, 'Livreur', d.livreur);
+  ligne('Date de livraison', dateHeure, 'Zone', zoneTxt);
+  ligne('Véhicule', d.plaque, '', '');
+  y += 3;
+
+  // PARTIES
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('PARTIES', M, y); y += 6;
+  const yP = y;
+  doc.setDrawColor(21,101,192); doc.setLineWidth(1.2); doc.line(M, y-2, M, y+18);
+  doc.setFontSize(9); doc.setTextColor(21,101,192); doc.setFont('helvetica','bold');
+  doc.text('EXPÉDITEUR', M+3, y); y += 5;
+  doc.setFontSize(11); doc.setTextColor(26,35,50); doc.text('AJCV', M+3, y); y += 5;
+  doc.setFontSize(9); doc.setTextColor(90,90,90); doc.setFont('helvetica','normal');
+  doc.text('82C Rue Raphaël Babet', M+3, y); y += 4;
+  doc.text('97480 Saint-Joseph, La Réunion', M+3, y);
+  let yD = yP;
+  doc.setDrawColor(34,150,80); doc.setLineWidth(1.2); doc.line(col2, yD-2, col2, yD+18);
+  doc.setFontSize(9); doc.setTextColor(34,150,80); doc.setFont('helvetica','bold');
+  doc.text('DESTINATAIRE', col2+3, yD); yD += 5;
+  doc.setFontSize(11); doc.setTextColor(26,35,50); doc.text((d.client||'—').toUpperCase(), col2+3, yD); yD += 5;
+  doc.setFontSize(9); doc.setTextColor(90,90,90); doc.setFont('helvetica','normal');
+  doc.text(d.ville||'', col2+3, yD);
+  y += 13;
+
+  // MARCHANDISE
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('MARCHANDISE LIVRÉE', M, y); y += 6;
+  doc.setDrawColor(220,220,220); doc.setLineWidth(0.3); doc.line(M, y, W-M, y); y += 5;
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','normal');
+  doc.text('N° BL ASSOCIÉ', M, y); doc.text('NB DE COLIS', M+55, y); doc.text('OBSERVATIONS / RÉSERVES', col2, y); y += 5;
+  doc.setFontSize(11); doc.setTextColor(26,35,50); doc.setFont('helvetica','bold');
+  doc.text(String(d.bl||'—'), M, y); doc.text(String(d.nb_colis||'—'), M+55, y);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text(doc.splitTextToSize(String(d.observations||'—'), W-M-col2), col2, y); y += 8;
+  doc.setDrawColor(220,220,220); doc.setLineWidth(0.3); doc.line(M, y, W-M, y); y += 9;
+
+  // RÈGLEMENT (si encaissé)
+  if(d.reglement){
+    doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+    doc.text('RÈGLEMENT ENCAISSÉ', M, y); y += 6;
+    doc.setFontSize(11); doc.setTextColor(26,35,50); doc.setFont('helvetica','bold');
+    let r = d.reglement + (d.montant ? '    —    ' + d.montant + ' €' : '');
+    if(d.reglement === 'Chèque' && chequeN) r += '    (n° ' + chequeN + ')';
+    doc.text(r, M, y); y += 11;
+  }
+
+  // SIGNATURE
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('SIGNATURE DU DESTINATAIRE', M, y); y += 7;
+  const ySig = y;
+  doc.setFontSize(9.5); doc.setTextColor(40,40,40); doc.setFont('helvetica','normal');
+  const conf = d.conforme ? ' et la reconnaît CONFORME à la commande' : '';
+  const txt = 'Je soussigné(e) '+(d.signataire||d.client||'')+', certifie avoir reçu et vérifié la marchandise décrite ci-dessus'+conf+', en date du '+dateJour+'.';
+  doc.text(doc.splitTextToSize(txt, 82), M, y); y += 18;
+  doc.text(doc.splitTextToSize('Livraison effectuée par '+(d.livreur||'')+'.', 82), M, y);
+  doc.setDrawColor(200,200,200); doc.setLineWidth(0.3); doc.roundedRect(col2, ySig-3, 74, 30, 2, 2);
+  if(d.signature_base64){
+    try{ doc.addImage(d.signature_base64, 'PNG', col2+6, ySig+1, 62, 18); }catch(e){}
+  }
+  doc.setFontSize(7); doc.setTextColor(120,120,120);
+  doc.text('Signature électronique — '+dateHeure, col2+6, ySig+24);
+  y = ySig + 40;
+
+  // FOOTER RGPD
+  if(y > 250) y = 250;
+  doc.setFillColor(255,250,235); doc.roundedRect(M, y, W-2*M, 26, 2, 2, 'F');
+  doc.setFontSize(7); doc.setTextColor(120,110,80);
+  const rgpd = 'Valeur légale & RGPD — Ce document constitue un bon de réception opposable. La signature électronique recueillie a une valeur probatoire conformément à l\'article 1366 du Code Civil. Données traitées par AJCV pour la gestion des livraisons, conservées 5 ans. Droits (accès, rectification, suppression) : sav.ajcv@gmail.com — Réf. RGPD : Règlement (UE) 2016/679.';
+  doc.text(doc.splitTextToSize(rgpd, W-2*M-6), M+3, y+5);
+  doc.setFontSize(7); doc.setTextColor(150,150,150);
+  doc.text('AJCV Service Logistique · Document généré automatiquement · '+num, M, 288);
+
+  const uri = doc.output('datauristring');
+  return uri.substring(uri.indexOf('base64,') + 7);
+}
+
+function majMentionConf(){
+  const reserve = document.getElementById('sigReserve').checked;
+  const mention = document.getElementById('confMention');
+  if(mention) mention.innerHTML = reserve
+    ? 'Le destinataire émet des <strong>réserves</strong> sur la marchandise reçue (livraison non conforme). Document opposable.'
+    : 'Sans réserve cochée, le destinataire déclare la marchandise <strong>conforme</strong> à la commande.';
+}
+function addReserve(type){
+  const o = document.getElementById('sigObs');
+  if(o){
+    const cur = o.value.trim();
+    o.value = cur ? (cur + (cur.endsWith(':') || cur.endsWith(',') ? ' ' : ' — ') + type) : (type + ' : ');
+    o.focus();
+  }
+  document.getElementById('sigReserve').checked = true;   // un type implique une réserve
+  majMentionConf();
+}
+
+async function envoyerSignature() {
+  const l = state.livActive;
+  const statut = document.getElementById('sigStatut').value;
+
+  // ── CAS NON-LIVRÉ : juste un statut + motif ──
+  if (statut !== '✅ Livré') {
+    const raison = document.getElementById('sigRaisonNL').value.trim();
+    if (!confirm('Confirmer "'+statut+'" pour "'+( l.client||'')+'" ?')) return;
+    try {
+      const resp = await fetch(`${CFG.API_URL}/livraisons/statut`, {
+        method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
+        body: JSON.stringify({ id:l.id, bl:l.bl, statut, remarque: raison })
+      });
+      if (resp.status===401){sessionExpiree();return;}
+      const data = await resp.json();
+      if (data.success){ l.statut=statut; fermerSignature(); closeDetail(); renderTab(); showToast('✅ Statut mis à jour : '+statut,'success'); }
+      else showToast('❌ '+(data.error||'Erreur'),'error');
+    } catch(_){ showToast('❌ Erreur réseau','error'); }
+    return;
+  }
+
+  // ── CAS LIVRÉ : signature complète ──
+  const bl     = document.getElementById('sigBL').value.trim();
+  const nom    = document.getElementById('sigNom').value.trim();
+  const colis  = document.getElementById('sigColis').value.trim();
+  const conforme = !document.getElementById('sigReserve').checked;   // réserve cochée = non conforme
+  const obs      = document.getElementById('sigObs').value.trim();    // commentaire toujours transmis
+  const reglement = document.getElementById('sigReglement').value;
+  const montant   = document.getElementById('sigMontant').value.trim();
+  const chequeNum = document.getElementById('sigChequeNum').value.trim();
+
+  if (!nom)      { showToast('Nom du signataire obligatoire', 'error'); return; }
+  if (!colis)    { showToast('Nombre de colis obligatoire', 'error'); return; }
+  if (!conforme && !obs) { showToast('⚠️ Réserve cochée : précisez le détail (produit, quantité)', 'error'); return; }
+  if (!hasSig)   { showToast('Signature obligatoire', 'error'); return; }
+  if (reglement && (!montant || parseFloat(montant) <= 0)) { showToast('Indiquez le montant du règlement', 'error'); return; }
+  if (reglement === 'Chèque' && !chequeNum) { showToast('Indiquez le n° de chèque', 'error'); return; }
+  if (!confirm('Confirmer la livraison de "'+(l.client||'')+'" ?\n\nUne fois validé, le bon de réception sera enregistré.')) return;
+
+  const btn = document.getElementById('btnValiderSig');
+  btn.disabled    = true;
+  btn.textContent = '⏳ Envoi...';
+
+  const now       = new Date();
+  const dateHeure = now.toLocaleDateString('fr-FR') + ' ' + now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+
+  const emailManuel = document.getElementById('sigEmail').value.trim();
+  const payload = {
+    action:        'enregistrerSignature',
+    token:         state.token || '',    // Token de session
+    livreur:       state.prenom || state.livreur || '',
+    bl:            bl || l.bl || '',
+    client:        l.client || '',
+    nbColis:       colis,
+    conforme:      conforme,
+    zone:          l.zone || '',
+    dateHeure,
+    signataire:    nom,
+    adresse:       l.adresse || '',
+    ville:         l.ville || '',
+    observations:  obs,
+    reglement:     reglement,                                  // Type de règlement récupéré ('' = aucun)
+    montant:       reglement ? montant : '',                   // Montant encaissé
+    chequeNum:     reglement === 'Chèque' ? chequeNum : '',    // N° de chèque (si chèque)
+    email:         l.email || '',        // Email fiche client
+    emailManuel:   emailManuel,          // Email saisi manuellement (prioritaire)
+    signature:     canvas.toDataURL('image/png'),
+    remplacement:  l._remplacement || false,
+    livraisonId:   l.id || null,
+    plaque:        state.plaque || '',     // Véhicule utilisé (le serveur génère le BDR)
+  };
+
+  try {
+    let data;
+    if (GSR) {
+      data = await gsRun('gsr_sauvegarderSignature', [state.token||'', JSON.stringify(payload)]);
+    } else {
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 40000);
+      const resp = await fetch(`${CFG.API_URL}/livraisons/signature`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
+        body:   JSON.stringify(payload),
+        signal: ctrl.signal,
+      });
+      clearTimeout(to);
+      data = await resp.json();
+    }
+
+    btn.disabled    = false;
+    btn.textContent = '✅ Valider et envoyer';
+
+    if (data.success) {
+      l.statut = '✅ Livré';
+      fermerSignature();
+      closeDetail();
+      renderTab();
+      let msg = '✅ Bon de réception enregistré !';
+      if (data.emailQueued) msg += `\n📧 Email envoyé à ${data.emailFinal}`;
+      else msg += '\n📧 Pas d\'email (aucun renseigné)';
+      showToast(msg, 'success');
+      notifier('Bon de réception signé — ' + l.client);
+    } else {
+      showToast('❌ ' + (data.error || 'Erreur serveur'), 'error');
+    }
+  } catch(err) {
+    // Réseau lent : le serveur a peut-être déjà enregistré le bon de réception. On vérifie avant d'alarmer.
+    btn.textContent = '⏳ Vérification...';
+    await new Promise(r => setTimeout(r, 1500));
+    const passe = await verifierLivraisonLivree(l).catch(() => false);
+    btn.disabled    = false;
+    btn.textContent = '✅ Valider et envoyer';
+    if (passe) {
+      l.statut = '✅ Livré';
+      fermerSignature();
+      closeDetail();
+      renderTab();
+      showToast('✅ Bon de réception enregistré !', 'success');
+      notifier('Bon de réception signé — ' + l.client);
+    } else {
+      showToast('❌ Connexion lente — livraison non confirmée, réessayez', 'error');
+    }
+  }
+}
+
+// Vérifie si la livraison est bien passée en « Livré » côté serveur (anti fausse erreur réseau)
+async function verifierLivraisonLivree(l){
+  const d = encodeURIComponent(getDateSelectionnee());
+  const resp = await fetch(`${CFG.API_URL}/livraisons?livreur=${encodeURIComponent(state.livreur||'')}&date=${d}`,
+    { headers: {'Authorization':`Bearer ${state.token||''}`} });
+  if (!resp.ok) return false;
+  const data = await resp.json();
+  const f = (data.livraisons||[]).find(x => (l.id && String(x.id)===String(l.id)) || (l.bl && x.bl===l.bl));
+  return !!(f && /livré/i.test(f.statut||''));
+}
+
+// ════════════════════════════════════════
+// NOTIFICATIONS
+// ════════════════════════════════════════
+function notifier(msg) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('🚚 AJCV Livraisons', { body: msg, icon: '🚚' });
+  }
+}
+
+function checkNotifications() {
+  document.getElementById('notifBadge').classList.remove('show');
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  chargerLivraisons();
+  showToast('🔄 Données actualisées', 'success');
+}
+
+// Demander permission au chargement
+if ('Notification' in window) Notification.requestPermission();
+
+// ════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════
+function getStatutClass(statut) {
+  const map = {'✅ Livré':'pill-livre','❌ Non livré':'pill-nonlivre','🔄 Reporté':'pill-reporte','📞 À rappeler':'pill-rappel'};
+  return map[statut] || 'pill-attente';
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+<script>
+// ── Installation PWA ─────────────────────────────────────────
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Afficher bouton installer
+  const btn = document.getElementById('btnInstall');
+  if (btn) btn.style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  const btn = document.getElementById('btnInstall');
+  if (btn) btn.style.display = 'none';
+});
+
+function installerApp() {
+  if (!deferredPrompt) {
+    alert("Pour installer : Menu Chrome → Ajouter à l'écran d'accueil");
+    return;
+  }
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+}
+
+// ── Service Worker ───────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    self.addEventListener('install', e => self.skipWaiting());
+    self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+    self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response('Hors ligne'))));
+  `;
+  const blob = new Blob([swCode], {type:'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+</script>
+</body>
+</html>
