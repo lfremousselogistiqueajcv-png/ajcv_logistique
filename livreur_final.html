@@ -220,12 +220,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .conf-btn.conf-on-amber{background:rgba(245,158,11,.14);border-color:#f59e0b;color:#b45309}
 .res-chip{padding:7px 11px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);border-radius:999px;font-size:12px;font-weight:600;cursor:pointer}
 .res-chip.chip-on{background:#f59e0b;border-color:#f59e0b;color:#fff}
-.charge-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.charge-card{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:10px}
 .charge-card.charge-ok{border-color:var(--green);background:rgba(34,197,94,.10)}
+.charge-top{display:flex;align-items:center;gap:12px}
 .charge-check{font-size:26px;cursor:pointer;line-height:1;user-select:none}
 .charge-info{flex:1;cursor:pointer;min-width:0}
 .charge-client{font-weight:700;font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .charge-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.charge-steppers{display:flex;flex-wrap:wrap;gap:8px}
+.stp{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:4px 8px}
+.stp-lbl{font-size:11px;font-weight:600;color:var(--text2);margin-right:2px;white-space:nowrap}
+.stp button{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;line-height:1}
+.stp button:active{background:rgba(255,255,255,.18)}
+.stp b{min-width:20px;text-align:center;font-size:15px;color:var(--gold)}
+.kpi-banner.cols3{grid-template-columns:repeat(3,1fr)}
 .charge-colis{display:flex;align-items:center;gap:8px}
 .charge-colis button{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer;line-height:1}
 .charge-colis button:active{background:rgba(255,255,255,.18)}
@@ -388,6 +396,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <input type="text" class="sig-input" id="sigNom" placeholder="Nom et prénom">
     <span class="sig-field-label">Nb de colis reçus *</span>
     <input type="number" class="sig-input" id="sigColis" placeholder="Ex: 3" min="1">
+    <span class="sig-field-label">🥤 Boissons remises</span>
+    <input type="number" class="sig-input" id="sigBoissons" placeholder="0" min="0">
+    <span class="sig-field-label">🔥 Charbons remis</span>
+    <input type="number" class="sig-input" id="sigCharbons" placeholder="0" min="0">
     <span class="sig-field-label">Règlement récupéré</span>
     <select class="sig-input" id="sigReglement" onchange="sigReglementChange()">
       <option value="">Aucun</option>
@@ -1035,6 +1047,8 @@ function chargeSet() {
 }
 function chargeSave(set) { try { localStorage.setItem(chargeKey(), JSON.stringify([...set])); } catch(_) {} }
 function colisDe(l) { return parseInt(l.nb_colis != null ? l.nb_colis : l.nbColis) || 1; }
+function boissonsDe(l) { return Math.max(0, parseInt(l.nb_boissons) || 0); }
+function charbonsDe(l) { return Math.max(0, parseInt(l.nb_charbons) || 0); }
 function estCharge(l) { return l.charge === true || chargeSet().has(String(l.id)); }
 function trouverLiv(id) { return state.livraisons.find(l => String(l.id) === String(id)); }
 
@@ -1047,6 +1061,8 @@ function renderChargement() {
   const livs = state.livraisons.filter(l => l.statut !== '✅ Livré');
   const charges = livs.filter(estCharge).length;
   const totalColis = livs.reduce((s,l) => s + colisDe(l), 0);
+  const totalBoissons = livs.reduce((s,l) => s + boissonsDe(l), 0);
+  const totalCharbons = livs.reduce((s,l) => s + charbonsDe(l), 0);
 
   if (livs.length === 0) {
     content.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>
@@ -1055,30 +1071,34 @@ function renderChargement() {
     return;
   }
 
-  let html = `<div class="kpi-banner">
+  let html = `<div class="kpi-banner cols3">
     <div class="kpi-tile"><div class="kpi-val b">${livs.length}</div><div class="kpi-lbl">Commandes</div></div>
     <div class="kpi-tile"><div class="kpi-val g">${charges}</div><div class="kpi-lbl">Chargées</div></div>
     <div class="kpi-tile"><div class="kpi-val o">${livs.length - charges}</div><div class="kpi-lbl">Restantes</div></div>
-    <div class="kpi-tile"><div class="kpi-val b">${totalColis}</div><div class="kpi-lbl">Colis</div></div>
+    <div class="kpi-tile"><div class="kpi-val b">${totalColis}</div><div class="kpi-lbl">📦 Colis</div></div>
+    <div class="kpi-tile"><div class="kpi-val b">${totalBoissons}</div><div class="kpi-lbl">🥤 Boissons</div></div>
+    <div class="kpi-tile"><div class="kpi-val b">${totalCharbons}</div><div class="kpi-lbl">🔥 Charbons</div></div>
   </div>`;
 
   html += `<div class="optimize-bar"><div class="optimize-info"><strong>🚚 Chargement du camion</strong>
-    Coche chaque commande chargée et vérifie le nombre de colis</div>
+    Coche chaque commande chargée, et n'oublie pas boissons et charbons</div>
     <button class="btn-optimize" onclick="toutCharger()">✓ Tout</button></div>`;
 
   html += `<div class="list-section"><div class="section-label">${charges}/${livs.length} commandes chargées</div>`;
   livs.forEach(l => {
-    const ok = estCharge(l), n = colisDe(l);
+    const ok = estCharge(l);
     html += `<div class="charge-card${ok ? ' charge-ok' : ''}">
-      <div class="charge-check" onclick="toggleCharge('${l.id}')">${ok ? '✅' : '⬜'}</div>
-      <div class="charge-info" onclick="toggleCharge('${l.id}')">
-        <div class="charge-client">${l.client || ''}</div>
-        <div class="charge-sub">${l.ville || ''} · BL ${l.bl || '—'}</div>
+      <div class="charge-top">
+        <div class="charge-check" onclick="toggleCharge('${l.id}')">${ok ? '✅' : '⬜'}</div>
+        <div class="charge-info" onclick="toggleCharge('${l.id}')">
+          <div class="charge-client">${l.client || ''}</div>
+          <div class="charge-sub">${l.ville || ''} · BL ${l.bl || '—'}</div>
+        </div>
       </div>
-      <div class="charge-colis">
-        <button onclick="ajusterColisCharge('${l.id}',-1)">−</button>
-        <span>${n}<small>colis</small></span>
-        <button onclick="ajusterColisCharge('${l.id}',1)">+</button>
+      <div class="charge-steppers">
+        <div class="stp"><span class="stp-lbl">📦 Colis</span><button onclick="ajusterColisCharge('${l.id}',-1)">−</button><b>${colisDe(l)}</b><button onclick="ajusterColisCharge('${l.id}',1)">+</button></div>
+        <div class="stp"><span class="stp-lbl">🥤 Boissons</span><button onclick="ajusterBoissons('${l.id}',-1)">−</button><b>${boissonsDe(l)}</b><button onclick="ajusterBoissons('${l.id}',1)">+</button></div>
+        <div class="stp"><span class="stp-lbl">🔥 Charbons</span><button onclick="ajusterCharbons('${l.id}',-1)">−</button><b>${charbonsDe(l)}</b><button onclick="ajusterCharbons('${l.id}',1)">+</button></div>
       </div>
     </div>`;
   });
@@ -1105,6 +1125,20 @@ function ajusterColisCharge(id, delta) {
   envoyerChargement(l, estCharge(l));
 }
 
+function ajusterBoissons(id, delta) {
+  const l = trouverLiv(id); if (!l) return;
+  l.nb_boissons = Math.max(0, boissonsDe(l) + delta);
+  renderChargement();
+  envoyerChargement(l, estCharge(l));
+}
+
+function ajusterCharbons(id, delta) {
+  const l = trouverLiv(id); if (!l) return;
+  l.nb_charbons = Math.max(0, charbonsDe(l) + delta);
+  renderChargement();
+  envoyerChargement(l, estCharge(l));
+}
+
 function toutCharger() {
   const set = chargeSet();
   state.livraisons.filter(l => l.statut !== '✅ Livré').forEach(l => { set.add(String(l.id)); l.charge = true; envoyerChargement(l, true); });
@@ -1118,7 +1152,7 @@ async function envoyerChargement(l, charge) {
     await fetch(`${CFG.API_URL}/livraisons/chargement`, {
       method: 'POST',
       headers: {'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
-      body: JSON.stringify({ id: l.id, charge, colis: colisDe(l) }),
+      body: JSON.stringify({ id: l.id, charge, colis: colisDe(l), boissons: boissonsDe(l), charbons: charbonsDe(l) }),
     });
   } catch(_) { /* le localStorage conserve l'état côté livreur */ }
 }
@@ -1885,6 +1919,7 @@ function ouvrirDetail(idx) {
       <div class="detail-row"><span class="detail-label">Date</span><span class="detail-val">${l.date || '—'}</span></div>
       <div class="detail-row"><span class="detail-label">N° BL</span><span class="detail-val" style="font-family:monospace">${l.bl || '—'}</span></div>
       <div class="detail-row"><span class="detail-label">Nb colis</span><span class="detail-val">${l.nbColis || '—'}</span></div>
+      ${(boissonsDe(l)||charbonsDe(l)) ? `<div class="detail-row"><span class="detail-label">Boissons / Charbons</span><span class="detail-val">🥤 ${boissonsDe(l)} · 🔥 ${charbonsDe(l)}</span></div>` : ''}
       <div class="detail-row"><span class="detail-label">Statut</span><span class="detail-val"><span class="pill ${statCls}">${l.statut || 'À livrer'}</span></span></div>
     </div>
     ${routeHtml}
@@ -1996,12 +2031,14 @@ function ouvrirSignature(idx) {
   state.livActive = l;
 
   document.getElementById('sig-recap').innerHTML =
-    `<strong style="color:var(--text)">${l.client}</strong> · ${l.ville || ''}<br>BL: <strong style="color:var(--gold)">${l.bl || '—'}</strong> · ${l.nb_colis || l.nbColis || '—'} colis`;
+    `<strong style="color:var(--text)">${l.client}</strong> · ${l.ville || ''}<br>BL: <strong style="color:var(--gold)">${l.bl || '—'}</strong> · ${l.nb_colis || l.nbColis || '—'} colis${boissonsDe(l)?` · ${boissonsDe(l)} 🥤`:''}${charbonsDe(l)?` · ${charbonsDe(l)} 🔥`:''}`;
   document.getElementById('sigStatut').value = '✅ Livré';
   sigStatutChange();
   document.getElementById('sigBL').value    = l.bl || '';
   document.getElementById('sigNom').value   = '';
   document.getElementById('sigColis').value = l.nb_colis || l.nbColis || '';
+  document.getElementById('sigBoissons').value = boissonsDe(l) || '';
+  document.getElementById('sigCharbons').value = charbonsDe(l) || '';
   document.getElementById('sigObs').value   = '';
   document.getElementById('sigEmail').value = '';
   document.getElementById('sigReserve').checked = false;
@@ -2266,6 +2303,8 @@ async function envoyerSignature() {
   const bl     = document.getElementById('sigBL').value.trim();
   const nom    = document.getElementById('sigNom').value.trim();
   const colis  = document.getElementById('sigColis').value.trim();
+  const boissons = document.getElementById('sigBoissons').value.trim();
+  const charbons = document.getElementById('sigCharbons').value.trim();
   const conforme = !document.getElementById('sigReserve').checked;   // réserve cochée = non conforme
   const obs      = document.getElementById('sigObs').value.trim();    // commentaire toujours transmis
   const reglement = document.getElementById('sigReglement').value;
@@ -2295,6 +2334,8 @@ async function envoyerSignature() {
     bl:            bl || l.bl || '',
     client:        l.client || '',
     nbColis:       colis,
+    nbBoissons:    boissons || '0',
+    nbCharbons:    charbons || '0',
     conforme:      conforme,
     zone:          l.zone || '',
     dateHeure,
