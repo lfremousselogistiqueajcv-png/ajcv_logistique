@@ -1,7 +1,17 @@
 {
-  "version": "2026.06.18.2",
+  "version": "2026.06.23",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.23",
+      "date": "23/06/2026",
+      "titre": "Recherche, sens de tournée & ordre fiabilisé",
+      "notes": [
+        "🔍 Barre de recherche dans la liste des livraisons ET dans le chargement (par client, ville ou BL)",
+        "🧭 Choix du sens de tournée : Auto (le plus court), tour par l'Ouest ou tour par l'Est",
+        "🗺️ Optimisation fiabilisée quand il y a beaucoup de livraisons : l'ordre suit le tour de l'île, fini les détours incohérents à travers les hauts si le réseau est lent"
+      ]
+    },
     {
       "v": "2026.06.18.2",
       "date": "18/06/2026",
