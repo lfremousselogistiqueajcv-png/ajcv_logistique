@@ -397,7 +397,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="sig-field-label">Nb de colis reçus *</span>
     <input type="number" class="sig-input" id="sigColis" placeholder="Ex: 3" min="1">
     <span class="sig-field-label">🥤 Boissons remises</span>
-    <input type="number" class="sig-input" id="sigBoissons" placeholder="0" min="0">
+    <button type="button" id="sigBoissonsBtn" class="sig-input" style="text-align:left;cursor:pointer;color:var(--gold);font-weight:600" onclick="if(state.livActive)ouvrirBoissons(state.livActive.id,'signature')">—</button>
     <span class="sig-field-label">🔥 Charbons remis</span>
     <input type="number" class="sig-input" id="sigCharbons" placeholder="0" min="0">
     <span class="sig-field-label">Règlement récupéré</span>
@@ -464,6 +464,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- POPUP DÉTAIL BOISSONS (chargement + signature) -->
+<div id="boissonsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;align-items:flex-end;justify-content:center">
+  <div style="background:var(--surface);width:100%;max-width:520px;border-radius:18px 18px 0 0;max-height:85vh;display:flex;flex-direction:column;border:1px solid var(--border)">
+    <div style="padding:16px 18px;border-bottom:1px solid var(--border)">
+      <div style="font-weight:700;font-size:16px">🥤 Détail boissons</div>
+      <div id="bdet-client" style="font-size:13px;color:var(--text2);margin-top:2px"></div>
+    </div>
+    <div id="bdet-list" style="padding:6px 14px;overflow-y:auto;flex:1"></div>
+    <div style="padding:12px 18px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="font-size:14px">Total : <b id="bdet-total" style="color:var(--gold)">0</b> packs</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="fermerBoissons(false)" style="padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);font-weight:600;cursor:pointer">Annuler</button>
+        <button onclick="fermerBoissons(true)" style="padding:10px 18px;border-radius:10px;border:none;background:var(--green);color:#fff;font-weight:700;cursor:pointer">Valider</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -920,6 +938,7 @@ function restaurerOptimCache() {
 }
 
 async function chargerLivraisons() {
+  fetchBoissonsRef();   // catalogue boissons (non bloquant)
   // 1. Afficher le cache instantanément si disponible
   try {
     const cached = localStorage.getItem(cacheKey());
@@ -1047,8 +1066,84 @@ function chargeSet() {
 }
 function chargeSave(set) { try { localStorage.setItem(chargeKey(), JSON.stringify([...set])); } catch(_) {} }
 function colisDe(l) { return parseInt(l.nb_colis != null ? l.nb_colis : l.nbColis) || 1; }
-function boissonsDe(l) { return Math.max(0, parseInt(l.nb_boissons) || 0); }
+function boissonsDetailDe(l) { return (l.boissons_detail && typeof l.boissons_detail === 'object') ? l.boissons_detail : {}; }
+function boissonsDe(l) {
+  const d = boissonsDetailDe(l);
+  if (Object.keys(d).length) return Object.values(d).reduce((a,v)=>a+Math.max(0,parseInt(v)||0),0);
+  return Math.max(0, parseInt(l.nb_boissons) || 0);
+}
 function charbonsDe(l) { return Math.max(0, parseInt(l.nb_charbons) || 0); }
+
+// ── Catalogue des références boissons (géré dans l'admin) ──
+async function fetchBoissonsRef(){
+  try { const c = localStorage.getItem('ajcv_boissons_ref'); if (c) { const a = JSON.parse(c); if (Array.isArray(a)) state.boissonsRef = a; } } catch(_){}
+  try {
+    const resp = await fetch(`${CFG.API_URL}/boissons`, { headers:{'Authorization':`Bearer ${state.token||''}`} });
+    if (resp.ok) {
+      const d = await resp.json();
+      const noms = (d.boissons||[]).filter(b=>b.actif!==false).sort((a,b)=>(a.ordre||0)-(b.ordre||0)).map(b=>b.nom);
+      state.boissonsRef = noms;
+      try { localStorage.setItem('ajcv_boissons_ref', JSON.stringify(noms)); } catch(_){}
+    }
+  } catch(_){}
+}
+
+// ── Popup détail boissons (partagée chargement + signature) ──
+let _boissonsTarget = null, _boissonsTmp = {};
+function ouvrirBoissons(id, ctx){
+  const l = trouverLiv(id); if (!l) return;
+  _boissonsTarget = { id, ctx };
+  _boissonsTmp = Object.assign({}, boissonsDetailDe(l));
+  document.getElementById('bdet-client').textContent = (l.client||'') + ' · BL ' + (l.bl||'—');
+  renderBoissonsList();
+  document.getElementById('boissonsModal').style.display = 'flex';
+}
+function renderBoissonsList(){
+  const refs = state.boissonsRef || [];
+  const list = document.getElementById('bdet-list');
+  if (!refs.length) {
+    list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:16px 4px">Aucune référence configurée.<br>Demande à l\'admin d\'ajouter les boissons (onglet 🥤 Boissons).</div>';
+  } else {
+    list.innerHTML = refs.map(nom=>{
+      const q = Math.max(0, parseInt(_boissonsTmp[nom])||0);
+      const safe = String(nom).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 4px;border-bottom:1px solid var(--border)">
+        <span style="font-weight:600;font-size:14px">${nom}</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button onclick="ajBoissonRef('${safe}',-1)" style="width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:21px;font-weight:700">−</button>
+          <b style="min-width:28px;text-align:center;font-size:16px;color:var(--gold)">${q}</b>
+          <button onclick="ajBoissonRef('${safe}',1)" style="width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:21px;font-weight:700">+</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  const total = Object.values(_boissonsTmp).reduce((a,v)=>a+Math.max(0,parseInt(v)||0),0);
+  document.getElementById('bdet-total').textContent = total;
+}
+function ajBoissonRef(nom, delta){
+  const q = Math.max(0, (parseInt(_boissonsTmp[nom])||0) + delta);
+  if (q>0) _boissonsTmp[nom]=q; else delete _boissonsTmp[nom];
+  renderBoissonsList();
+}
+function fermerBoissons(valider){
+  document.getElementById('boissonsModal').style.display='none';
+  if (!valider || !_boissonsTarget){ _boissonsTarget=null; return; }
+  const l = trouverLiv(_boissonsTarget.id);
+  if (l) {
+    const clean={}; for (const k of Object.keys(_boissonsTmp)){ const v=Math.max(0,parseInt(_boissonsTmp[k])||0); if (v>0) clean[k]=v; }
+    l.boissons_detail = clean;
+    l.nb_boissons = Object.values(clean).reduce((a,v)=>a+v,0);
+    const ctx = _boissonsTarget.ctx;
+    if (ctx==='chargement'){ renderChargement(); envoyerChargement(l, estCharge(l)); }
+    else if (ctx==='signature'){ majBoissonsBtnSignature(l); }
+  }
+  _boissonsTarget=null;
+}
+function majBoissonsBtnSignature(l){
+  const b = document.getElementById('sigBoissonsBtn'); if (!b) return;
+  const t = boissonsDe(l), d = boissonsDetailDe(l), n = Object.keys(d).length;
+  b.textContent = t>0 ? `${t} packs · ${n} réf. — appuyer pour modifier ▸` : 'Aucune — appuyer pour saisir ▸';
+}
 function estCharge(l) { return l.charge === true || chargeSet().has(String(l.id)); }
 function trouverLiv(id) { return state.livraisons.find(l => String(l.id) === String(id)); }
 
@@ -1097,7 +1192,7 @@ function renderChargement() {
       </div>
       <div class="charge-steppers">
         <div class="stp"><span class="stp-lbl">📦 Colis</span><button onclick="ajusterColisCharge('${l.id}',-1)">−</button><b>${colisDe(l)}</b><button onclick="ajusterColisCharge('${l.id}',1)">+</button></div>
-        <div class="stp"><span class="stp-lbl">🥤 Boissons</span><button onclick="ajusterBoissons('${l.id}',-1)">−</button><b>${boissonsDe(l)}</b><button onclick="ajusterBoissons('${l.id}',1)">+</button></div>
+        <div class="stp"><span class="stp-lbl">🥤 Boissons</span><button onclick="ouvrirBoissons('${l.id}','chargement')" style="border:1px solid var(--border);background:var(--surface);color:var(--gold);font-weight:700;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer">${boissonsDe(l)} ▸</button></div>
         <div class="stp"><span class="stp-lbl">🔥 Charbons</span><button onclick="ajusterCharbons('${l.id}',-1)">−</button><b>${charbonsDe(l)}</b><button onclick="ajusterCharbons('${l.id}',1)">+</button></div>
       </div>
     </div>`;
@@ -1152,7 +1247,7 @@ async function envoyerChargement(l, charge) {
     await fetch(`${CFG.API_URL}/livraisons/chargement`, {
       method: 'POST',
       headers: {'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
-      body: JSON.stringify({ id: l.id, charge, colis: colisDe(l), boissons: boissonsDe(l), charbons: charbonsDe(l) }),
+      body: JSON.stringify({ id: l.id, charge, colis: colisDe(l), boissons: boissonsDe(l), boissons_detail: boissonsDetailDe(l), charbons: charbonsDe(l) }),
     });
   } catch(_) { /* le localStorage conserve l'état côté livreur */ }
 }
@@ -2037,7 +2132,7 @@ function ouvrirSignature(idx) {
   document.getElementById('sigBL').value    = l.bl || '';
   document.getElementById('sigNom').value   = '';
   document.getElementById('sigColis').value = l.nb_colis || l.nbColis || '';
-  document.getElementById('sigBoissons').value = boissonsDe(l) || '';
+  majBoissonsBtnSignature(l);
   document.getElementById('sigCharbons').value = charbonsDe(l) || '';
   document.getElementById('sigObs').value   = '';
   document.getElementById('sigEmail').value = '';
@@ -2303,7 +2398,6 @@ async function envoyerSignature() {
   const bl     = document.getElementById('sigBL').value.trim();
   const nom    = document.getElementById('sigNom').value.trim();
   const colis  = document.getElementById('sigColis').value.trim();
-  const boissons = document.getElementById('sigBoissons').value.trim();
   const charbons = document.getElementById('sigCharbons').value.trim();
   const conforme = !document.getElementById('sigReserve').checked;   // réserve cochée = non conforme
   const obs      = document.getElementById('sigObs').value.trim();    // commentaire toujours transmis
@@ -2334,7 +2428,8 @@ async function envoyerSignature() {
     bl:            bl || l.bl || '',
     client:        l.client || '',
     nbColis:       colis,
-    nbBoissons:    boissons || '0',
+    boissonsDetail: boissonsDetailDe(l),
+    nbBoissons:    String(boissonsDe(l)),
     nbCharbons:    charbons || '0',
     conforme:      conforme,
     zone:          l.zone || '',

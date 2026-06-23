@@ -130,6 +130,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div class="nav-tab" data-tab="impLiv" onclick="go('impLiv')">📥 Import Livraisons</div>
       <div class="nav-tab" data-tab="impCli" onclick="go('impCli')">📥 Import Clients</div>
       <div class="nav-tab" data-tab="clients" onclick="go('clients')">🏪 Clients</div>
+      <div class="nav-tab" data-tab="boissons" onclick="go('boissons')">🥤 Boissons</div>
       <div class="nav-tab" data-tab="users" onclick="go('users')">🔐 Utilisateurs</div>
       <div class="nav-tab" data-tab="docs" onclick="go('docs')">📄 Documents</div>
       <div class="nav-tab" data-tab="flotte" onclick="go('flotte')">🚐 Flotte</div>
@@ -320,6 +321,7 @@ function go(tab){
   else if(tab==='impLiv') renderImportLiv();
   else if(tab==='impCli') renderImportCli();
   else if(tab==='clients') renderClients();
+  else if(tab==='boissons') renderBoissons();
   else if(tab==='users') renderUsers();
   else if(tab==='docs') renderDocs();
   else if(tab==='flotte') renderFlotte();
@@ -912,7 +914,7 @@ async function renderClients(){
         </div></div>
       <input id="cl-search" placeholder="🔍 Rechercher un client, une ville ou un ID Odoo..." oninput="filtrerClients(true)" style="margin-bottom:8px;margin-top:12px">
       <select id="cl-zone" onchange="filtrerClients(true)" style="margin-bottom:14px">
-        <option value="">Toutes les zones</option><option value="1">🟢 Zone 1</option><option value="2">🔵 Zone 2</option><option value="3">🟠 Zone 3</option>
+        <option value="">Toutes les zones</option><option value="1">🟢 Sud</option><option value="2">🔵 Nord-Est</option><option value="3">🟠 Ouest</option>
       </select>
       <div id="cl-liste"></div>
     </div>`;
@@ -942,9 +944,9 @@ function filtrerClients(resetPage){
       <td>${esc(c.cp)}</td>
       <td><select class="inline-sel" onchange="changerZoneClient('${c.id}',this.value)">
         <option value="" ${!c.zone?'selected':''}>—</option>
-        <option value="🟢 Zone 1 — Livreur 1" ${zNum(c.zone)==='1'?'selected':''}>🟢 Z1</option>
-        <option value="🔵 Zone 2 — Livreur 2" ${zNum(c.zone)==='2'?'selected':''}>🔵 Z2</option>
-        <option value="🟠 Zone 3 — Livreur 3" ${zNum(c.zone)==='3'?'selected':''}>🟠 Z3</option>
+        <option value="🟢 Zone 1 — Livreur 1" ${zNum(c.zone)==='1'?'selected':''}>🟢 Sud</option>
+        <option value="🔵 Zone 2 — Livreur 2" ${zNum(c.zone)==='2'?'selected':''}>🔵 Nord-Est</option>
+        <option value="🟠 Zone 3 — Livreur 3" ${zNum(c.zone)==='3'?'selected':''}>🟠 Ouest</option>
         <option value="⛔ NON LIVRÉ" ${/NON LIVR/i.test(c.zone||'')?'selected':''}>⛔ Non livré</option>
       </select></td>
       <td>${esc(c.tel1||'—')}</td>
@@ -963,6 +965,55 @@ function pageClients(delta){
   _clientPage += delta;
   filtrerClients();
   document.getElementById('cl-liste').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// BOISSONS — catalogue des références (affichées dans l'appli livreur)
+// ════════════════════════════════════════════════════════════════════════════
+let _boissons = null;
+async function renderBoissons(){
+  const d = await api('GET','/boissons').catch(()=>({boissons:[]}));
+  _boissons = d.boissons || [];
+  document.getElementById('content').innerHTML = `
+    <div class="card">
+      <h3>🥤 Références boissons (${_boissons.length})</h3>
+      <p class="muted" style="margin:6px 0 14px">Ces références apparaissent dans l'appli livreur (au chargement et à la signature). Ajoute, renomme ou désactive-les ici — la liste se met à jour côté livreur.</p>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <input id="bo-nom" placeholder="Nom de la boisson (ex: SAMBO)" style="flex:1" onkeydown="if(event.key==='Enter')ajouterBoisson()">
+        <button class="btn btn-green" onclick="ajouterBoisson()">➕ Ajouter</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Nom</th><th style="width:70px;text-align:center">Actif</th><th style="width:60px"></th></tr></thead>
+        <tbody>${_boissons.map(b=>`<tr>
+          <td><input value="${esc(b.nom)}" onchange="renommerBoisson('${b.id}',this.value)" style="width:100%;background:transparent;border:1px solid transparent;color:var(--text);padding:5px 7px;border-radius:6px;font-weight:600" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='transparent'"></td>
+          <td style="text-align:center"><input type="checkbox" ${b.actif!==false?'checked':''} onchange="toggleBoissonActif('${b.id}',this.checked)"></td>
+          <td><button class="btn btn-red btn-sm" onclick="supprimerBoisson('${b.id}','${esc(b.nom).replace(/'/g,"\\'")}')">🗑️</button></td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+      ${_boissons.length===0?'<p class="muted" style="margin-top:12px">Aucune référence pour l\'instant. Ajoute ta première boisson ci-dessus.</p>':''}
+    </div>`;
+}
+async function ajouterBoisson(){
+  const nom=(document.getElementById('bo-nom').value||'').trim();
+  if(!nom){ toast('⚠️ Entre un nom'); return; }
+  const r=await api('POST','/boissons',{nom, ordre:(_boissons?_boissons.length:0)+1}).catch(()=>null);
+  if(r&&r.success){ document.getElementById('bo-nom').value=''; toast('✅ Boisson ajoutée'); renderBoissons(); }
+  else toast('❌ '+((r&&r.error)||'Erreur (doublon ?)'));
+}
+async function renommerBoisson(id,nom){
+  nom=(nom||'').trim(); if(!nom) return;
+  await api('PATCH','/boissons/'+id,{nom}).then(()=>toast('✏️ Renommé'),()=>toast('❌ Erreur'));
+  if(_boissons){ const b=_boissons.find(x=>String(x.id)===String(id)); if(b) b.nom=nom; }
+}
+async function toggleBoissonActif(id,actif){
+  await api('PATCH','/boissons/'+id,{actif}).then(()=>toast(actif?'✅ Activée':'🚫 Désactivée'),()=>toast('❌ Erreur'));
+  if(_boissons){ const b=_boissons.find(x=>String(x.id)===String(id)); if(b) b.actif=actif; }
+}
+async function supprimerBoisson(id,nom){
+  if(!confirm('Supprimer la boisson "'+nom+'" ?')) return;
+  const r=await api('DELETE','/boissons/'+id).catch(()=>null);
+  if(r&&r.success){ toast('🗑️ Supprimée'); renderBoissons(); }
+  else toast('❌ Erreur suppression');
 }
 // ── Autocomplétion d'adresse Google Places (via proxy backend, clé cachée) ──
 let _cliGeo = null, _sugTimer = null, _lastPreds = [];
