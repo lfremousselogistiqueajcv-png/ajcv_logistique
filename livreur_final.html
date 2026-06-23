@@ -1179,10 +1179,11 @@ function renderChargement() {
     Coche chaque commande chargée, et n'oublie pas boissons et charbons</div>
     <button class="btn-optimize" onclick="toutCharger()">✓ Tout</button></div>`;
 
+  html += `<div style="padding:10px 14px 0"><input id="searchCharge" value="${(state.searchCharge||'').replace(/"/g,'&quot;')}" oninput="filtrerChargement(this.value)" placeholder="🔍 Rechercher un client, un BL..." style="width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;box-sizing:border-box"></div>`;
   html += `<div class="list-section"><div class="section-label">${charges}/${livs.length} commandes chargées</div>`;
   livs.forEach(l => {
     const ok = estCharge(l);
-    html += `<div class="charge-card${ok ? ' charge-ok' : ''}">
+    html += `<div class="charge-card${ok ? ' charge-ok' : ''}" data-search="${(String(l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;')}">
       <div class="charge-top">
         <div class="charge-check" onclick="toggleCharge('${l.id}')">${ok ? '✅' : '⬜'}</div>
         <div class="charge-info" onclick="toggleCharge('${l.id}')">
@@ -1199,6 +1200,15 @@ function renderChargement() {
   });
   html += '</div>';
   content.innerHTML = html;
+  if (state.searchCharge) filtrerChargement(state.searchCharge);
+}
+function filtrerChargement(q){
+  state.searchCharge = q || '';
+  const t = state.searchCharge.toLowerCase().trim();
+  document.querySelectorAll('#content .charge-card').forEach(c => {
+    const hay = c.getAttribute('data-search') || '';
+    c.style.display = (!t || hay.indexOf(t) !== -1) ? '' : 'none';
+  });
 }
 
 async function toggleCharge(id) {
@@ -1298,10 +1308,15 @@ function renderLivraisons(showDone) {
           : '📐 Estimation géographique (OSRM indisponible) — ordre par le tour de l\'île'
       }</div>`;
     }
+    const sv = state.sensTournee || 'auto';
     html += `<div class="optimize-bar">
       <div class="optimize-info">
         <strong>🧭 Optimisation de tournée</strong>
-        Routes réelles (OSRM) · 2-opt + or-opt
+        <select id="sensTournee" onchange="state.sensTournee=this.value" style="margin-top:5px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:7px;padding:5px 8px;font-size:12px;width:100%">
+          <option value="auto" ${sv==='auto'?'selected':''}>Sens : Auto (le plus court)</option>
+          <option value="ouest" ${sv==='ouest'?'selected':''}>Sens : tour par l'Ouest</option>
+          <option value="est" ${sv==='est'?'selected':''}>Sens : tour par l'Est</option>
+        </select>
       </div>
       <button onclick="rafraichirMaintenant()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:8px 10px;font-size:14px;cursor:pointer;margin-right:6px" title="Rafraîchir les données">🔄</button>
       <button class="btn-optimize" id="btnOptimize" onclick="optimiserTournee()" title="Calculer l'ordre optimal des livraisons">
@@ -1340,6 +1355,7 @@ function renderLivraisons(showDone) {
     });
   }
 
+  html += `<div style="padding:10px 14px 0"><input id="searchLiv" value="${(state.searchLiv||'').replace(/"/g,'&quot;')}" oninput="filtrerLivraisons(this.value)" placeholder="🔍 Rechercher client, ville, BL..." style="width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;box-sizing:border-box"></div>`;
   html += '<div class="list-section">';
   html += `<div class="section-label">${showDone ? 'Livrées aujourd\'hui' : `${livs.length} à livrer`}</div>`;
 
@@ -1362,7 +1378,7 @@ function renderLivraisons(showDone) {
     const est     = seg ? seg.segment : null;
     // indexOf utilise la référence exacte de l'objet — fiable même avec doublons
     const idxReel = state.livraisons.indexOf(l);
-    html += `<div class="liv-card ${l.statut === '✅ Livré' ? 'done' : ''}" onclick="ouvrirDetail(${idxReel})">
+    html += `<div class="liv-card ${l.statut === '✅ Livré' ? 'done' : ''}" data-search="${(String(l.client||'')+' '+String(l.ville||'')+' '+String(l.adresse||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;')}" onclick="ouvrirDetail(${idxReel})">
       ${ordre ? `<div class="liv-order">${ordre}</div>` : ''}
       <div class="liv-card-inner">
         <div class="liv-client">${l.client}</div>
@@ -1392,6 +1408,15 @@ function renderLivraisons(showDone) {
   });
   html += '</div>';
   content.innerHTML = html;
+  if (state.searchLiv) filtrerLivraisons(state.searchLiv);
+}
+function filtrerLivraisons(q){
+  state.searchLiv = q || '';
+  const t = state.searchLiv.toLowerCase().trim();
+  document.querySelectorAll('#content .liv-card').forEach(c => {
+    const hay = c.getAttribute('data-search') || '';
+    c.style.display = (!t || hay.indexOf(t) !== -1) ? '' : 'none';
+  });
 }
 
 // ════════════════════════════════════════
@@ -1887,6 +1912,37 @@ function twoOptBudget(route, m, budgetMs) {
   return best;
 }
 
+// Construit le résultat (ordre + km/min + lien Maps) à partir d'un ordre imposé et d'une matrice
+function resultatDepuisOrdre(depot, stops, ordreIdx, matrice){
+  let totalKm = 0, totalMin = 0;
+  const ordreFinal = ordreIdx.map((idx, i) => {
+    const s = stops[idx];
+    const prev = i === 0 ? 0 : ordreIdx[i-1] + 1;
+    const curr = idx + 1;
+    const min = Math.round(durM(matrice, prev, curr) / 60);
+    const km  = Math.round(disM(matrice, prev, curr) / 100) / 10;
+    totalKm += km; totalMin += min;
+    return Object.assign({}, s, { ordre: i+1, segment: { km, min, description: min > 0 ? min+' min' : 'Direct' } });
+  });
+  const waypoints = ordreFinal.map(s => s.lat+','+s.lng).join('/');
+  const mapsUrl = `https://www.google.com/maps/dir/${depot.lat},${depot.lng}/${waypoints}/${depot.lat},${depot.lng}`;
+  return { ordre: ordreFinal, totalKm: Math.round(totalKm*10)/10, totalMin: Math.round(totalMin), mapsUrl,
+           sourceDistance: (matrice.source === 'osrm' ? 'osrm' : 'estimation') };
+}
+
+// Ordre imposé "tour de l'île" dans le sens choisi (ouest = horaire, est = anti-horaire)
+function ordreSensRing(depot, stops, sens){
+  const a0 = angleAutourCentre(depot);
+  const items = stops.map((s, i) => {
+    let off = angleAutourCentre(s) - a0;
+    if (sens === 'est') off = -off;
+    off = ((off % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+    return { i, off };
+  });
+  items.sort((x, y) => x.off - y.off);
+  return items.map(x => x.i);
+}
+
 // ── Optimisation OSRM (routes réelles, SANS Google) : TRIP serveur, repli borné ──
 async function optimiserTourneeClient() {
   const stops = state.livraisons
@@ -1899,6 +1955,15 @@ async function optimiserTourneeClient() {
       totalKm:0, totalMin:0,
       mapsUrl:`https://www.google.com/maps/dir/${depot.lat},${depot.lng}/${stops[0].lat},${stops[0].lng}/${depot.lat},${depot.lng}`,
       sourceDistance:'osrm' };
+  }
+  // Sens imposé (Ouest/Est) → on respecte la direction choisie plutôt que le TSP libre d'OSRM
+  const sens = state.sensTournee || 'auto';
+  if (sens === 'ouest' || sens === 'est') {
+    try {
+      const matrice  = await getMatriceOSRM(depot, stops);
+      const ordreIdx = ordreSensRing(depot, stops, sens);
+      return resultatDepuisOrdre(depot, stops, ordreIdx, matrice);
+    } catch (e) { console.warn('sens ring:', e.message); /* repli sur l'auto ci-dessous */ }
   }
   // 1) OSRM TRIP : l'ordre optimal est calculé sur le serveur OSRM → plus aucun gel du téléphone.
   try {
