@@ -174,7 +174,13 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div><label>Mot de passe *</label><input id="nu-mdp" placeholder="ajcv2024" value="ajcv2024"></div>
       <div><label>Prénom *</label><input id="nu-prenom"></div>
       <div><label>Nom</label><input id="nu-nom"></div>
-      <div><label>Rôle</label><select id="nu-role"><option>Livreur</option><option>Commercial</option><option>Depot</option><option>Admin</option></select></div>
+      <div><label>Rôle</label><select id="nu-role" onchange="majCasquettesDefaut()"><option>Livreur</option><option>Préparateur</option><option>Commercial</option><option>Depot</option><option>Admin</option></select></div>
+      <div style="grid-column:1/-1"><label>Casquettes terrain (un compte peut cumuler)</label>
+        <div style="display:flex;gap:18px;margin-top:5px">
+          <label style="display:inline-flex;align-items:center;gap:7px;font-weight:600;cursor:pointer"><input type="checkbox" id="nu-livrer" checked style="width:17px;height:17px"> 🚚 Livreur</label>
+          <label style="display:inline-flex;align-items:center;gap:7px;font-weight:600;cursor:pointer"><input type="checkbox" id="nu-preparer" style="width:17px;height:17px"> 🧰 Préparateur</label>
+        </div>
+      </div>
       <div><label>Zone</label><select id="nu-zone"><option value="">Toutes</option><option value="🟢 Zone 1 — Livreur 1">🟢 Zone 1</option><option value="🔵 Zone 2 — Livreur 2">🔵 Zone 2</option><option value="🟠 Zone 3 — Livreur 3">🟠 Zone 3</option></select></div>
       <div><label>📧 Email</label><input id="nu-email" type="email"></div>
       <div><label>📱 Téléphone</label><input id="nu-tel" type="tel"></div>
@@ -1314,13 +1320,17 @@ async function renderUsers(){
         <button class="btn btn-green btn-sm" onclick="document.getElementById('modalUser').classList.add('active')">➕ Ajouter</button></div>
       <p class="muted" style="background:rgba(255,179,0,.08);padding:10px;border-radius:8px;margin-bottom:14px">🔒 Sécurité : blocage après 5 tentatives · sessions 8h · mots de passe chiffrés bcrypt</p>
       <div class="table-wrap"><table>
-        <thead><tr><th>Login</th><th>Prénom/Nom</th><th>Rôle</th><th>Zone</th><th>📧 Email</th><th>📱 Tél</th><th>Statut</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Login</th><th>Prénom/Nom</th><th>Rôle</th><th>Casquettes</th><th>Zone</th><th>📧 Email</th><th>📱 Tél</th><th>Statut</th><th>Actions</th></tr></thead>
         <tbody>${users.map(u=>`<tr style="opacity:${u.actif?1:.5}">
           <td><b style="font-family:monospace">${esc(u.login)}</b></td>
           <td><input class="inline-input" value="${esc(u.prenom)}" onblur="majUser('${u.login}','prenom',this.value)" style="width:70px"> <input class="inline-input" value="${esc(u.nom||'')}" onblur="majUser('${u.login}','nom',this.value)" style="width:70px"></td>
           <td><select class="inline-sel" onchange="majUser('${u.login}','role',this.value)">
-            <option ${u.role==='Livreur'?'selected':''}>Livreur</option><option ${u.role==='Commercial'?'selected':''}>Commercial</option>
+            <option ${u.role==='Livreur'?'selected':''}>Livreur</option><option ${u.role==='Préparateur'?'selected':''}>Préparateur</option><option ${u.role==='Commercial'?'selected':''}>Commercial</option>
             <option ${u.role==='Depot'?'selected':''}>Depot</option><option ${u.role==='Admin'?'selected':''}>Admin</option></select></td>
+          <td style="white-space:nowrap">
+            <label title="Peut livrer" style="display:inline-flex;align-items:center;gap:3px;font-size:12px;cursor:pointer"><input type="checkbox" ${(u.peut_livrer!=null?u.peut_livrer:u.role==='Livreur')?'checked':''} onchange="majUser('${u.login}','peut_livrer',this.checked)">🚚</label>
+            <label title="Peut préparer" style="display:inline-flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;margin-left:7px"><input type="checkbox" ${(u.peut_preparer!=null?u.peut_preparer:u.role==='Préparateur')?'checked':''} onchange="majUser('${u.login}','peut_preparer',this.checked)">🧰</label>
+          </td>
           <td><select class="inline-sel" onchange="majUser('${u.login}','zone',this.value)">
             <option value="" ${!u.zone?'selected':''}>Toutes</option>
             <option value="🟢 Zone 1 — Livreur 1" ${zNum(u.zone)==='1'?'selected':''}>🟢 Z1</option>
@@ -1365,6 +1375,11 @@ async function majUser(login,champ,val){
   if(r&&r.success) toast('✅ '+champ+' mis à jour');
   else toast('❌ Erreur');
 }
+function majCasquettesDefaut(){
+  const r=document.getElementById('nu-role').value;
+  document.getElementById('nu-livrer').checked   = (r==='Livreur');
+  document.getElementById('nu-preparer').checked = (r==='Préparateur');
+}
 async function creerUser(){
   const err=document.getElementById('userErr'); err.style.display='none';
   const body={
@@ -1373,7 +1388,8 @@ async function creerUser(){
     prenom:document.getElementById('nu-prenom').value.trim(),
     nom:document.getElementById('nu-nom').value.trim(),
     role:document.getElementById('nu-role').value, zone:document.getElementById('nu-zone').value,
-    email:document.getElementById('nu-email').value.trim(), tel:document.getElementById('nu-tel').value.trim()
+    email:document.getElementById('nu-email').value.trim(), tel:document.getElementById('nu-tel').value.trim(),
+    peut_livrer:document.getElementById('nu-livrer').checked, peut_preparer:document.getElementById('nu-preparer').checked
   };
   if(!body.login||!body.mdp||!body.prenom){err.textContent='Login, MDP et prénom requis';err.style.display='block';return;}
   const r=await api('POST','/admin/users',body).catch(()=>null);
