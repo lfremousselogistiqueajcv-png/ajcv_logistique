@@ -127,6 +127,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div class="topbar-inner">
       <div class="nav-tab active" data-tab="livraisons" onclick="go('livraisons')">📦 Livraisons</div>
       <div class="nav-tab" data-tab="plan" onclick="go('plan')">🗺️ Plan de tournée</div>
+      <div class="nav-tab" data-tab="zones" onclick="go('zones')">📍 Zones</div>
       <div class="nav-tab" data-tab="impLiv" onclick="go('impLiv')">📥 Import Livraisons</div>
       <div class="nav-tab" data-tab="impCli" onclick="go('impCli')">📥 Import Clients</div>
       <div class="nav-tab" data-tab="clients" onclick="go('clients')">🏪 Clients</div>
@@ -238,6 +239,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div><label>Date de livraison</label><input id="fl-date" type="date"></div>
       <div><label>Téléphone</label><input id="fl-tel"></div>
       <div><label>Colis</label><input id="fl-colis" type="number" value="1"></div>
+      <div><label>🔥 Charbons</label><input id="fl-charbons" type="number" min="0" value="0"></div>
+      <div style="grid-column:1/-1"><label>🥤 Boissons (par référence)</label><div id="fl-boissons-box" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px"></div></div>
       <div style="grid-column:1/-1"><label>Email (pour le bon de réception)</label><input id="fl-email" type="email" placeholder="prérempli depuis la fiche client"></div>
       <div style="grid-column:1/-1"><label>Indications</label><input id="fl-indic" placeholder="Instructions de livraison..."></div>
       <div style="grid-column:1/-1"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.4);border-radius:8px;padding:9px"><input type="checkbox" id="fl-vendredi" style="width:18px;height:18px;accent-color:#f59e0b"> 🏁 Forcer la tournée du vendredi (sinon auto si reçu jeu. 17h → ven. 12h)</label></div>
@@ -327,6 +330,56 @@ function go(tab){
   else if(tab==='flotte') renderFlotte();
   else if(tab==='kpi') renderKPI();
   else if(tab==='odoo') renderImportsOdoo();
+  else if(tab==='zones') renderZones();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ZONES — visualisation du découpage CP→zone (source : route /zones = le code)
+// Libellés communes = cosmétique d'affichage ; l'affectation vient de /zones.
+// ════════════════════════════════════════════════════════════════════════════
+const CP_COMMUNE = {
+  // Zone 1 — Sud
+  '97410':'Saint-Pierre','97432':'Ravine des Cabris','97430':'Le Tampon','97418':'La Plaine des Cafres','97414':'Entre-Deux','97413':'Cilaos','97450':'Saint-Louis','97421':'La Rivière / Les Makes','97429':'Petite-Île','97425':'Les Avirons','97427':'L’Étang-Salé','97480':'Saint-Joseph','97442':'Saint-Philippe',
+  // Zone 2 — Nord + Est
+  '97400':'Saint-Denis','97417':'La Montagne / St-Bernard','97490':'Sainte-Clotilde','97438':'Sainte-Marie','97441':'Sainte-Suzanne','97487':'Saint-Denis CEDEX','97495':'Sainte-Clotilde CEDEX','97440':'Saint-André','97412':'Bras-Panon','97470':'Saint-Benoît','97437':'Sainte-Anne','97431':'La Plaine des Palmistes','97439':'Sainte-Rose','97433':'Salazie',
+  // Zone 3 — Ouest
+  '97460':'Saint-Paul','97411':'Bois de Nèfles St-Paul','97422':'La Saline','97434':'Saint-Gilles-les-Bains','97435':'Saint-Gilles-les-Hauts','97423':'Le Guillaume','97419':'La Possession','97420':'Le Port','97426':'Les Trois-Bassins','97436':'Saint-Leu','97416':'La Chaloupe','97424':'Piton Saint-Leu','97415':'Saint-Paul CEDEX',
+};
+async function renderZones(){
+  let data;
+  try { data = await api('GET','/zones'); }
+  catch(e){ document.getElementById('content').innerHTML = '<div class="card">Impossible de charger les zones. Réessaie.</div>'; return; }
+  const zones = data.zones || [];
+  const legende = zones.map(z=>`<span class="zchip"><span class="zdot" style="background:${z.couleur}"></span>${esc(z.titre)} · ${esc(z.livreur)}</span>`).join('');
+  const cartes = zones.map(z=>{
+    const lignes = z.cp.map(c=>`<tr><td class="zcp">${c.cp}</td><td>${esc(CP_COMMUNE[c.cp]||'—')}<span class="zsect">${esc(c.secteur)}</span></td></tr>`).join('');
+    return `<div class="zcard"><div class="zhdr" style="background:${z.couleur}"><span>${esc(z.titre)}</span><small>${esc(z.livreur)} · ${z.cp.length} CP</small></div><table class="ztbl">${lignes}</table></div>`;
+  }).join('');
+  document.getElementById('content').innerHTML = `
+    <style>
+      .zgrid{display:grid;grid-template-columns:1fr;gap:14px}
+      @media(min-width:760px){.zgrid{grid-template-columns:1fr 1fr 1fr}}
+      .zcard{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface2)}
+      .zhdr{padding:10px 13px;font-weight:700;font-size:14px;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:8px}
+      .zhdr small{font-weight:400;opacity:.95;font-size:11.5px;white-space:nowrap}
+      .ztbl{width:100%;border-collapse:collapse}
+      .ztbl td{padding:7px 12px;font-size:13px;border-top:1px solid var(--border);color:var(--text);vertical-align:top}
+      .zcp{font-variant-numeric:tabular-nums;font-weight:700;width:58px;color:var(--text)}
+      .zsect{display:block;font-size:11px;color:var(--text2);margin-top:1px}
+      .zlegend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+      .zchip{display:inline-flex;align-items:center;gap:7px;font-size:13px;border:1px solid var(--border);border-radius:999px;padding:5px 11px;color:var(--text)}
+      .zdot{width:12px;height:12px;border-radius:50%}
+    </style>
+    <div class="card">
+      <h3 style="margin:0 0 6px">📍 Zones de livraison</h3>
+      <p class="muted" style="margin:0">Découpage par intercommunalités — <b>${data.total_cp} codes postaux</b>. Le <b>code postal fait foi</b> (la commune sert de repli). Cette vue est générée en direct depuis le système : elle reflète toujours l'affectation réelle des livraisons.</p>
+      <div class="zlegend">${legende}</div>
+    </div>
+    <div class="zgrid">${cartes}</div>
+    <div class="card">
+      <p class="muted" style="margin:0"><b>Codes CEDEX</b> (97487, 97495 → Zone 2 ; 97415 → Zone 3) : classés automatiquement.</p>
+      <p class="muted" style="margin:6px 0 0"><b>Mafate</b> (97428) : rattaché à aucune zone — accès uniquement pédestre/hélico, non desservi en camion. Un bon sur ce code ressort sans zone et se traite à la main.</p>
+    </div>`;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -367,6 +420,8 @@ async function renderPlan(){
       <div id="planSimResult"></div>
     </div>
     <div class="card">
+      <div id="planCounters"></div>
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer;margin:0 0 10px"><input type="checkbox" id="planFilterPretes" ${_plan.filterPretes?'checked':''} onchange="_plan.filterPretes=this.checked;planRenderTable()"> 🧰 Afficher les prêtes uniquement</label>
       <div id="planCharge"></div>
       <div id="planTable" class="table-wrap" style="margin-top:10px"></div>
     </div>`;
@@ -374,9 +429,32 @@ async function renderPlan(){
 }
 async function planReload(){
   const r = await api('GET','/livraisons?date='+encodeURIComponent(_plan.date)).catch(()=>({livraisons:[]}));
-  _plan.livs = (r.livraisons||[]).filter(l=>!/livré/i.test(l.statut||''));
+  _plan.allLivs = r.livraisons||[];
+  _plan.livs = _plan.allLivs.filter(l=>!/livré/i.test(l.statut||''));
+  planRenderCounters();
   planRenderCharge();
   planRenderTable();
+}
+function planRenderCounters(){
+  const el=document.getElementById('planCounters'); if(!el) return;
+  const all=_plan.allLivs||[];
+  const total=all.length;
+  const pretes=all.filter(l=>l.prepare===true||l.prepare==='true').length;
+  const affectees=all.filter(l=>(l.livreur||'').trim()).length;
+  const chargees=all.filter(l=>l.charge===true||l.charge==='true').length;
+  const livrees=all.filter(l=>/livré/i.test(l.statut||'')).length;
+  const c=(lbl,val,bg,fg)=>`<div style="flex:1;min-width:90px;background:${bg};border-radius:10px;padding:10px 8px;text-align:center"><div style="font-size:23px;font-weight:800;color:${fg};line-height:1">${val}</div><div style="font-size:11px;font-weight:600;color:${fg};opacity:.9;margin-top:3px">${lbl}</div></div>`;
+  el.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    ${c('Total du jour',total,'#f1f5f9','#475569')}
+    ${c('🧰 Prêtes',pretes,'#ecfdf5','#059669')}
+    ${c('👤 Affectées',affectees,'#eff6ff','#2563eb')}
+    ${c('🚚 Chargées',chargees,'#fef3c7','#b45309')}
+    ${c('✅ Livrées',livrees,'#f0fdf4','#16a34a')}
+  </div>`;
+}
+function voirPhotoPrep(url){
+  if(!url){ toast('Pas de photo de préparation'); return; }
+  window.open(url,'_blank');
 }
 function planRenderCharge(){
   const el=document.getElementById('planCharge'); if(!el) return;
@@ -386,12 +464,13 @@ function planRenderCharge(){
 }
 function planRenderTable(){
   const el=document.getElementById('planTable'); if(!el) return;
-  if(!_plan.livs.length){ el.innerHTML='<p class="muted">Aucune livraison à affecter pour cette date.</p>'; return; }
+  const source = _plan.filterPretes ? (_plan.livs||[]).filter(l=>l.prepare===true||l.prepare==='true') : (_plan.livs||[]);
+  if(!source.length){ el.innerHTML='<p class="muted">'+(_plan.filterPretes?'Aucune livraison prête pour cette date.':'Aucune livraison à affecter pour cette date.')+'</p>'; return; }
   const propMap={}; if(_plan.prop) _plan.prop.proposition.forEach(p=>propMap[p.id]=p.livreur_propose);
   const showProp=!!_plan.prop;
   // Brouillon découpé par zone
   const groupes={}, ordre=[];
-  _plan.livs.forEach(l=>{ const key=zNum(l.zone)||'0'; if(!groupes[key]){groupes[key]=[];ordre.push(key);} groupes[key].push(l); });
+  source.forEach(l=>{ const key=zNum(l.zone)||'0'; if(!groupes[key]){groupes[key]=[];ordre.push(key);} groupes[key].push(l); });
   ordre.sort((a,b)=>(a==='0'?9:parseInt(a))-(b==='0'?9:parseInt(b)));
   const libZone={'1':'🟢 Sud','2':'🔵 Nord-Est','3':'🟠 Ouest','0':'⚪ Hors zone'};
   el.innerHTML = ordre.map(key=>{
@@ -407,10 +486,12 @@ function planRenderTable(){
       </div>
       <div class="table-wrap" style="margin-top:6px"><table><thead><tr>
         <th><input type="checkbox" onclick="this.closest('table').querySelectorAll('.plan-cb').forEach(c=>c.checked=this.checked)"></th>
-        <th>Client</th><th>Ville</th><th>Colis</th><th>Livreur affecté</th>${showProp?'<th>Proposé</th>':''}</tr></thead>
+        <th>Client</th><th>Ville</th><th style="text-align:center">🧰</th><th>Colis</th><th>Livreur affecté</th>${showProp?'<th>Proposé</th>':''}</tr></thead>
       <tbody>${livs.map(l=>`<tr>
         <td><input type="checkbox" class="plan-cb" value="${l.id}"></td>
-        <td>${esc(l.client_nom||'')}</td><td>${esc(l.ville||'')}</td><td>${parseInt(l.nb_colis)||1}</td>
+        <td>${esc(l.client_nom||'')}</td><td>${esc(l.ville||'')}</td>
+        <td style="text-align:center">${(l.prepare===true||l.prepare==='true')?`<span title="Préparée — voir la photo" onclick="voirPhotoPrep('${(l.photo_preparation||'').replace(/'/g,'%27')}')" style="color:#059669;cursor:pointer;font-weight:700">🧰✓</span>`:'<span style="color:#cbd5e1" title="Pas encore préparée">⬜</span>'}</td>
+        <td>${parseInt(l.nb_colis)||1}</td>
         <td><select onchange="planAffecterUnite('${l.id}',this.value)" style="font-size:12px">${driverOptions((l.livreur||'').trim())}</select></td>
         ${showProp?`<td style="font-weight:700;color:#7c3aed">${esc(propMap[l.id]||'—')}</td>`:''}
       </tr>`).join('')}</tbody></table></div>
@@ -611,7 +692,7 @@ function renderLivTable(){
         <td>${statutPill(l.statut)}</td>
         <td>${esc(l.livreur||'—')}</td>
         <td>${l.nb_colis||l.colis||1}</td>
-        <td><button class="btn btn-sm" style="background:${l.vendredi?'#f59e0b':'#eee'};color:${l.vendredi?'#fff':'#999'}" title="${l.vendredi?'Topée vendredi (cliquer pour retirer)':'Topez pour le vendredi (toute l\'île)'}" onclick="toggleVendredi('${l.id}',${l.vendredi?'true':'false'})">🏁</button> <button class="btn btn-red btn-sm" onclick="suppLivraison('${l.id}','${esc(l.client_nom).replace(/'/g,"\\'")}')">🗑️</button></td>
+        <td>${(l.prepare===true||l.prepare==='true')&&l.photo_preparation?`<button class="btn btn-sm" style="background:#ecfdf5;color:#059669" title="Photo de préparation" onclick="voirPhotoPrep('${(l.photo_preparation||'').replace(/'/g,'%27')}')">📷</button> `:''}<button class="btn btn-sm" style="background:${l.vendredi?'#f59e0b':'#eee'};color:${l.vendredi?'#fff':'#999'}" title="${l.vendredi?'Topée vendredi (cliquer pour retirer)':'Topez pour le vendredi (toute l\'île)'}" onclick="toggleVendredi('${l.id}',${l.vendredi?'true':'false'})">🏁</button> <button class="btn btn-red btn-sm" onclick="suppLivraison('${l.id}','${esc(l.client_nom).replace(/'/g,"\\'")}')">🗑️</button></td>
       </tr>`).join('')}</tbody>
     </table></div>
     ${pgBar('liv','renderLivTable')}`;
@@ -632,9 +713,15 @@ async function suppLivraison(id,nom){
 // ── AJOUT LIVRAISON + AUTOCOMPLETE ───────────────────────────────────────────
 async function ouvrirAjoutLiv(){
   await getClients();
+  if(!_boissons){ const d=await api('GET','/boissons').catch(()=>({boissons:[]})); _boissons=d.boissons||[]; }
   ['fl-client','fl-ville','fl-cp','fl-adresse','fl-tel','fl-indic','fl-bl','fl-email'].forEach(id=>document.getElementById(id).value='');
   window._selClientId=null; window._selClientEmail=''; window._selClientTel=''; window._selClientAdresse=''; window._selClientVille=''; window._selClientCp='';
   document.getElementById('fl-colis').value=1;
+  document.getElementById('fl-charbons').value=0;
+  const actives=(_boissons||[]).filter(b=>b.actif!==false);
+  document.getElementById('fl-boissons-box').innerHTML = actives.length
+    ? actives.map(b=>`<div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 9px"><span style="font-size:12px">${esc(b.nom)}</span><input id="flb-${esc(String(b.id))}" type="number" min="0" value="0" inputmode="numeric" style="width:54px;padding:4px;text-align:center"></div>`).join('')
+    : '<span class="muted">Aucune référence — ajoute-les dans l\'onglet 🥤 Boissons.</span>';
   document.getElementById('fl-vendredi').checked=false;
   document.getElementById('fl-date').value=document.getElementById('lv-date').value;
   document.getElementById('livErr').style.display='none';
@@ -700,6 +787,16 @@ async function creerLivraison(){
     indications:document.getElementById('fl-indic').value.trim(), statut:'📦 À livrer'
   };
   if(document.getElementById('fl-vendredi').checked) body.vendredi=true;  // forcer ; sinon règle auto (jeu 17h → ven 12h)
+  // Boissons (détail par référence, depuis le catalogue) + charbons
+  const boissons_detail={};
+  (_boissons||[]).filter(b=>b.actif!==false).forEach(b=>{
+    const el=document.getElementById('flb-'+b.id);
+    const v=el?(parseInt(el.value)||0):0;
+    if(v>0) boissons_detail[b.nom]=v;
+  });
+  body.boissons_detail=boissons_detail;
+  body.nb_boissons=Object.values(boissons_detail).reduce((a,c)=>a+c,0);
+  body.nb_charbons=parseInt(document.getElementById('fl-charbons').value)||0;
   // Synchroniser les infos saisies vers la fiche client (email, téléphone, adresse) si modifiées/ajoutées
   if(window._selClientId){
     const upd={};
@@ -1363,6 +1460,10 @@ async function voirDoc(i){
         <div style="font-size:12px;color:#666;margin-bottom:6px">Signature du client :</div>
         ${sig?`<img src="${sig}" style="max-width:100%;border:1px solid #ddd;border-radius:6px;background:#fff">`:'<div style="color:#999">Pas de signature</div>'}
       </div>
+      ${d.photo_preparation?`<div style="margin-top:16px;border-top:1px solid #ddd;padding-top:12px">
+        <div style="font-size:12px;color:#666;margin-bottom:6px">📷 Photo de préparation :</div>
+        <img src="${d.photo_preparation}" style="max-width:100%;border:1px solid #ddd;border-radius:6px;cursor:pointer" title="Agrandir" onclick="window.open('${d.photo_preparation}','_blank')">
+      </div>`:''}
     </div>`;
   document.getElementById('docContent').innerHTML=html;
   window._currentDoc=d;
