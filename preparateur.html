@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0D1B4B">
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22AJCV%20Pr%C3%A9pa%22%2C%22short_name%22%3A%22Pr%C3%A9pa%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230D1B4B%22%2C%22theme_color%22%3A%22%230D1B4B%22%7D">
+<title>AJCV Préparation</title>
+<style>
+:root{
+  --navy:#0D1B4B; --navy2:#1A2B5F; --gold:#FFB300; --gold2:#FFC933;
+  --dark:#080F28; --surface:#111827; --surface2:#1F2937;
+  --green:#22C55E; --red:#EF4444; --blue:#3B82F6; --orange:#F97316;
+  --text:#F9FAFB; --text2:#9CA3AF; --text3:#6B7280;
+  --border:rgba(255,255,255,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;overflow-x:hidden}
+.hidden{display:none!important}
+
+/* ── LOGIN ── */
+#login{position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;z-index:100}
+.login-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px 22px}
+.login-logo{text-align:center;margin-bottom:22px}
+.login-logo .t{font-size:22px;font-weight:800;letter-spacing:.5px}
+.login-logo .s{font-size:13px;color:var(--gold);margin-top:4px;letter-spacing:2px;font-weight:600}
+.fld{margin-bottom:14px}
+.fld label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:600}
+.fld input{width:100%;padding:13px 14px;border-radius:11px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:16px}
+.pwrap{position:relative}
+.pwrap button{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer}
+.btn-login{width:100%;padding:14px;border:none;border-radius:11px;background:var(--gold);color:var(--navy);font-size:16px;font-weight:800;cursor:pointer;margin-top:6px}
+.btn-login:disabled{opacity:.5}
+.login-err{display:none;margin-top:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);color:#fca5a5;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.5}
+.remember{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);margin-top:12px;cursor:pointer}
+.remember input{width:17px;height:17px;accent-color:var(--gold)}
+
+/* ── APP ── */
+#app{min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--navy);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30}
+.topbar .ttl{font-weight:800;font-size:16px;flex:1;display:flex;align-items:center;gap:8px}
+.topbar .ttl small{font-weight:500;color:var(--text2);font-size:12px}
+.iconbtn{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:9px;width:38px;height:38px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.verbadge{font-size:11px;color:var(--text3);cursor:pointer;border:1px solid var(--border);border-radius:999px;padding:3px 8px}
+.bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bar input[type=date]{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:9px 11px;font-size:14px}
+.count{font-weight:700;font-size:14px;color:var(--text);flex:1;text-align:right}
+.count b{color:var(--green)}
+.search{padding:10px 14px;background:var(--surface)}
+.search input{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px}
+.list{padding:12px 14px 80px;display:flex;flex-direction:column;gap:11px}
+.empty{text-align:center;color:var(--text2);padding:48px 16px;font-size:14px}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:9px}
+.card.done{border-color:var(--green);background:rgba(34,197,94,.07)}
+.card.refaire{border-color:var(--orange);background:rgba(249,115,22,.07)}
+.c-top{display:flex;align-items:flex-start;gap:8px}
+.c-client{font-weight:700;font-size:15px}
+.c-sub{font-size:12.5px;color:var(--text2);margin-top:1px}
+.c-qte{font-size:13px;color:var(--text);background:var(--surface2);border-radius:8px;padding:7px 10px;line-height:1.5}
+.c-badge{margin-left:auto;font-size:12px;font-weight:700;white-space:nowrap;padding:3px 9px;border-radius:999px}
+.b-done{color:var(--green);background:rgba(34,197,94,.14)}
+.b-refaire{color:var(--orange);background:rgba(249,115,22,.16)}
+.c-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn-photo{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:11px 16px;font-size:14px;font-weight:600;cursor:pointer}
+.btn-val{background:var(--green);border:none;color:#fff;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer}
+.btn-val:disabled{opacity:.45}
+.thumb{max-width:84px;border-radius:9px;border:1px solid var(--border);cursor:pointer}
+.thumb-done{max-width:160px;border-radius:11px;border:1px solid var(--border);cursor:pointer}
+
+/* ── TOAST ── */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:13px 18px;font-size:14px;font-weight:600;z-index:9000;transition:transform .3s;max-width:90%;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4);white-space:pre-line}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.success{border-color:var(--green)}
+#toast.error{border-color:var(--red)}
+
+/* ── MODAL NOUVEAUTÉS / LIGHTBOX ── */
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:9400;padding:18px}
+.ovl .box{background:var(--surface);border:1px solid var(--border);border-radius:16px;max-width:460px;width:100%;max-height:80vh;overflow:auto;padding:20px}
+.ovl .box h3{font-size:17px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ovl .close{margin-top:16px;width:100%;padding:12px;border:none;border-radius:10px;background:var(--surface2);color:var(--text);font-weight:700;cursor:pointer}
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:9600;padding:16px}
+#lightbox img{max-width:100%;max-height:90vh;border-radius:10px}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login">
+  <div class="login-card">
+    <div class="login-logo"><div class="t">AJCV</div><div class="s">PRÉPARATION</div></div>
+    <div class="fld"><label>Identifiant</label><input id="loginInput" autocomplete="username" placeholder="PREP_PRENOM" style="text-transform:uppercase"></div>
+    <div class="fld"><label>Mot de passe</label>
+      <div class="pwrap"><input id="mdpInput" type="password" autocomplete="current-password" placeholder="••••••••">
+      <button type="button" onclick="toggleMdp()"><span id="eyeIcon">👁</span></button></div>
+    </div>
+    <button id="btnLogin" class="btn-login" onclick="connexion()">Se connecter</button>
+    <label class="remember"><input type="checkbox" id="rememberMdp"> Rester connecté sur cet appareil</label>
+    <div class="login-err" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" class="hidden">
+  <div class="topbar">
+    <div class="ttl">🧰 Préparation<small id="userTag"></small></div>
+    <span class="verbadge" id="verBadge" onclick="ouvrirNouveautes()">v…</span>
+    <button class="iconbtn" onclick="chargerPrep(true)" title="Rafraîchir">🔄</button>
+    <button class="iconbtn" onclick="logout()" title="Déconnexion">⏻</button>
+  </div>
+  <div class="bar">
+    <label style="font-size:12px;color:var(--text2);font-weight:600">📅</label>
+    <input type="date" id="datePicker" onchange="chargerPrep(true)">
+    <span class="count" id="prepCount"></span>
+  </div>
+  <div class="search"><input id="searchInput" placeholder="🔍 Rechercher un client, un BL, une ville…" oninput="filtrer(this.value)"></div>
+  <div class="list" id="prepList"><div class="empty">Chargement…</div></div>
+</div>
+
+<!-- ══ NOUVEAUTÉS ══ -->
+<div class="ovl" id="nouveautesModal">
+  <div class="box">
+    <h3>✨ Nouveautés</h3>
+    <div id="nouveautesCorps"></div>
+    <button class="close" onclick="fermerNouveautes()">Fermer</button>
+  </div>
+</div>
+<div id="lightbox" onclick="this.style.display='none'"><img id="lightboxImg" src="" alt=""></div>
+<div id="toast"></div>
+
+<script>
+const CFG = { API_URL: 'https://ajcvbackend-production.up.railway.app' };
+const VERSION_URL = 'https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/version.json';
+const state = { token:'', prenom:'', login:'', role:'', tokenExpiry:0, orders:[], photos:{}, search:'', _date:'' };
+
+/* ─────────── TOAST ─────────── */
+let _toastT=null;
+function showToast(msg, type){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=(type||'')+' show';
+  clearTimeout(_toastT); _toastT=setTimeout(()=>{ t.className=t.className.replace('show','').trim(); }, 2600);
+}
+
+/* ─────────── LOGIN ─────────── */
+function toggleMdp(){
+  const i=document.getElementById('mdpInput'), e=document.getElementById('eyeIcon');
+  if(i.type==='password'){ i.type='text'; e.textContent='🙈'; } else { i.type='password'; e.textContent='👁'; }
+}
+async function connexion(){
+  const login=document.getElementById('loginInput').value.trim();
+  const mdp=document.getElementById('mdpInput').value.trim();
+  const btn=document.getElementById('btnLogin'), err=document.getElementById('loginError');
+  if(!login||!mdp){ err.textContent='Identifiant et mot de passe requis'; err.style.display='block'; return; }
+  btn.disabled=true; btn.textContent='Connexion…'; err.style.display='none';
+  try{
+    const resp=await fetch(`${CFG.API_URL}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login,mdp})});
+    const data=await resp.json();
+    if(data.error){ err.textContent='❌ '+data.error; err.style.display='block'; btn.disabled=false; btn.textContent='Se connecter'; return; }
+    const peutPreparer = data.peut_preparer===true || data.role==='Admin' || data.role==='Préparateur';
+    if(!peutPreparer){
+      err.textContent="⛔ Ce compte n'a pas la casquette Préparateur. Demande à l'administrateur de l'activer dans l'admin (colonne Casquettes).";
+      err.style.display='block'; btn.disabled=false; btn.textContent='Se connecter'; return;
+    }
+    state.token=data.token; state.prenom=data.prenom; state.role=data.role; state.login=login;
+    state.tokenExpiry=Date.now()+((data.expiresIn||480)*60*1000);
+    try{
+      const rem=document.getElementById('rememberMdp');
+      if(rem&&rem.checked) localStorage.setItem('ajcvprep_cred', JSON.stringify({login,mdp}));
+      else localStorage.removeItem('ajcvprep_cred');
+    }catch(_){}
+    try{ localStorage.setItem('ajcvprep_session', JSON.stringify({token:state.token,tokenExpiry:state.tokenExpiry,prenom:state.prenom,role:state.role,login})); }catch(_){}
+    lancerApp();
+  }catch(e){ err.textContent='❌ Erreur de connexion. Vérifie ton réseau.'; err.style.display='block'; btn.disabled=false; btn.textContent='Se connecter'; }
+}
+function restoreSession(){
+  try{
+    const s=JSON.parse(localStorage.getItem('ajcvprep_session')||'null');
+    if(s&&s.token&&s.tokenExpiry>Date.now()){
+      Object.assign(state,{token:s.token,prenom:s.prenom,role:s.role,login:s.login,tokenExpiry:s.tokenExpiry});
+      lancerApp(); return true;
+    }
+  }catch(_){}
+  try{
+    const c=JSON.parse(localStorage.getItem('ajcvprep_cred')||'null');
+    if(c){ document.getElementById('loginInput').value=c.login; document.getElementById('mdpInput').value=c.mdp; }
+  }catch(_){}
+  return false;
+}
+function logout(){
+  localStorage.removeItem('ajcvprep_session');
+  location.reload();
+}
+function sessionExpiree(){
+  showToast('Session expirée, reconnecte-toi','error');
+  localStorage.removeItem('ajcvprep_session');
+  setTimeout(()=>location.reload(), 1400);
+}
+
+/* ─────────── APP ─────────── */
+function lancerApp(){
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('userTag').textContent=' · '+(state.prenom||state.login);
+  const dp=document.getElementById('datePicker');
+  if(!dp.value) dp.value=new Date().toISOString().split('T')[0];
+  chargerPrep(true);
+}
+function getDateSelectionnee(){
+  const p=document.getElementById('datePicker');
+  if(!p||!p.value) return '';
+  const d=new Date(p.value);
+  return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+}
+
+/* ─────────── HELPERS COMMANDE ─────────── */
+function colisDe(l){ return parseInt(l.nb_colis||l.colis||0)||0; }
+function charbonsDe(l){ return parseInt(l.nb_charbons||0)||0; }
+function boissonsDetailDe(l){
+  let d=l.boissons_detail;
+  if(typeof d==='string'){ try{ d=JSON.parse(d); }catch(_){ d={}; } }
+  return (d&&typeof d==='object')?d:{};
+}
+function estFait(l){ return !!l.prepare && !l.photo_a_refaire; }
+
+/* ─────────── CHARGEMENT ─────────── */
+async function chargerPrep(force){
+  const el=document.getElementById('prepList');
+  const dSel=getDateSelectionnee();
+  if(force){ state.orders=null; }
+  if(!state.orders || state._date!==dSel){
+    el.innerHTML='<div class="empty">Chargement des commandes…</div>';
+    try{
+      const resp=await fetch(`${CFG.API_URL}/livraisons?date=${encodeURIComponent(dSel)}`,{headers:{'Authorization':`Bearer ${state.token}`}});
+      if(resp.status===401){ sessionExpiree(); return; }
+      const data=await resp.json();
+      state.orders=data.livraisons||[];
+      state._date=dSel;
+    }catch(e){ el.innerHTML='<div class="empty">Erreur de chargement.<br><button class="btn-photo" style="margin-top:12px" onclick="chargerPrep(true)">Réessayer</button></div>'; return; }
+  }
+  renderPrep();
+}
+function renderPrep(){
+  const el=document.getElementById('prepList');
+  const livs=state.orders||[];
+  const faits=livs.filter(estFait).length;
+  document.getElementById('prepCount').innerHTML=`<b>${faits}</b> / ${livs.length} préparées`;
+  if(livs.length===0){ el.innerHTML='<div class="empty">Aucune commande pour cette date.</div>'; return; }
+  el.innerHTML = livs.map(l=>{
+    const fait=estFait(l);
+    const refaire=!!l.photo_a_refaire && !fait;
+    const bd=boissonsDetailDe(l);
+    const bdTxt=Object.keys(bd).length?Object.entries(bd).map(([n,q])=>`${n}×${q}`).join(' · '):'';
+    const qte=`📦 ${colisDe(l)} colis${bdTxt?` · 🥤 ${bdTxt}`:''}${charbonsDe(l)?` · 🔥 ${charbonsDe(l)}`:''}`;
+    const search=(String(l.client_nom||l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
+    let inner=`<div class="c-top"><div><div class="c-client">${esc(l.client_nom||l.client||'')}</div><div class="c-sub">${esc(l.ville||'')} · BL ${esc(l.bl||'—')}</div></div>`;
+    if(fait) inner+=`<span class="c-badge b-done">✅ Préparé</span>`;
+    else if(refaire) inner+=`<span class="c-badge b-refaire">📷 Photo à refaire</span>`;
+    inner+=`</div><div class="c-qte">${qte}</div>`;
+    if(fait){
+      inner+=`<img class="thumb-done" src="${l.photo_preparation||''}" onclick="agrandir('${(l.photo_preparation||'').replace(/'/g,'%27')}')" alt="photo préparation">`;
+    } else {
+      inner+=`<input type="file" accept="image/*" capture="environment" id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
+        <div class="c-actions">
+          <button class="btn-photo" onclick="document.getElementById('file-${l.id}').click()">📷 Photo</button>
+          <img id="prev-${l.id}" class="thumb" style="display:none" alt="">
+          <button class="btn-val" id="val-${l.id}" disabled onclick="validerPrep('${l.id}')">Valider ✓</button>
+        </div>`;
+    }
+    const cls=fait?'card done':(refaire?'card refaire':'card');
+    return `<div class="${cls}" data-search="${search}">${inner}</div>`;
+  }).join('');
+  if(state.search) filtrer(state.search);
+}
+function filtrer(q){
+  state.search=q||'';
+  const t=state.search.toLowerCase().trim();
+  document.querySelectorAll('#prepList .card').forEach(c=>{
+    const hay=c.getAttribute('data-search')||'';
+    c.style.display=(!t||hay.indexOf(t)!==-1)?'':'none';
+  });
+}
+
+/* ─────────── PHOTO ─────────── */
+function compresserPhoto(file, maxDim, quality){
+  return new Promise((resolve,reject)=>{
+    const fr=new FileReader();
+    fr.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        let w=img.width,h=img.height;
+        if(w>h&&w>maxDim){ h=Math.round(h*maxDim/w); w=maxDim; }
+        else if(h>=w&&h>maxDim){ w=Math.round(w*maxDim/h); h=maxDim; }
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(cv.toDataURL('image/jpeg',quality));
+      };
+      img.onerror=reject; img.src=fr.result;
+    };
+    fr.onerror=reject; fr.readAsDataURL(file);
+  });
+}
+async function photoChoisie(id,input){
+  const f=input.files&&input.files[0]; if(!f) return;
+  try{
+    const b64=await compresserPhoto(f,1200,0.7);
+    state.photos[id]=b64;
+    const img=document.getElementById('prev-'+id); if(img){ img.src=b64; img.style.display=''; }
+    const btn=document.getElementById('val-'+id); if(btn){ btn.disabled=false; }
+  }catch(e){ showToast('❌ Photo illisible','error'); }
+}
+async function validerPrep(id){
+  const photo=state.photos[id];
+  if(!photo){ showToast('📷 Prends d\'abord la photo','error'); return; }
+  const btn=document.getElementById('val-'+id);
+  if(btn){ btn.disabled=true; btn.textContent='⏳…'; }
+  try{
+    const resp=await fetch(`${CFG.API_URL}/livraisons/preparation`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token}`},body:JSON.stringify({id,photo})});
+    if(resp.status===401){ sessionExpiree(); return; }
+    const r=await resp.json().catch(()=>({}));
+    if(resp.ok&&r.success){
+      const l=(state.orders||[]).find(x=>String(x.id)===String(id));
+      if(l){ l.prepare=true; l.photo_preparation=r.url||''; l.photo_a_refaire=false; }
+      delete state.photos[id];
+      showToast('✅ Préparation validée','success');
+      renderPrep();
+    } else {
+      showToast('❌ '+((r&&r.error)||"Échec de l'envoi"),'error');
+      if(btn){ btn.disabled=false; btn.textContent='Valider ✓'; }
+    }
+  }catch(e){
+    showToast('❌ Erreur réseau','error');
+    if(btn){ btn.disabled=false; btn.textContent='Valider ✓'; }
+  }
+}
+function agrandir(url){ if(!url) return; document.getElementById('lightboxImg').src=url; document.getElementById('lightbox').style.display='flex'; }
+
+/* ─────────── UTILS ─────────── */
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ─────────── VERSION / NOUVEAUTÉS ─────────── */
+let _verInfo=null, _verEnAttente=null;
+async function verifierVersion(){
+  try{
+    const r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok) return;
+    const info=await r.json();
+    if(!info||!info.version) return;
+    _verInfo=info;
+    let vue=localStorage.getItem('ajcvprep_version');
+    if(!vue){ localStorage.setItem('ajcvprep_version',info.version); vue=info.version; }
+    const b=document.getElementById('verBadge'); if(b) b.textContent='v'+vue;
+    if(info.version!==vue){ _verEnAttente=info; appliquerMaj(); }
+  }catch(_){}
+}
+function appliquerMaj(){
+  if(!_verEnAttente) return;
+  const cible=encodeURIComponent(_verEnAttente.version);
+  if(location.search.indexOf('v='+cible)!==-1){ localStorage.setItem('ajcvprep_version',_verEnAttente.version); return; }
+  const modalOuvert=document.getElementById('lightbox').style.display==='flex'||document.getElementById('nouveautesModal').style.display==='flex';
+  if(modalOuvert) return;
+  localStorage.setItem('ajcvprep_version',_verEnAttente.version);
+  showToast('🔄 Mise à jour…','success');
+  setTimeout(()=>location.replace(location.pathname+'?v='+cible),700);
+}
+function ouvrirNouveautes(){
+  const w=document.getElementById('nouveautesModal');
+  const hist=(_verInfo&&_verInfo.historique)||[];
+  document.getElementById('nouveautesCorps').innerHTML = hist.length ? hist.map(h=>`
+    <div style="margin-bottom:16px">
+      <div style="font-weight:700;color:var(--gold);font-size:14px">v${esc(h.v)}${h.date?' · '+esc(h.date):''}</div>
+      ${h.titre?`<div style="font-weight:600;margin:2px 0 6px">${esc(h.titre)}</div>`:''}
+      <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.65;color:var(--text2)">${(h.notes||[]).map(n=>`<li>${esc(n)}</li>`).join('')}</ul>
+    </div>`).join('') : '<div style="opacity:.7">Aucune information.</div>';
+  w.style.display='flex';
+}
+function fermerNouveautes(){ document.getElementById('nouveautesModal').style.display='none'; }
+
+/* ─────────── BOOT ─────────── */
+restoreSession();
+verifierVersion();
+setInterval(verifierVersion, 120000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden){ verifierVersion(); if(state.token) chargerPrep(true); } });
+document.getElementById('mdpInput').addEventListener('keydown', e=>{ if(e.key==='Enter') connexion(); });
+
+if('serviceWorker' in navigator){
+  const sw=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>new Response('Hors ligne'))));`;
+  try{ navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{}); }catch(_){}
+}
+</script>
+</body>
+</html>

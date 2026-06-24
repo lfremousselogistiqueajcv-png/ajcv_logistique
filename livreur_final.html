@@ -1147,6 +1147,137 @@ function majBoissonsBtnSignature(l){
 function estCharge(l) { return l.charge === true || chargeSet().has(String(l.id)); }
 function trouverLiv(id) { return state.livraisons.find(l => String(l.id) === String(id)); }
 
+// ── PRÉPARATION : photo obligatoire avant validation (1ʳᵉ des deux validations) ──
+function compresserPhoto(file, maxDim, quality){
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+        else if (h >= w && h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+        const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(cv.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = fr.result;
+    };
+    fr.onerror = reject;
+    fr.readAsDataURL(file);
+  });
+}
+
+async function renderPreparation(){
+  const content = document.getElementById('content');
+  // Préparation = TOUTES les commandes du jour (pas seulement celles du livreur connecté)
+  if (!state.prepLivs || state._prepDate !== getDateSelectionnee()) {
+    content.innerHTML = '<div style="padding:40px 16px;text-align:center;color:var(--text2)">Chargement des commandes…</div>';
+    try {
+      const d = encodeURIComponent(getDateSelectionnee());
+      const resp = await fetch(`${CFG.API_URL}/livraisons?date=${d}`, { headers: { 'Authorization': `Bearer ${state.token || ''}` } });
+      if (resp.status === 401) { sessionExpiree(); return; }
+      const data = await resp.json();
+      state.prepLivs = data.livraisons || [];
+      state._prepDate = getDateSelectionnee();
+    } catch(e) {
+      content.innerHTML = '<div style="padding:40px 16px;text-align:center;color:var(--text2)">Erreur de chargement. <button onclick="rafraichirPrep()" style="margin-left:8px">Réessayer</button></div>';
+      return;
+    }
+  }
+  const livs = state.prepLivs || [];
+  const prep = livs.filter(l => l.prepare).length;
+  let html = `<div class="optimize-bar"><div class="optimize-info"><strong>🧰 Préparation</strong>${prep}/${livs.length} préparées · photo obligatoire</div><button onclick="rafraichirPrep()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:8px 10px;font-size:14px;cursor:pointer" title="Rafraîchir">🔄</button></div>`;
+  html += `<div style="padding:10px 14px 0"><input id="searchPrep" value="${(state.searchPrep || '').replace(/"/g,'&quot;')}" oninput="filtrerPreparation(this.value)" placeholder="🔍 Rechercher un client, un BL..." style="width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;box-sizing:border-box"></div>`;
+  html += '<div class="list-section">';
+  if (livs.length === 0) html += '<div style="padding:30px 14px;text-align:center;color:var(--text2)">Aucune commande ce jour.</div>';
+  livs.forEach(l => {
+    const done = !!l.prepare;
+    const bd = boissonsDetailDe(l) || {};
+    const bdTxt = Object.keys(bd).length ? Object.entries(bd).map(([n,q]) => `${n}×${q}`).join(' · ') : '';
+    const ligneQte = `📦 ${colisDe(l)} colis${bdTxt ? ` · 🥤 ${bdTxt}` : ''}${charbonsDe(l) ? ` · 🔥 ${charbonsDe(l)}` : ''}`;
+    const search = (String(l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
+    html += `<div class="charge-card prep-card${done ? ' charge-ok' : ''}" data-search="${search}">
+      <div class="charge-top">
+        <div class="charge-info">
+          <div class="charge-client">${l.client || ''}</div>
+          <div class="charge-sub">${l.ville || ''} · BL ${l.bl || '—'}</div>
+        </div>
+        ${done ? '<div style="color:var(--green);font-weight:700;font-size:13px;white-space:nowrap">✅ Préparé</div>' : ''}
+      </div>
+      <div class="charge-sub" style="font-size:12.5px">${ligneQte}</div>`;
+    if (done) {
+      html += `<img src="${l.photo_preparation || ''}" onclick="window.open('${l.photo_preparation || ''}','_blank')" style="max-width:150px;border-radius:10px;border:1px solid var(--border);cursor:pointer" alt="photo préparation">`;
+    } else {
+      html += `<input type="file" accept="image/*" capture="environment" id="prepfile-${l.id}" style="display:none" onchange="prepPhotoChoisie('${l.id}', this)">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button onclick="document.getElementById('prepfile-${l.id}').click()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer">📷 Photo</button>
+          <img id="preview-${l.id}" style="display:none;max-width:64px;border-radius:8px;border:1px solid var(--border)">
+          <button id="valbtn-${l.id}" onclick="validerPreparation('${l.id}')" disabled style="background:var(--green);border:none;color:#fff;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;opacity:.45">Valider ✓</button>
+        </div>`;
+    }
+    html += `</div>`;
+  });
+  html += '</div>';
+  content.innerHTML = html;
+  if (state.searchPrep) filtrerPreparation(state.searchPrep);
+}
+
+async function prepPhotoChoisie(id, input){
+  const f = input.files && input.files[0];
+  if (!f) return;
+  try {
+    const b64 = await compresserPhoto(f, 1200, 0.7);
+    state.prepPhotos = state.prepPhotos || {};
+    state.prepPhotos[id] = b64;
+    const img = document.getElementById('preview-' + id);
+    if (img) { img.src = b64; img.style.display = ''; }
+    const btn = document.getElementById('valbtn-' + id);
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+  } catch(e) { showToast('❌ Photo illisible', 'error'); }
+}
+
+async function validerPreparation(id){
+  state.prepPhotos = state.prepPhotos || {};
+  const photo = state.prepPhotos[id];
+  if (!photo) { showToast('📷 Prends d\'abord la photo', 'error'); return; }
+  const btn = document.getElementById('valbtn-' + id);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳…'; }
+  try {
+    const resp = await fetch(`${CFG.API_URL}/livraisons/preparation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.token || ''}` },
+      body: JSON.stringify({ id, photo })
+    });
+    const r = await resp.json().catch(() => ({}));
+    if (resp.ok && r && r.success) {
+      const l = (state.prepLivs || []).find(x => String(x.id) === String(id));
+      if (l) { l.prepare = true; l.photo_preparation = r.url || ''; }
+      delete state.prepPhotos[id];
+      showToast('✅ Préparation validée', 'success');
+      renderPreparation();
+    } else {
+      showToast('❌ ' + ((r && r.error) || 'Échec de l\'envoi'), 'error');
+      if (btn) { btn.disabled = false; btn.textContent = 'Valider ✓'; }
+    }
+  } catch(e) {
+    showToast('❌ Erreur réseau', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Valider ✓'; }
+  }
+}
+
+function filtrerPreparation(q){
+  state.searchPrep = q || '';
+  const t = state.searchPrep.toLowerCase().trim();
+  document.querySelectorAll('#content .prep-card').forEach(c => {
+    const hay = c.getAttribute('data-search') || '';
+    c.style.display = (!t || hay.indexOf(t) !== -1) ? '' : 'none';
+  });
+}
+
+function rafraichirPrep(){ state.prepLivs = null; renderPreparation(); }
+
 function renderChargement() {
   const mapContainer = document.getElementById('map-container');
   if (mapContainer) mapContainer.style.display = 'none';
@@ -1190,6 +1321,9 @@ function renderChargement() {
           <div class="charge-client">${l.client || ''}</div>
           <div class="charge-sub">${l.ville || ''} · BL ${l.bl || '—'}</div>
         </div>
+        ${l.prepare
+          ? `<div onclick="window.open('${l.photo_preparation||''}','_blank')" style="margin-left:auto;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap" title="Voir la photo de préparation">🧰&nbsp;✓</div>`
+          : `<div style="margin-left:auto;color:var(--text2);font-size:12px;white-space:nowrap" title="Pas encore préparé">🧰&nbsp;⬜</div>`}
       </div>
       <div class="charge-steppers">
         <div class="stp"><span class="stp-lbl">📦 Colis</span><button onclick="ajusterColisCharge('${l.id}',-1)">−</button><b>${colisDe(l)}</b><button onclick="ajusterColisCharge('${l.id}',1)">+</button></div>
@@ -2282,6 +2416,20 @@ function clearSig() {
   if (canvas.width) ctx.clearRect(0, 0, canvas.width/(window.devicePixelRatio||1), canvas.height/(window.devicePixelRatio||1));
   setSigned(false);
 }
+// Signature allégée : on redimensionne le canvas haute résolution vers ~600px + fond blanc.
+// Sans ça, le PNG fait 100–500 Ko (latence à l'enregistrement). Là il tombe à ~10–20 Ko.
+function signatureCompressee(maxW){
+  const ratio = window.devicePixelRatio || 1;
+  const cssW = canvas.width / ratio, cssH = canvas.height / ratio;
+  if (!cssW || !cssH) return canvas.toDataURL('image/png');
+  const scale = Math.min(1, (maxW || 600) / cssW);
+  const w = Math.max(1, Math.round(cssW * scale)), h = Math.max(1, Math.round(cssH * scale));
+  const tmp = document.createElement('canvas'); tmp.width = w; tmp.height = h;
+  const tctx = tmp.getContext('2d');
+  tctx.fillStyle = '#ffffff'; tctx.fillRect(0, 0, w, h);
+  tctx.drawImage(canvas, 0, 0, w, h);
+  return tmp.toDataURL('image/png');
+}
 
 function sigStatutChange() {
   const st = document.getElementById('sigStatut').value;
@@ -2532,7 +2680,7 @@ async function envoyerSignature() {
     chequeNum:     reglement === 'Chèque' ? chequeNum : '',    // N° de chèque (si chèque)
     email:         l.email || '',        // Email fiche client
     emailManuel:   emailManuel,          // Email saisi manuellement (prioritaire)
-    signature:     canvas.toDataURL('image/png'),
+    signature:     signatureCompressee(600),
     remplacement:  l._remplacement || false,
     livraisonId:   l.id || null,
     plaque:        state.plaque || '',     // Véhicule utilisé (le serveur génère le BDR)

@@ -1,7 +1,19 @@
 {
-  "version": "2026.06.23",
+  "version": "2026.06.24",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.24",
+      "date": "24/06/2026",
+      "titre": "Appli Préparation + validation plus rapide",
+      "notes": [
+        "🧰 Nouvelle appli Préparation dédiée pour les préparateurs (compte séparé) : liste des commandes du jour, photo obligatoire et validation. La préparation n'est plus dans l'appli livreur.",
+        "✍️ Validation de livraison nettement plus rapide : la signature est allégée, fini le temps d'attente avant de passer à la livraison suivante.",
+        "✅ Correctif : plus de livraisons qui « réapparaissent » à livrer après une validation réussie.",
+        "🥤 Boissons et charbons peuvent être saisis dès la création du bon de livraison, et se pré-remplissent automatiquement au chargement.",
+        "📷 Au chargement, un badge indique si la commande est préparée, avec accès à la photo de préparation."
+      ]
+    },
     {
       "v": "2026.06.23",
       "date": "23/06/2026",
