@@ -67,6 +67,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-val:disabled{opacity:.45}
 .thumb{max-width:84px;border-radius:9px;border:1px solid var(--border);cursor:pointer}
 .thumb-done{max-width:160px;border-radius:11px;border:1px solid var(--border);cursor:pointer}
+.thumbs-wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}
+.thumb-item{position:relative;display:inline-block;line-height:0}
+.thumb-item img{width:70px;height:70px;object-fit:cover;border-radius:9px;border:1px solid var(--border);cursor:pointer;display:block}
+.thumb-x{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--surface2)}
+.thumb-count{font-size:12px;color:var(--text2);font-weight:600}
+.thumb-g{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--border);cursor:pointer}
 
 /* ── TOAST ── */
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:13px 18px;font-size:14px;font-weight:600;z-index:9000;transition:transform .3s;max-width:90%;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4);white-space:pre-line}
@@ -301,6 +307,7 @@ function renderPrep(){
     el.innerHTML=`<div class="empty">${vide}</div>`; return;
   }
   el.innerHTML=list.map(l=>carteCommande(l,volet)).join('');
+  if(volet==='encours') list.forEach(l=>renderThumbs(l.id));
   if(state.search) filtrer(state.search);
 }
 function carteCommande(l, volet){
@@ -311,7 +318,8 @@ function carteCommande(l, volet){
   let inner=`<div class="c-top"><div><div class="c-client">${esc(l.client_nom||l.client||'')}</div><div class="c-sub">${esc(l.ville||'')} · BL ${esc(l.bl||'—')}</div></div>`;
   if(volet==='prepare'){
     inner+=`<span class="c-badge b-done">✅ Préparé</span></div><div class="c-qte">${qteTxt}</div>`;
-    if(l.photo_preparation) inner+=`<img class="thumb-done" src="${l.photo_preparation}" onclick="agrandir('${(l.photo_preparation||'').replace(/'/g,'%27')}')" alt="photo préparation">`;
+    const _ph=photosDe(l);
+    if(_ph.length) inner+=`<div class="thumbs-wrap">`+_ph.map(u=>`<img class="thumb-g" src="${u}" onclick="agrandir('${u.replace(/'/g,'%27')}')" alt="photo">`).join('')+`</div>`;
     return `<div class="card done" data-search="${search}">${inner}</div>`;
   }
   if(volet==='apreparer'){
@@ -328,10 +336,10 @@ function carteCommande(l, volet){
       <label>🎁 Cadeaux<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_cadeaux" value="${cadeauxDe(l)}" onchange="majQte('${l.id}','nb_cadeaux',this.value)"></label>
     </div>
     <button class="btn-bo" onclick="ouvrirBoissonsPrep('${l.id}')">🥤 Boissons : <span id="bolbl-${l.id}">${bdTxt||'aucune'}</span> ✏️</button>
-    <input type="file" accept="image/*" capture="environment" id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
+    <input type="file" accept="image/*" multiple id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
+    <div id="thumbs-${l.id}" class="thumbs-wrap"></div>
     <div class="c-actions">
-      <button class="btn-photo" onclick="document.getElementById('file-${l.id}').click()">📷 Photo</button>
-      <img id="prev-${l.id}" class="thumb" style="display:none" alt="">
+      <button class="btn-photo" onclick="document.getElementById('file-${l.id}').click()">📷 Ajouter des photos</button>
       <button class="btn-val" id="val-${l.id}" onclick="validerPrep('${l.id}')">Valider ✓</button>
     </div>
     ${refaire?'':`<button class="btn-relacher" onclick="relacherPrep('${l.id}')">↩️ Remettre à préparer</button>`}`;
@@ -366,20 +374,36 @@ function compresserPhoto(file, maxDim, quality){
   });
 }
 async function photoChoisie(id,input){
-  const f=input.files&&input.files[0]; if(!f) return;
-  try{
-    const b64=await compresserPhoto(f,1200,0.7);
-    state.photos[id]=b64;
-    const img=document.getElementById('prev-'+id); if(img){ img.src=b64; img.style.display=''; }
-    const btn=document.getElementById('val-'+id); if(btn){ btn.disabled=false; }
-  }catch(e){ showToast('❌ Photo illisible','error'); }
+  const files=input.files; if(!files||!files.length) return;
+  if(!Array.isArray(state.photos[id])) state.photos[id]=[];
+  for(const f of files){
+    try{ const b64=await compresserPhoto(f,1200,0.7); state.photos[id].push(b64); }
+    catch(e){ showToast('❌ Une photo illisible','error'); }
+  }
+  input.value='';
+  renderThumbs(id);
+}
+function renderThumbs(id){
+  const wrap=document.getElementById('thumbs-'+id); if(!wrap) return;
+  const arr=Array.isArray(state.photos[id])?state.photos[id]:[];
+  wrap.innerHTML=arr.map((b,i)=>`<div class="thumb-item"><img src="${b}" onclick="agrandir('${b.replace(/'/g,'%27')}')" alt=""><button class="thumb-x" onclick="supprimerPhoto('${id}',${i})">✕</button></div>`).join('')
+    +(arr.length?`<span class="thumb-count">${arr.length} photo${arr.length>1?'s':''}</span>`:'');
+}
+function supprimerPhoto(id,i){
+  if(Array.isArray(state.photos[id])){ state.photos[id].splice(i,1); renderThumbs(id); }
+}
+function photosDe(l){
+  let p=l.photos_preparation;
+  if(typeof p==='string'){ try{ p=JSON.parse(p); }catch(_){ p=null; } }
+  if(Array.isArray(p)&&p.length) return p;
+  return l.photo_preparation?[l.photo_preparation]:[];
 }
 async function validerPrep(id){
-  const photo=state.photos[id];
-  if(!photo){ showToast('📷 Prends d\'abord la photo','error'); return; }
+  const photos=Array.isArray(state.photos[id])?state.photos[id]:[];
+  if(!photos.length){ showToast('📷 Ajoute au moins une photo','error'); return; }
   const l=(state.orders||[]).find(x=>String(x.id)===String(id));
   const bd=l?boissonsDetailDe(l):{};
-  const body={ id, photo,
+  const body={ id, photos,
     nb_colis: lireQte(id,'nb_colis', l?colisDe(l):0),
     nb_charbons: lireQte(id,'nb_charbons', l?charbonsDe(l):0),
     nb_cadeaux: lireQte(id,'nb_cadeaux', l?cadeauxDe(l):0),
@@ -392,7 +416,7 @@ async function validerPrep(id){
     if(resp.status===401){ sessionExpiree(); return; }
     const r=await resp.json().catch(()=>({}));
     if(resp.ok&&r.success){
-      if(l){ l.prepare=true; l.en_preparation=false; l.photo_preparation=r.url||''; l.photo_a_refaire=false;
+      if(l){ l.prepare=true; l.en_preparation=false; l.photo_preparation=r.url||''; l.photos_preparation=r.urls||[]; l.photo_a_refaire=false;
         l.nb_colis=body.nb_colis; l.nb_charbons=body.nb_charbons; l.nb_cadeaux=body.nb_cadeaux; l.boissons_detail=bd; l.nb_boissons=body.nb_boissons; }
       delete state.photos[id];
       showToast('✅ Préparation validée','success');

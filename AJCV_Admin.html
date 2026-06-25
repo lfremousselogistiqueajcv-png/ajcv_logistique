@@ -499,6 +499,12 @@ function planRenderCounters(){
     ${c('✅ Livrées',livrees,'#f0fdf4','#16a34a')}
   </div>`;
 }
+function photosDe(l){
+  let p=l.photos_preparation;
+  if(typeof p==='string'){ try{ p=JSON.parse(p); }catch(_){ p=null; } }
+  if(Array.isArray(p)&&p.length) return p;
+  return l.photo_preparation?[l.photo_preparation]:[];
+}
 function voirPhotoPrep(url){
   if(!url){ toast('Pas de photo de préparation'); return; }
   window.open(url,'_blank');
@@ -547,12 +553,13 @@ function renderPrepList(){
     const refaire = l.photo_a_refaire===true || l.photo_a_refaire==='true';
     const dp = l.date_preparation ? toFR(new Date(l.date_preparation)) : '';
     const hay = (String(l.client_nom||l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
-    const photo = (l.photo_preparation||'').replace(/'/g,'%27');
+    const phs = photosDe(l);
+    const galerie = phs.length
+      ? `<div style="display:flex;flex-wrap:wrap;gap:4px;width:108px;flex-shrink:0">`+phs.map(u=>`<img src="${u}" onclick="voirPhotoPrep('${String(u).replace(/'/g,'%27')}')" style="width:50px;height:50px;object-fit:cover;border-radius:7px;border:1px solid #ddd;cursor:pointer" title="Agrandir">`).join('')+`</div>`
+      : `<div style="width:64px;height:64px;border-radius:8px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;flex-shrink:0;font-size:24px" title="Préparée sans photo">🧰</div>`;
     const nomEsc = esc(String(l.client_nom||l.client||'')).replace(/'/g,"\\'");
     return `<div class="prep-card" data-search="${hay}" style="border:1px solid ${refaire?'#f59e0b':'#e5e7eb'};border-radius:12px;padding:12px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;background:${refaire?'#fffbeb':'#fff'};color:#1e293b">
-      ${l.photo_preparation
-        ? `<img src="${l.photo_preparation}" onclick="voirPhotoPrep('${photo}')" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #ddd;cursor:pointer;flex-shrink:0" title="Agrandir la photo">`
-        : `<div style="width:64px;height:64px;border-radius:8px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;flex-shrink:0;font-size:24px" title="Préparée sans photo">🧰</div>`}
+      ${galerie}
       <div style="flex:1;min-width:0">
         <div style="font-weight:700">${esc(l.client_nom||l.client||'')}</div>
         <div class="muted" style="font-size:12.5px">${esc(l.ville||'')} · BL ${esc(l.bl||'—')}${dp?` · préparée le ${dp}`:''}</div>
