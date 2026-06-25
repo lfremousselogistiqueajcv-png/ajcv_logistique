@@ -209,7 +209,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 <!-- MODAL AJOUT CLIENT -->
 <div class="modal-bg" id="modalClient">
   <div class="modal">
-    <h3>➕ Ajouter un client</h3>
+    <h3 id="cli-titre">➕ Ajouter un client</h3>
     <div class="form-grid">
       <div style="grid-column:1/-1"><label>Nom du client *</label><input id="cli-nom" placeholder="Ex: ENGEN GRANDE MONTEE SARL"></div>
       <div><label>Ville *</label><input id="cli-ville" placeholder="Ex: SAINT BENOIT"></div>
@@ -223,7 +223,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div class="err" id="cliErr"></div>
     <div class="form-actions">
       <button class="btn btn-gray" onclick="fermerModal('modalClient')">Annuler</button>
-      <button class="btn btn-green" onclick="creerClient()">✅ Créer le client</button>
+      <button class="btn btn-green" id="cli-ok" onclick="validerClient()">✅ Créer le client</button>
     </div>
   </div>
 </div>
@@ -514,6 +514,12 @@ async function renderPlan(){
       <div id="planCounters"></div>
       <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer;margin:0 0 10px"><input type="checkbox" id="planFilterPretes" ${_plan.filterPretes?'checked':''} onchange="_plan.filterPretes=this.checked;planRenderTable()"> 🧰 Afficher les prêtes uniquement</label>
       <div id="planCharge"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px">
+        <span class="muted" style="font-size:12px;font-weight:600">Tout désaffecter :</span>
+        <button class="btn btn-sm" onclick="desaffecterZone('1')">🟢 Sud</button>
+        <button class="btn btn-sm" onclick="desaffecterZone('2')">🔵 Nord-Est</button>
+        <button class="btn btn-sm" onclick="desaffecterZone('3')">🟠 Ouest</button>
+      </div>
       <div id="planTable" class="table-wrap" style="margin-top:10px"></div>
     </div>`;
   planReload();
@@ -704,6 +710,20 @@ async function planAffecterSelection(){
   toast('⏳ Affectation...');
   const r=await api('POST','/livraisons/affecter',{ids,livreur}).catch(()=>null);
   if(r&&r.success){ toast('✅ '+r.total+' livraison(s) → '+(livreur||'(désaffecté)')); planReload(); } else toast('❌ Erreur');
+}
+async function desaffecterZone(zoneNum){
+  const lbl={'1':'🟢 Sud','2':'🔵 Nord-Est','3':'🟠 Ouest'}[String(zoneNum)]||('zone '+zoneNum);
+  const cibles=(_plan.livs||[]).filter(l=>zNum(l.zone)===String(zoneNum) && (l.livreur||'').trim());
+  if(!cibles.length){ toast('Aucune livraison affectée dans '+lbl); return; }
+  if(!confirm('Désaffecter les '+cibles.length+' livraison(s) de '+lbl+' ?\n\nElles repasseront en « non affecté ».')) return;
+  const ids=cibles.map(l=>l.id);
+  toast('⏳ Désaffectation...');
+  const r=await api('POST','/livraisons/affecter',{ids,livreur:''}).catch(()=>null);
+  if(r&&r.success){
+    cibles.forEach(l=>l.livreur=null);
+    toast('✅ '+cibles.length+' livraison(s) désaffectée(s)');
+    planRenderCounters(); planRenderCharge(); planRenderTable();
+  } else toast('❌ Erreur');
 }
 async function planAffecterUnite(id,livreur){
   const r=await api('POST','/livraisons/affecter',{ids:[id],livreur}).catch(()=>null);
@@ -1319,7 +1339,7 @@ function filtrerClients(resetPage){
       <td>${esc(c.tel1||'—')}</td>
       <td class="muted">${esc(c.horaires||'—')}</td>
       <td class="muted">${esc(c.contrainte||'LIBRE')}</td>
-      <td><button class="btn btn-red btn-sm" onclick="suppClient('${c.id}','${esc(c.nom).replace(/'/g,"\\'")}')">🗑️</button></td>
+      <td><button class="btn btn-sm" style="background:#e2e8f0;color:#475569" title="Modifier l'adresse / les coordonnées" onclick="ouvrirEditClient('${c.id}')">✏️</button> <button class="btn btn-red btn-sm" onclick="suppClient('${c.id}','${esc(c.nom).replace(/'/g,"\\'")}')">🗑️</button></td>
     </tr>`;}).join('')}</tbody>
   </table></div>
   <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:14px">
@@ -1439,13 +1459,64 @@ async function choisirAdresse(idx){
     }
   }catch(_){ toast('⚠️ Erreur adresse'); }
 }
+let _editClientId=null;
+function validerClient(){ if(_editClientId) sauverEditClient(); else creerClient(); }
 function ajouterClient(){
+  _editClientId=null;
+  document.getElementById('cli-titre').textContent='➕ Ajouter un client';
+  document.getElementById('cli-ok').textContent='✅ Créer le client';
   ['cli-nom','cli-ville','cli-cp','cli-adresse','cli-tel1','cli-tel2','cli-email'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('cliErr').textContent='';
   _cliGeo = null;
   const box=document.getElementById('cli-sug'); if(box){ box.style.display='none'; box.innerHTML=''; }
   document.getElementById('modalClient').classList.add('active');
   initAdresseAutocomplete();
+}
+async function ouvrirEditClient(id){
+  const c=(_clients||[]).find(x=>String(x.id)===String(id));
+  if(!c){ toast('❌ Client introuvable'); return; }
+  _editClientId=id;
+  document.getElementById('cli-titre').textContent='✏️ Modifier le client';
+  document.getElementById('cli-ok').textContent='✅ Enregistrer + géocoder';
+  document.getElementById('cli-nom').value=c.nom||'';
+  document.getElementById('cli-ville').value=c.ville||'';
+  document.getElementById('cli-cp').value=c.cp||'';
+  document.getElementById('cli-adresse').value=c.adresse||'';
+  document.getElementById('cli-tel1').value=c.tel1||'';
+  document.getElementById('cli-tel2').value=c.tel2||'';
+  document.getElementById('cli-email').value=c.email||'';
+  document.getElementById('cliErr').textContent='';
+  _cliGeo=null;
+  const box=document.getElementById('cli-sug'); if(box){ box.style.display='none'; box.innerHTML=''; }
+  document.getElementById('modalClient').classList.add('active');
+  initAdresseAutocomplete();
+}
+async function sauverEditClient(){
+  const nom=document.getElementById('cli-nom').value.trim();
+  const ville=document.getElementById('cli-ville').value.trim();
+  const cp=document.getElementById('cli-cp').value.trim();
+  const err=document.getElementById('cliErr');
+  if(!nom||!ville||!cp){ err.textContent='Nom, ville et code postal sont obligatoires'; return; }
+  err.textContent='';
+  const body={
+    nom, ville, cp,
+    adresse:document.getElementById('cli-adresse').value.trim(),
+    tel1:document.getElementById('cli-tel1').value.trim(),
+    tel2:document.getElementById('cli-tel2').value.trim(),
+    email:document.getElementById('cli-email').value.trim()
+  };
+  const btn=document.getElementById('cli-ok'); if(btn){ btn.disabled=true; btn.textContent='⏳…'; }
+  toast('⏳ Enregistrement + géocodage...');
+  const r=await api('PATCH','/clients/id/'+_editClientId,body).catch(e=>({error:e.message||'Erreur'}));
+  if(btn){ btn.disabled=false; btn.textContent='✅ Enregistrer + géocoder'; }
+  if(r&&r.success){
+    const gps=(r.geocoded===false)?'⚠️ GPS non trouvé (adresse à préciser)':'📍 Position recalculée';
+    toast('✅ Client modifié — '+gps);
+    fermerModal('modalClient');
+    _clients=null; renderClients();
+  } else {
+    err.textContent='❌ '+((r&&r.error)||'Erreur');
+  }
 }
 async function creerClient(){
   const nom=document.getElementById('cli-nom').value.trim();

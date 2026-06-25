@@ -1,7 +1,16 @@
 {
-  "version": "2026.06.25.9",
+  "version": "2026.06.25.10",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25.10",
+      "date": "25/06/2026",
+      "titre": "Admin : éditer les adresses clients + désaffecter par zone",
+      "notes": [
+        "✏️ Onglet Clients : bouton ✏️ sur chaque ligne pour modifier l adresse, le code postal, la ville, les téléphones et l email d un client. La position GPS est recalculée automatiquement à l enregistrement.",
+        "🧹 Plan de tournée : boutons « Tout désaffecter » par zone (Sud / Nord-Est / Ouest) pour libérer toutes les livraisons d une zone en un clic."
+      ]
+    },
     {
       "v": "2026.06.25.9",
       "date": "25/06/2026",
