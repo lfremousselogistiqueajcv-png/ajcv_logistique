@@ -261,6 +261,20 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </div>
 </div>
 
+<div class="modal-bg" id="modalReport">
+  <div class="modal">
+    <h3>📅 Reporter la livraison</h3>
+    <p id="rp-info" class="muted" style="margin-bottom:14px"></p>
+    <label>Nouvelle date de livraison</label>
+    <input type="date" id="rp-date">
+    <p id="rpErr" style="display:none;color:#dc2626;font-size:13px;margin-top:10px"></p>
+    <div class="form-actions">
+      <button class="btn btn-gray" onclick="fermerModal('modalReport')">Annuler</button>
+      <button class="btn btn-green" id="rp-ok" onclick="confirmerReport()">📅 Reporter</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const API = 'https://ajcvbackend-production.up.railway.app';
 const APP_VERSION = 'v3-clean-2026';
@@ -833,7 +847,7 @@ function renderLivTable(){
         <td>${statutPill(l.statut)}</td>
         <td>${esc(l.livreur||'—')}</td>
         <td>${l.nb_colis||l.colis||1}</td>
-        <td>${(l.prepare===true||l.prepare==='true')&&l.photo_preparation?`<button class="btn btn-sm" style="background:#ecfdf5;color:#059669" title="Photo de préparation" onclick="voirPhotoPrep('${(l.photo_preparation||'').replace(/'/g,'%27')}')">📷</button> `:''}<button class="btn btn-sm" style="background:${l.vendredi?'#f59e0b':'#eee'};color:${l.vendredi?'#fff':'#999'}" title="${l.vendredi?'Topée vendredi (cliquer pour retirer)':'Topez pour le vendredi (toute l\'île)'}" onclick="toggleVendredi('${l.id}',${l.vendredi?'true':'false'})">🏁</button> <button class="btn btn-red btn-sm" onclick="suppLivraison('${l.id}','${esc(l.client_nom).replace(/'/g,"\\'")}')">🗑️</button></td>
+        <td>${(l.prepare===true||l.prepare==='true')&&l.photo_preparation?`<button class="btn btn-sm" style="background:#ecfdf5;color:#059669" title="Photo de préparation" onclick="voirPhotoPrep('${(l.photo_preparation||'').replace(/'/g,'%27')}')">📷</button> `:''}<button class="btn btn-sm" style="background:#eef2ff;color:#4f46e5" title="Reporter à une autre date" onclick="reporterLivraison('${l.id}')">📅</button> <button class="btn btn-sm" style="background:${l.vendredi?'#f59e0b':'#eee'};color:${l.vendredi?'#fff':'#999'}" title="${l.vendredi?'Topée vendredi (cliquer pour retirer)':'Topez pour le vendredi (toute l\'île)'}" onclick="toggleVendredi('${l.id}',${l.vendredi?'true':'false'})">🏁</button> <button class="btn btn-red btn-sm" onclick="suppLivraison('${l.id}','${esc(l.client_nom).replace(/'/g,"\\'")}')">🗑️</button></td>
       </tr>`).join('')}</tbody>
     </table></div>
     ${pgBar('liv','renderLivTable')}`;
@@ -852,6 +866,34 @@ async function suppLivraison(id,nom){
   const r=await api('DELETE','/livraisons/'+id).catch(()=>null);
   if(r&&r.success){toast('🗑️ Supprimé');chargerLivraisons();}
   else toast('❌ Erreur');
+}
+
+// ── REPORTER UNE LIVRAISON (changer la date) ─────────────────────────────────
+let _reportId=null;
+function reporterLivraison(id){
+  const l=(_livAll||[]).find(x=>String(x.id)===String(id));
+  _reportId=id;
+  document.getElementById('rp-info').textContent = l ? ((l.client_nom||'')+(l.bl?' · BL '+l.bl:'')) : '';
+  const cur=(document.getElementById('lv-date')||{}).value||new Date().toISOString().split('T')[0];
+  document.getElementById('rp-date').value=cur;
+  const err=document.getElementById('rpErr'); err.style.display='none'; err.textContent='';
+  document.getElementById('modalReport').classList.add('active');
+}
+async function confirmerReport(){
+  const nv=document.getElementById('rp-date').value;
+  const err=document.getElementById('rpErr');
+  if(!nv){ err.textContent='Choisis une date.'; err.style.display='block'; return; }
+  const btn=document.getElementById('rp-ok'); if(btn){ btn.disabled=true; btn.textContent='⏳…'; }
+  try{
+    const r=await api('PATCH','/livraisons/id/'+_reportId,{date_livraison:nv});
+    if(r&&r.success){
+      fermerModal('modalReport');
+      const [y,m,d]=nv.split('-');
+      toast('📅 Livraison reportée au '+d+'/'+m+'/'+y);
+      chargerLivraisons();
+    } else { err.textContent=(r&&r.error)||'Échec du report'; err.style.display='block'; }
+  }catch(e){ if(e.message!=='401'){ err.textContent='Erreur réseau'; err.style.display='block'; } }
+  finally{ if(btn){ btn.disabled=false; btn.textContent='📅 Reporter'; } }
 }
 
 // ── AJOUT LIVRAISON + AUTOCOMPLETE ───────────────────────────────────────────
