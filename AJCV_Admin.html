@@ -549,7 +549,7 @@ function renderPrepList(){
     const hay = (String(l.client_nom||l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
     const photo = (l.photo_preparation||'').replace(/'/g,'%27');
     const nomEsc = esc(String(l.client_nom||l.client||'')).replace(/'/g,"\\'");
-    return `<div class="prep-card" data-search="${hay}" style="border:1px solid ${refaire?'#f59e0b':'#e5e7eb'};border-radius:12px;padding:12px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;background:${refaire?'#fffbeb':'#fff'}">
+    return `<div class="prep-card" data-search="${hay}" style="border:1px solid ${refaire?'#f59e0b':'#e5e7eb'};border-radius:12px;padding:12px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;background:${refaire?'#fffbeb':'#fff'};color:#1e293b">
       ${l.photo_preparation
         ? `<img src="${l.photo_preparation}" onclick="voirPhotoPrep('${photo}')" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #ddd;cursor:pointer;flex-shrink:0" title="Agrandir la photo">`
         : `<div style="width:64px;height:64px;border-radius:8px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;flex-shrink:0;font-size:24px" title="Préparée sans photo">🧰</div>`}
@@ -838,9 +838,12 @@ function statutPill(s){
   return '<span class="pill pill-wait">📦 À livrer</span>';
 }
 async function suppLivraison(id,nom){
-  if(!confirm('Supprimer la livraison de '+nom+' ?')) return;
+  const l=(_livAll||[]).find(x=>String(x.id)===String(id));
+  const bl=l&&l.bl?l.bl:'';
+  const ref=bl?('le BLV '+bl):'la livraison';
+  if(!confirm('⚠️ Supprimer définitivement '+ref+(nom?' — '+nom:'')+' ?\n\nCette action est IRRÉVERSIBLE.')) return;
   const r=await api('DELETE','/livraisons/'+id).catch(()=>null);
-  if(r&&r.success){toast('🗑️ Livraison supprimée');chargerLivraisons();}
+  if(r&&r.success){toast('🗑️ Supprimé');chargerLivraisons();}
   else toast('❌ Erreur');
 }
 

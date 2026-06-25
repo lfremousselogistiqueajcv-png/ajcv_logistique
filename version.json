@@ -1,7 +1,16 @@
 {
-  "version": "2026.06.25.2",
+  "version": "2026.06.25.3",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25.3",
+      "date": "25/06/2026",
+      "titre": "Lisibilité onglet Préparation + confirmation suppression",
+      "notes": [
+        "🧰 Admin : noms clients à nouveau lisibles dans l'onglet Préparation.",
+        "🗑️ Admin : confirmation renforcée (avec le n° de BLV) avant de supprimer une livraison."
+      ]
+    },
     {
       "v": "2026.06.25.2",
       "date": "25/06/2026",
