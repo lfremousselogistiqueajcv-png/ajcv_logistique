@@ -1,7 +1,15 @@
 {
-  "version": "2026.06.25.6",
+  "version": "2026.06.25.7",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25.7",
+      "date": "25/06/2026",
+      "titre": "Livraisons « commercial » (hors circuit livreurs)",
+      "notes": [
+        "👔 Onglet Livraisons : bouton 👔 sur chaque ligne pour toper une livraison « livrée par un commercial ». Elle est alors retirée du circuit des livreurs (appli livreur + plan de tournée) et s'affiche « 👔 Commercial » dans la colonne Livreur."
+      ]
+    },
     {
       "v": "2026.06.25.6",
       "date": "25/06/2026",

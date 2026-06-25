@@ -945,7 +945,7 @@ async function chargerLivraisons() {
     if (cached) {
       const parsed = JSON.parse(cached);
       if (parsed.livraisons && parsed.livraisons.length > 0) {
-        state.livraisons = parsed.livraisons;
+        state.livraisons = (parsed.livraisons||[]).filter(l => !(l.commercial===true || l.commercial==='true'));
         state.lastCount  = parsed.livraisons.length;
         // Restaurer aussi l'optimisation si disponible
         const optimRestauree = restaurerOptimCache();
@@ -990,7 +990,7 @@ async function chargerLivraisons() {
     majLabelZone();
 
     const prev = state.lastCount;
-    const nouvelles = data.livraisons || [];
+    const nouvelles = (data.livraisons || []).filter(l => !(l.commercial===true || l.commercial==='true'));
 
     // Mettre en cache pour le prochain chargement
     try {
