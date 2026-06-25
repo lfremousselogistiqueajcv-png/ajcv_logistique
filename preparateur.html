@@ -89,6 +89,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .bo-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
 .bo-row span{font-size:14px}
 .bo-row input{width:74px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:16px;text-align:center}
+.tabs{display:flex;gap:6px;padding:10px 14px 0;background:var(--surface)}
+.ptab{flex:1;padding:10px 6px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);border-radius:10px 10px 0 0;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.ptab.active{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.ptab-n{background:rgba(0,0,0,.16);border-radius:999px;padding:1px 7px;font-size:12px;min-width:20px;text-align:center}
+.ptab.active .ptab-n{background:rgba(0,0,0,.22)}
+.btn-prendre{width:100%;background:var(--gold);color:var(--navy);border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;margin-top:2px}
+.btn-relacher{background:none;border:none;color:var(--text2);font-size:12.5px;cursor:pointer;padding:8px 6px 2px;text-decoration:underline;align-self:flex-start}
 </style>
 </head>
 <body>
@@ -122,6 +129,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="count" id="prepCount"></span>
   </div>
   <div class="search"><input id="searchInput" placeholder="🔍 Rechercher un client, un BL, une ville…" oninput="filtrer(this.value)"></div>
+  <div class="tabs" id="prepTabs">
+    <button class="ptab active" data-tab="apreparer" onclick="switchVolet('apreparer')">À préparer <span class="ptab-n" id="n-apreparer">0</span></button>
+    <button class="ptab" data-tab="encours" onclick="switchVolet('encours')">En cours <span class="ptab-n" id="n-encours">0</span></button>
+    <button class="ptab" data-tab="prepare" onclick="switchVolet('prepare')">Préparé <span class="ptab-n" id="n-prepare">0</span></button>
+  </div>
   <div class="list" id="prepList"><div class="empty">Chargement…</div></div>
 </div>
 
@@ -146,7 +158,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script>
 const CFG = { API_URL: 'https://ajcvbackend-production.up.railway.app' };
 const VERSION_URL = 'https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/version.json';
-const state = { token:'', prenom:'', login:'', role:'', tokenExpiry:0, orders:[], photos:{}, search:'', _date:'', boissonsRef:[], _boId:null };
+const state = { token:'', prenom:'', login:'', role:'', tokenExpiry:0, orders:[], photos:{}, search:'', _date:'', volet:'apreparer', boissonsRef:[], _boId:null };
 
 /* ─────────── TOAST ─────────── */
 let _toastT=null;
@@ -247,7 +259,15 @@ function boissonsDetailDe(l){
   if(typeof d==='string'){ try{ d=JSON.parse(d); }catch(_){ d={}; } }
   return (d&&typeof d==='object')?d:{};
 }
-function estFait(l){ return !!l.prepare && !l.photo_a_refaire; }
+function estPrepare(l){ return !!l.prepare && !l.photo_a_refaire; }
+function estEnCours(l){ return (!!l.en_preparation && !l.prepare) || !!l.photo_a_refaire; }
+function estAPreparer(l){ return !l.prepare && !l.en_preparation && !l.photo_a_refaire; }
+function estFait(l){ return estPrepare(l); }
+function switchVolet(v){
+  state.volet=v;
+  document.querySelectorAll('#prepTabs .ptab').forEach(t=>t.classList.toggle('active', t.dataset.tab===v));
+  renderPrep();
+}
 
 /* ─────────── CHARGEMENT ─────────── */
 async function chargerPrep(force){
@@ -269,41 +289,53 @@ async function chargerPrep(force){
 function renderPrep(){
   const el=document.getElementById('prepList');
   const livs=state.orders||[];
-  const faits=livs.filter(estFait).length;
-  document.getElementById('prepCount').innerHTML=`<b>${faits}</b> / ${livs.length} préparées`;
+  const aprep=livs.filter(estAPreparer), encours=livs.filter(estEnCours), prep=livs.filter(estPrepare);
+  const setN=(id,n)=>{ const e=document.getElementById(id); if(e) e.textContent=n; };
+  setN('n-apreparer',aprep.length); setN('n-encours',encours.length); setN('n-prepare',prep.length);
+  document.getElementById('prepCount').innerHTML=`<b>${prep.length}</b> / ${livs.length} préparées`;
   if(livs.length===0){ el.innerHTML='<div class="empty">Aucune commande pour cette date.</div>'; return; }
-  el.innerHTML = livs.map(l=>{
-    const fait=estFait(l);
-    const refaire=!!l.photo_a_refaire && !fait;
-    const bd=boissonsDetailDe(l);
-    const bdTxt=Object.keys(bd).length?Object.entries(bd).map(([n,q])=>`${n}×${q}`).join(' · '):'';
-    const qteTxt=`📦 ${colisDe(l)} colis${bdTxt?` · 🥤 ${bdTxt}`:''}${charbonsDe(l)?` · 🔥 ${charbonsDe(l)}`:''}${cadeauxDe(l)?` · 🎁 ${cadeauxDe(l)}`:''}`;
-    const search=(String(l.client_nom||l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
-    let inner=`<div class="c-top"><div><div class="c-client">${esc(l.client_nom||l.client||'')}</div><div class="c-sub">${esc(l.ville||'')} · BL ${esc(l.bl||'—')}</div></div>`;
-    if(fait) inner+=`<span class="c-badge b-done">✅ Préparé</span>`;
-    else if(refaire) inner+=`<span class="c-badge b-refaire">📷 Photo à refaire</span>`;
-    inner+=`</div>`;
-    if(fait){
-      inner+=`<div class="c-qte">${qteTxt}</div>`;
-      inner+=`<img class="thumb-done" src="${l.photo_preparation||''}" onclick="agrandir('${(l.photo_preparation||'').replace(/'/g,'%27')}')" alt="photo préparation">`;
-    } else {
-      inner+=`<div class="qte-grid">
-          <label>📦 Colis<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_colis" value="${colisDe(l)}" onchange="majQte('${l.id}','nb_colis',this.value)"></label>
-          <label>🔥 Charbons<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_charbons" value="${charbonsDe(l)}" onchange="majQte('${l.id}','nb_charbons',this.value)"></label>
-          <label>🎁 Cadeaux<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_cadeaux" value="${cadeauxDe(l)}" onchange="majQte('${l.id}','nb_cadeaux',this.value)"></label>
-        </div>
-        <button class="btn-bo" onclick="ouvrirBoissonsPrep('${l.id}')">🥤 Boissons : <span id="bolbl-${l.id}">${bdTxt||'aucune'}</span> ✏️</button>
-        <input type="file" accept="image/*" capture="environment" id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
-        <div class="c-actions">
-          <button class="btn-photo" onclick="document.getElementById('file-${l.id}').click()">📷 Photo</button>
-          <img id="prev-${l.id}" class="thumb" style="display:none" alt="">
-          <button class="btn-val" id="val-${l.id}" disabled onclick="validerPrep('${l.id}')">Valider ✓</button>
-        </div>`;
-    }
-    const cls=fait?'card done':(refaire?'card refaire':'card');
-    return `<div class="${cls}" data-search="${search}">${inner}</div>`;
-  }).join('');
+  const volet=state.volet||'apreparer';
+  const list= volet==='encours'?encours : (volet==='prepare'?prep : aprep);
+  if(list.length===0){
+    const vide= volet==='apreparer'?'Tout est pris en charge 👍' : (volet==='encours'?'Aucune préparation en cours.':'Aucune commande préparée.');
+    el.innerHTML=`<div class="empty">${vide}</div>`; return;
+  }
+  el.innerHTML=list.map(l=>carteCommande(l,volet)).join('');
   if(state.search) filtrer(state.search);
+}
+function carteCommande(l, volet){
+  const bd=boissonsDetailDe(l);
+  const bdTxt=Object.keys(bd).length?Object.entries(bd).map(([n,q])=>`${n}×${q}`).join(' · '):'';
+  const qteTxt=`📦 ${colisDe(l)} colis${bdTxt?` · 🥤 ${bdTxt}`:''}${charbonsDe(l)?` · 🔥 ${charbonsDe(l)}`:''}${cadeauxDe(l)?` · 🎁 ${cadeauxDe(l)}`:''}`;
+  const search=(String(l.client_nom||l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
+  let inner=`<div class="c-top"><div><div class="c-client">${esc(l.client_nom||l.client||'')}</div><div class="c-sub">${esc(l.ville||'')} · BL ${esc(l.bl||'—')}</div></div>`;
+  if(volet==='prepare'){
+    inner+=`<span class="c-badge b-done">✅ Préparé</span></div><div class="c-qte">${qteTxt}</div>`;
+    if(l.photo_preparation) inner+=`<img class="thumb-done" src="${l.photo_preparation}" onclick="agrandir('${(l.photo_preparation||'').replace(/'/g,'%27')}')" alt="photo préparation">`;
+    return `<div class="card done" data-search="${search}">${inner}</div>`;
+  }
+  if(volet==='apreparer'){
+    inner+=`</div><div class="c-qte">${qteTxt}</div>
+      <button class="btn-prendre" onclick="demarrerPrep('${l.id}')">🧰 Je prépare</button>`;
+    return `<div class="card" data-search="${search}">${inner}</div>`;
+  }
+  const refaire=!!l.photo_a_refaire;
+  if(refaire) inner+=`<span class="c-badge b-refaire">📷 Photo à refaire</span>`;
+  inner+=`</div>
+    <div class="qte-grid">
+      <label>📦 Colis<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_colis" value="${colisDe(l)}" onchange="majQte('${l.id}','nb_colis',this.value)"></label>
+      <label>🔥 Charbons<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_charbons" value="${charbonsDe(l)}" onchange="majQte('${l.id}','nb_charbons',this.value)"></label>
+      <label>🎁 Cadeaux<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_cadeaux" value="${cadeauxDe(l)}" onchange="majQte('${l.id}','nb_cadeaux',this.value)"></label>
+    </div>
+    <button class="btn-bo" onclick="ouvrirBoissonsPrep('${l.id}')">🥤 Boissons : <span id="bolbl-${l.id}">${bdTxt||'aucune'}</span> ✏️</button>
+    <input type="file" accept="image/*" capture="environment" id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
+    <div class="c-actions">
+      <button class="btn-photo" onclick="document.getElementById('file-${l.id}').click()">📷 Photo</button>
+      <img id="prev-${l.id}" class="thumb" style="display:none" alt="">
+      <button class="btn-val" id="val-${l.id}" onclick="validerPrep('${l.id}')">Valider ✓</button>
+    </div>
+    ${refaire?'':`<button class="btn-relacher" onclick="relacherPrep('${l.id}')">↩️ Remettre à préparer</button>`}`;
+  return `<div class="card${refaire?' refaire':''}" data-search="${search}">${inner}</div>`;
 }
 function filtrer(q){
   state.search=q||'';
@@ -360,7 +392,7 @@ async function validerPrep(id){
     if(resp.status===401){ sessionExpiree(); return; }
     const r=await resp.json().catch(()=>({}));
     if(resp.ok&&r.success){
-      if(l){ l.prepare=true; l.photo_preparation=r.url||''; l.photo_a_refaire=false;
+      if(l){ l.prepare=true; l.en_preparation=false; l.photo_preparation=r.url||''; l.photo_a_refaire=false;
         l.nb_colis=body.nb_colis; l.nb_charbons=body.nb_charbons; l.nb_cadeaux=body.nb_cadeaux; l.boissons_detail=bd; l.nb_boissons=body.nb_boissons; }
       delete state.photos[id];
       showToast('✅ Préparation validée','success');
@@ -373,6 +405,32 @@ async function validerPrep(id){
     showToast('❌ Erreur réseau','error');
     if(btn){ btn.disabled=false; btn.textContent='Valider ✓'; }
   }
+}
+async function demarrerPrep(id){
+  try{
+    const resp=await fetch(`${CFG.API_URL}/livraisons/preparation/demarrer`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token}`},body:JSON.stringify({id})});
+    if(resp.status===401){ sessionExpiree(); return; }
+    const r=await resp.json().catch(()=>({}));
+    if(resp.ok&&r.success){
+      const l=(state.orders||[]).find(x=>String(x.id)===String(id));
+      if(l) l.en_preparation=true;
+      showToast('🧰 En préparation','success');
+      state.volet='encours'; switchVolet('encours');
+    } else showToast('❌ '+((r&&r.error)||'Échec'),'error');
+  }catch(e){ showToast('❌ Erreur réseau','error'); }
+}
+async function relacherPrep(id){
+  try{
+    const resp=await fetch(`${CFG.API_URL}/livraisons/preparation/annuler`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token}`},body:JSON.stringify({id})});
+    if(resp.status===401){ sessionExpiree(); return; }
+    const r=await resp.json().catch(()=>({}));
+    if(resp.ok&&r.success){
+      const l=(state.orders||[]).find(x=>String(x.id)===String(id));
+      if(l) l.en_preparation=false;
+      showToast('↩️ Remise à préparer','success');
+      renderPrep();
+    } else showToast('❌ '+((r&&r.error)||'Échec'),'error');
+  }catch(e){ showToast('❌ Erreur réseau','error'); }
 }
 function agrandir(url){ if(!url) return; document.getElementById('lightboxImg').src=url; document.getElementById('lightbox').style.display='flex'; }
 
