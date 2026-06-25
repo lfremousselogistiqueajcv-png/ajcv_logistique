@@ -1,7 +1,17 @@
 {
-  "version": "2026.06.25.1",
+  "version": "2026.06.25.2",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25.2",
+      "date": "25/06/2026",
+      "titre": "Préparateur : 3 volets À préparer / En cours / Préparé",
+      "notes": [
+        "🗂️ Trois onglets dans l'appli préparateur : À préparer · En cours · Préparé, avec compteurs.",
+        "🧰 Bouton « Je prépare » pour prendre une commande en main (elle bascule en « En cours »).",
+        "✅ Correction du bouton Valider qui pouvait rester bloqué."
+      ]
+    },
     {
       "v": "2026.06.25.1",
       "date": "25/06/2026",
