@@ -1,7 +1,17 @@
 {
-  "version": "2026.06.25",
+  "version": "2026.06.25.1",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25.1",
+      "date": "25/06/2026",
+      "titre": "Suivi des préparations",
+      "notes": [
+        "🧰 Admin : nouvel onglet Préparation — retrouver chaque préparation et sa photo, avec barre de recherche ; possibilité d'annuler une prépa ou de redemander une photo.",
+        "📥 Import : option « ces commandes sont déjà préparées » pour marquer un lot comme préparé directement à l'import.",
+        "📷 Préparateur : quand l'admin redemande une photo, la commande réapparaît avec le repère « photo à refaire »."
+      ]
+    },
     {
       "v": "2026.06.25",
       "date": "25/06/2026",
