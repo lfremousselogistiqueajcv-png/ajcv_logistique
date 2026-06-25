@@ -126,6 +126,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
   <div class="topbar">
     <div class="topbar-inner">
       <div class="nav-tab active" data-tab="livraisons" onclick="go('livraisons')">📦 Livraisons</div>
+      <div class="nav-tab" data-tab="prep" onclick="go('prep')">🧰 Préparation</div>
       <div class="nav-tab" data-tab="plan" onclick="go('plan')">🗺️ Plan de tournée</div>
       <div class="nav-tab" data-tab="zones" onclick="go('zones')">📍 Zones</div>
       <div class="nav-tab" data-tab="impLiv" onclick="go('impLiv')">📥 Import Livraisons</div>
@@ -327,6 +328,7 @@ function go(tab){
   const c=document.getElementById('content');
   c.innerHTML='<div class="loading"><div class="spin"></div></div>';
   if(tab==='livraisons') renderLivraisons();
+  else if(tab==='prep') renderPreparations();
   else if(tab==='plan') renderPlan();
   else if(tab==='impLiv') renderImportLiv();
   else if(tab==='impCli') renderImportCli();
@@ -500,6 +502,93 @@ function planRenderCounters(){
 function voirPhotoPrep(url){
   if(!url){ toast('Pas de photo de préparation'); return; }
   window.open(url,'_blank');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PRÉPARATION — suivi des préparations + photos + recherche + annuler/refaire
+// ════════════════════════════════════════════════════════════════════════════
+let _prepData = null, _prepDate = null;
+function renderPreparations(){
+  document.getElementById('content').innerHTML = `
+    <div class="card">
+      <h3>🧰 Préparation — suivi & photos</h3>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+        <label class="muted" style="font-size:13px;font-weight:600">📅 Date</label>
+        <input type="date" id="prepDate" onchange="chargerPreps(true)" style="padding:8px;border-radius:8px;border:1px solid var(--border)">
+        <button class="btn btn-sm" onclick="document.getElementById('prepDate').value='';chargerPreps(true)">Toutes les dates</button>
+        <span id="prepCount" class="muted" style="margin-left:auto;font-weight:600"></span>
+      </div>
+      <input id="prepSearch" placeholder="🔍 Rechercher un client, une ville, un BL…" oninput="filtrePrep(this.value)" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);margin-bottom:14px;font-size:14px">
+      <div id="prepList"><div class="loading"><div class="spin"></div></div></div>
+    </div>`;
+  document.getElementById('prepDate').value = new Date().toISOString().split('T')[0];
+  chargerPreps(true);
+}
+async function chargerPreps(force){
+  const dInput = document.getElementById('prepDate').value;
+  const dFR = dInput ? toFR(new Date(dInput)) : '';
+  const el = document.getElementById('prepList');
+  if(force || _prepData===null || _prepDate!==dFR){
+    el.innerHTML = '<div class="loading"><div class="spin"></div></div>';
+    try{
+      const data = await api('GET','/livraisons'+(dFR?('?date='+encodeURIComponent(dFR)):''));
+      _prepData = data.livraisons||[];
+      _prepDate = dFR;
+    }catch(e){ if(String(e.message)!=='401') el.innerHTML='<p class="muted" style="padding:18px 0">Erreur de chargement.</p>'; return; }
+  }
+  renderPrepList();
+}
+function renderPrepList(){
+  const el = document.getElementById('prepList');
+  const preps = (_prepData||[]).filter(l => l.prepare===true || l.prepare==='true');
+  document.getElementById('prepCount').textContent = preps.length+' préparation'+(preps.length>1?'s':'');
+  if(preps.length===0){ el.innerHTML='<p class="muted" style="padding:20px 0">Aucune préparation pour ce filtre.</p>'; return; }
+  el.innerHTML = preps.map(l=>{
+    const refaire = l.photo_a_refaire===true || l.photo_a_refaire==='true';
+    const dp = l.date_preparation ? toFR(new Date(l.date_preparation)) : '';
+    const hay = (String(l.client_nom||l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
+    const photo = (l.photo_preparation||'').replace(/'/g,'%27');
+    const nomEsc = esc(String(l.client_nom||l.client||'')).replace(/'/g,"\\'");
+    return `<div class="prep-card" data-search="${hay}" style="border:1px solid ${refaire?'#f59e0b':'#e5e7eb'};border-radius:12px;padding:12px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;background:${refaire?'#fffbeb':'#fff'}">
+      ${l.photo_preparation
+        ? `<img src="${l.photo_preparation}" onclick="voirPhotoPrep('${photo}')" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #ddd;cursor:pointer;flex-shrink:0" title="Agrandir la photo">`
+        : `<div style="width:64px;height:64px;border-radius:8px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;flex-shrink:0;font-size:24px" title="Préparée sans photo">🧰</div>`}
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700">${esc(l.client_nom||l.client||'')}</div>
+        <div class="muted" style="font-size:12.5px">${esc(l.ville||'')} · BL ${esc(l.bl||'—')}${dp?` · préparée le ${dp}`:''}</div>
+        ${refaire?`<div style="color:#b45309;font-size:12px;font-weight:700;margin-top:3px">📷 Photo à refaire (demandée)</div>`:''}
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" style="background:#fef3c7;color:#b45309" onclick="refairePhotoPrep('${l.id}')">📷 Redemander la photo</button>
+          <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626" onclick="annulerPrep('${l.id}','${nomEsc}')">↩️ Annuler la prépa</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function filtrePrep(q){
+  const t=(q||'').toLowerCase().trim();
+  document.querySelectorAll('#prepList .prep-card').forEach(c=>{
+    c.style.display = (!t || (c.getAttribute('data-search')||'').indexOf(t)!==-1) ? '' : 'none';
+  });
+}
+async function annulerPrep(id, nom){
+  if(!confirm('Annuler la préparation de '+nom+' ?\nLa commande repassera « à préparer » et la photo sera retirée.')) return;
+  try{
+    await api('PATCH','/livraisons/id/'+id, { prepare:false, photo_preparation:null, date_preparation:null, photo_a_refaire:false });
+    const l=(_prepData||[]).find(x=>String(x.id)===String(id));
+    if(l){ l.prepare=false; l.photo_preparation=null; l.date_preparation=null; l.photo_a_refaire=false; }
+    toast('↩️ Préparation annulée');
+    renderPrepList();
+  }catch(e){ if(String(e.message)!=='401') toast('❌ Échec de l\'annulation'); }
+}
+async function refairePhotoPrep(id){
+  try{
+    await api('PATCH','/livraisons/id/'+id, { photo_a_refaire:true });
+    const l=(_prepData||[]).find(x=>String(x.id)===String(id));
+    if(l){ l.photo_a_refaire=true; }
+    toast('📷 Photo à refaire demandée — le préparateur la reverra');
+    renderPrepList();
+  }catch(e){ if(String(e.message)!=='401') toast('❌ Échec'); }
 }
 function planRenderCharge(){
   const el=document.getElementById('planCharge'); if(!el) return;
@@ -889,6 +978,10 @@ function renderImportLiv(){
         <div class="muted" id="csvLivName">Aucun fichier sélectionné</div>
       </div>
       <input type="file" id="csvLiv" accept=".xlsx,.xls,.csv" style="display:none" onchange="previewLiv(this)">
+      <label style="display:flex;align-items:center;gap:9px;margin-top:14px;padding:11px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:10px;cursor:pointer;font-weight:600;color:#065f46">
+        <input type="checkbox" id="impDejaPrep" style="width:18px;height:18px;accent-color:#059669">
+        🧰 Ces commandes sont déjà préparées (les marquer « préparées » à l'import)
+      </label>
       <div id="csvLivPreview"></div>
     </div>`;
 }
@@ -971,7 +1064,7 @@ function previewLiv(input){
 async function importerLiv(){
   if(_livRows.length===0) return;
   toast('⏳ Import et vérifications...');
-  const r=await api('POST','/livraisons/import',{livraisons:_livRows}).catch(()=>null);
+  const r=await api('POST','/livraisons/import',{livraisons:_livRows, dejaPrepares: !!(document.getElementById('impDejaPrep')&&document.getElementById('impDejaPrep').checked)}).catch(()=>null);
   const el=document.getElementById('csvLivPreview');
   if(!(r&&r.success)){ toast('❌ '+((r&&r.error)||'Erreur')); return; }
   const R=r.rapport, S=r.resume;
