@@ -1,7 +1,16 @@
 {
-  "version": "2026.06.25.7",
+  "version": "2026.06.25.8",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25.8",
+      "date": "25/06/2026",
+      "titre": "Géocodage des adresses corrigé + re-géocodage en masse",
+      "notes": [
+        "🌍 Bouton « Re-géocoder TOUT » (onglet Clients) refait : recalcule toutes les positions via la Base Adresse Nationale (avec le code postal pour la fiabilité Réunion), avec barre de progression et liste des adresses à corriger. Plus besoin de clé Google.",
+        "📍 Les coordonnées hors Réunion (points en mer, fiches mal placées) sont désormais bloquées à l import et corrigées par le re-géocodage."
+      ]
+    },
     {
       "v": "2026.06.25.7",
       "date": "25/06/2026",
