@@ -336,10 +336,10 @@ function carteCommande(l, volet){
       <label>🎁 Cadeaux<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_cadeaux" value="${cadeauxDe(l)}" onchange="majQte('${l.id}','nb_cadeaux',this.value)"></label>
     </div>
     <button class="btn-bo" onclick="ouvrirBoissonsPrep('${l.id}')">🥤 Boissons : <span id="bolbl-${l.id}">${bdTxt||'aucune'}</span> ✏️</button>
-    <input type="file" accept="image/*" multiple id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
+    <input type="file" accept="image/*" capture="environment" id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
     <div id="thumbs-${l.id}" class="thumbs-wrap"></div>
     <div class="c-actions">
-      <button class="btn-photo" onclick="document.getElementById('file-${l.id}').click()">📷 Ajouter des photos</button>
+      <button class="btn-photo" onclick="document.getElementById('file-${l.id}').click()">📷 Prendre une photo</button>
       <button class="btn-val" id="val-${l.id}" onclick="validerPrep('${l.id}')">Valider ✓</button>
     </div>
     ${refaire?'':`<button class="btn-relacher" onclick="relacherPrep('${l.id}')">↩️ Remettre à préparer</button>`}`;
