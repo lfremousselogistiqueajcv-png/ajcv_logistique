@@ -1,7 +1,15 @@
 {
-  "version": "2026.06.25.13",
+  "version": "2026.06.25.14",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25.14",
+      "date": "25/06/2026",
+      "titre": "Plan de tournée : une couleur par livreur",
+      "notes": [
+        "Chaque livreur a désormais une couleur stable et distincte, appliquée aux pastilles de charge, aux menus « Livreur affecté » du tableau et au tableau de simulation. Lecture beaucoup plus rapide de qui livre quoi. Les lignes non affectées restent en gris neutre."
+      ]
+    },
     {
       "v": "2026.06.25.13",
       "date": "25/06/2026",

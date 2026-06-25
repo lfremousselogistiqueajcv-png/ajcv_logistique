@@ -481,6 +481,30 @@ function nomLivreur(u){ return (u.prenom||'') + (u.nom ? ' '+u.nom : ''); }
 function driverOptions(sel){
   return '<option value="">(non affecté)</option>' + _plan.drivers.map(d=>`<option value="${esc(d.nom)}" ${sel===d.nom?'selected':''}>${esc(d.nom)}</option>`).join('');
 }
+// Couleur stable par livreur (palette de 8 teintes distinctes, attribuée selon l'ordre de la liste)
+const PALETTE_LIVREURS=[
+  {bg:'#dbeafe',fg:'#1d4ed8',bd:'#93c5fd'}, {bg:'#dcfce7',fg:'#15803d',bd:'#86efac'},
+  {bg:'#fef3c7',fg:'#b45309',bd:'#fcd34d'}, {bg:'#fce7f3',fg:'#be185d',bd:'#f9a8d4'},
+  {bg:'#e0e7ff',fg:'#4338ca',bd:'#a5b4fc'}, {bg:'#cffafe',fg:'#0e7490',bd:'#67e8f9'},
+  {bg:'#ffedd5',fg:'#c2410c',bd:'#fdba74'}, {bg:'#f3e8ff',fg:'#7e22ce',bd:'#d8b4fe'}
+];
+function couleurLivreur(nom){
+  const n=(nom||'').trim();
+  if(!n) return null;
+  let i=(_plan.drivers||[]).findIndex(d=>d.nom===n);
+  if(i<0){ let h=0; for(let k=0;k<n.length;k++) h=(h*31+n.charCodeAt(k))>>>0; i=h%PALETTE_LIVREURS.length; }
+  return PALETTE_LIVREURS[i % PALETTE_LIVREURS.length];
+}
+function selectLivreurHTML(l){
+  const cur=(l.livreur||'').trim();
+  const c=couleurLivreur(cur);
+  const st=c?`background:${c.bg};color:${c.fg};font-weight:600;border:1px solid ${c.bd}`:'';
+  return `<select onchange="planAffecterUnite('${l.id}',this.value,this)" style="font-size:12px;${st}">${driverOptions(cur)}</select>`;
+}
+function pastilleLivreur(nom){
+  const c=couleurLivreur(nom);
+  return `<b style="${c?`color:${c.fg}`:''}"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${c?c.fg:'#94a3b8'};margin-right:6px;vertical-align:middle"></span>${esc(nom)}</b>`;
+}
 async function renderPlan(){
   const today = new Date().toISOString().split('T')[0];
   if(!_plan.date) _plan.date = today;
@@ -506,7 +530,7 @@ async function renderPlan(){
       <div style="font-weight:700;color:#7c3aed">🤖 Simulation par zones</div>
       <p class="muted" style="margin:6px 0 10px">Pour chaque livreur, coche les zones qu'il couvre. Ex : Clément → Sud + Ouest, Rehan → Nord-Est. La répartition suit ces zones.</p>
       <div class="table-wrap"><table><thead><tr><th>Livreur</th><th style="text-align:center">🟢 Sud</th><th style="text-align:center">🔵 Nord-Est</th><th style="text-align:center">🟠 Ouest</th></tr></thead>
-        <tbody>${_plan.drivers.map(d=>`<tr><td><b>${esc(d.nom)}</b></td>${['Sud','Nord-Est','Ouest'].map(z=>`<td style="text-align:center"><input type="checkbox" class="zone-cb" data-driver="${esc(d.nom)}" value="${z}"></td>`).join('')}</tr>`).join('')||'<tr><td colspan="4" class="muted">Aucun livreur</td></tr>'}</tbody></table></div>
+        <tbody>${_plan.drivers.map(d=>`<tr><td>${pastilleLivreur(d.nom)}</td>${['Sud','Nord-Est','Ouest'].map(z=>`<td style="text-align:center"><input type="checkbox" class="zone-cb" data-driver="${esc(d.nom)}" value="${z}"></td>`).join('')}</tr>`).join('')||'<tr><td colspan="4" class="muted">Aucun livreur</td></tr>'}</tbody></table></div>
       <button class="btn btn-sm" style="margin-top:10px;background:#7c3aed;color:#fff" onclick="planSimuler()">Simuler la répartition</button>
       <div id="planSimResult"></div>
     </div>
@@ -650,7 +674,11 @@ async function refairePhotoPrep(id){
 function planRenderCharge(){
   const el=document.getElementById('planCharge'); if(!el) return;
   const par={}; _plan.livs.forEach(l=>{ const k=(l.livreur||'').trim()||'— non affecté'; if(!par[k])par[k]={n:0,c:0}; par[k].n++; par[k].c+=(parseInt(l.nb_colis)||1); });
-  const chips=Object.entries(par).map(([k,v])=>`<span style="background:${k.startsWith('—')?'#f1f5f9':'#dbeafe'};color:${k.startsWith('—')?'#64748b':'#1e40af'};padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600">${esc(k)} : ${v.n} liv. · ${v.c} colis</span>`).join(' ');
+  const chips=Object.entries(par).map(([k,v])=>{
+    const c=k.startsWith('—')?null:couleurLivreur(k);
+    const bg=c?c.bg:'#f1f5f9', fg=c?c.fg:'#64748b', bd=c?c.bd:'#e2e8f0';
+    return `<span style="background:${bg};color:${fg};border:1px solid ${bd};padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600">${esc(k)} : ${v.n} liv. · ${v.c} colis</span>`;
+  }).join(' ');
   el.innerHTML=`<div style="font-weight:600;margin-bottom:6px">Charge par livreur — ${_plan.livs.length} livraison(s) à affecter/livrer</div><div style="display:flex;gap:8px;flex-wrap:wrap">${chips||'<span class="muted">Aucune livraison ce jour</span>'}</div>`;
 }
 function planRenderTable(){
@@ -683,7 +711,7 @@ function planRenderTable(){
         <td>${esc(l.client_nom||'')}</td><td>${esc(l.ville||'')}</td>
         <td style="text-align:center">${(l.prepare===true||l.prepare==='true')?`<span title="Préparée — voir la photo" onclick="voirPhotoPrep('${(l.photo_preparation||'').replace(/'/g,'%27')}')" style="color:#059669;cursor:pointer;font-weight:700">🧰✓</span>`:'<span style="color:#cbd5e1" title="Pas encore préparée">⬜</span>'}</td>
         <td>${parseInt(l.nb_colis)||1}</td>
-        <td><select onchange="planAffecterUnite('${l.id}',this.value)" style="font-size:12px">${driverOptions((l.livreur||'').trim())}</select></td>
+        <td>${selectLivreurHTML(l)}</td>
         ${showProp?`<td style="font-weight:700;color:#7c3aed">${esc(propMap[l.id]||'—')}</td>`:''}
       </tr>`).join('')}</tbody></table></div>
     </div>`;
@@ -725,9 +753,13 @@ async function desaffecterZone(zoneNum){
     planRenderCounters(); planRenderCharge(); planRenderTable();
   } else toast('❌ Erreur');
 }
-async function planAffecterUnite(id,livreur){
+async function planAffecterUnite(id,livreur,selectEl){
   const r=await api('POST','/livraisons/affecter',{ids:[id],livreur}).catch(()=>null);
-  if(r&&r.success){ const l=_plan.livs.find(x=>String(x.id)===String(id)); if(l)l.livreur=livreur||null; planRenderCharge(); toast('✅ Affecté'); } else toast('❌ Erreur');
+  if(r&&r.success){
+    const l=_plan.livs.find(x=>String(x.id)===String(id)); if(l)l.livreur=livreur||null;
+    if(selectEl){ const c=couleurLivreur((livreur||'').trim()); selectEl.style.background=c?c.bg:''; selectEl.style.color=c?c.fg:''; selectEl.style.fontWeight=c?'600':''; selectEl.style.border=c?('1px solid '+c.bd):''; }
+    planRenderCharge(); toast('✅ Affecté');
+  } else toast('❌ Erreur');
 }
 async function planSimuler(){
   const map={};
