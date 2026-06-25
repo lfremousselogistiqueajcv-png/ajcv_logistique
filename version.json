@@ -1,7 +1,17 @@
 {
-  "version": "2026.06.24",
+  "version": "2026.06.25",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25",
+      "date": "25/06/2026",
+      "titre": "Cadeaux + quantités ajustables à la préparation",
+      "notes": [
+        "🎁 Nouveau champ Cadeaux : renseigné à la création du bon de livraison (admin) et ajustable au moment de la préparation.",
+        "✏️ Le préparateur peut corriger les quantités réelles (colis, charbons, boissons, cadeaux) avant de valider la photo.",
+        "🔒 Renforcement de la sécurité d'accès aux données côté serveur."
+      ]
+    },
     {
       "v": "2026.06.24",
       "date": "24/06/2026",
