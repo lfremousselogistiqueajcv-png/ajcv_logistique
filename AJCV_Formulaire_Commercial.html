@@ -224,6 +224,7 @@ async function charger(){
     const d = await apiCall(path);
     S.clients = (d.clients||[]).map(c=>({
       id:c.id, nom:c.nom, ville:c.ville||'', cp:c.cp||'', zone:c.zone||'',
+      adresse:c.adresse||'', tel1:c.tel1||'', tel2:c.tel2||'', email:c.email||'',
       horaires:c.horaires||'', contrainte:c.contrainte||'LIBRE', priorite:c.priorite||'NORMALE'
     }));
     // Affichage : si pas de zone, on la déduit du CP (affichage seulement, pas de sauvegarde)
@@ -315,6 +316,23 @@ function afficher(){
         '<span class="client-zone">'+zoneLabel(c.zone)+'</span>'+
       '</div>'+
       '<div class="client-field">'+
+        '<label>📍 Adresse postale</label>'+
+        '<input id="adr-'+idx+'" type="text" value="'+escAttr(c.adresse)+'" placeholder="N° et rue" style="margin-bottom:8px">'+
+        '<div style="display:flex;gap:8px">'+
+          '<input id="cp-'+idx+'" type="text" inputmode="numeric" value="'+escAttr(c.cp)+'" placeholder="Code postal" style="flex:0 0 40%;width:auto">'+
+          '<input id="vil-'+idx+'" type="text" value="'+escAttr(c.ville)+'" placeholder="Ville" style="flex:1;width:auto">'+
+        '</div>'+
+      '</div>'+
+      '<div class="client-field">'+
+        '<label>📞 Téléphone</label>'+
+        '<input id="tel1-'+idx+'" type="tel" value="'+escAttr(c.tel1)+'" placeholder="Téléphone principal" style="margin-bottom:8px">'+
+        '<input id="tel2-'+idx+'" type="tel" value="'+escAttr(c.tel2)+'" placeholder="Téléphone secondaire (optionnel)">'+
+      '</div>'+
+      '<div class="client-field">'+
+        '<label>✉️ Email</label>'+
+        '<input id="mail-'+idx+'" type="email" value="'+escAttr(c.email)+'" placeholder="email@exemple.com">'+
+      '</div>'+
+      '<div class="client-field">'+
         '<label>🕐 Horaires d\'ouverture</label>'+
         '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'+
           '<span style="font-size:12px;color:var(--text2);min-width:60px">Ouvre à</span>'+
@@ -375,14 +393,18 @@ function afficher(){
   }).join('');
 }
 
+function escAttr(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 async function sauverClient(idx){
   const c=S.clients[idx];
   const horaires=construireHoraires(idx);
   const contrainte=document.getElementById('c-'+idx).value;
   const priorite=document.getElementById('p-'+idx).value;
+  const gv=k=>{ const e=document.getElementById(k+'-'+idx); return e?e.value.trim():''; };
+  const adresse=gv('adr'), cp=gv('cp'), ville=gv('vil'), tel1=gv('tel1'), tel2=gv('tel2'), email=gv('mail');
   try{
-    await apiCall('/clients/id/'+c.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({horaires,contrainte,priorite})});
+    await apiCall('/clients/id/'+c.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({horaires,contrainte,priorite,adresse,cp,ville,tel1,tel2,email})});
     c.horaires=horaires; c.contrainte=contrainte; c.priorite=priorite;
+    c.adresse=adresse; c.cp=cp; c.ville=ville; c.tel1=tel1; c.tel2=tel2; c.email=email;
     majStats();
     toast('✅ '+c.nom+' enregistré');
   }catch(e){ if(e.message!=='401') toast('❌ Erreur'); }
