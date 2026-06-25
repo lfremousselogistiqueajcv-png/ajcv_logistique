@@ -214,7 +214,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div style="grid-column:1/-1"><label>Nom du client *</label><input id="cli-nom" placeholder="Ex: ENGEN GRANDE MONTEE SARL"></div>
       <div><label>Ville *</label><input id="cli-ville" placeholder="Ex: SAINT BENOIT"></div>
       <div><label>Code postal *</label><input id="cli-cp" placeholder="Ex: 97470"></div>
-      <div style="grid-column:1/-1;position:relative"><label>Adresse * (autocomplétion Google Maps)</label><input id="cli-adresse" autocomplete="off" placeholder="Tapez l'adresse — le code postal et la commune se remplissent seuls"><div id="cli-sug" class="addr-sug"></div></div>
+      <div style="grid-column:1/-1;position:relative"><label>Adresse * (recherche automatique — n° + rue + commune)</label><input id="cli-adresse" autocomplete="off" placeholder="Tapez l'adresse — le code postal et la commune se remplissent seuls"><div id="cli-sug" class="addr-sug"></div></div>
       <div><label>Téléphone 1</label><input id="cli-tel1"></div>
       <div><label>Téléphone 2</label><input id="cli-tel2"></div>
       <div style="grid-column:1/-1"><label>Email</label><input id="cli-email" type="email"></div>
@@ -803,7 +803,10 @@ async function renderLivraisons(){
     <div class="card">
       <div class="flex-between">
         <h3>📦 Livraisons</h3>
-        <button class="btn btn-green btn-sm" onclick="ouvrirAjoutLiv()">➕ Ajouter une livraison</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" style="background:#6366f1;color:#fff" onclick="toutPreparer()">🧰 Tout marquer préparé</button>
+          <button class="btn btn-green btn-sm" onclick="ouvrirAjoutLiv()">➕ Ajouter une livraison</button>
+        </div>
       </div>
       <div class="form-grid" style="margin-bottom:14px">
         <div><label>Date</label><input type="date" id="lv-date" value="${today}" onchange="chargerLivraisons()"></div>
@@ -830,6 +833,20 @@ async function chargerLivraisons(){
     _livAll=data.livraisons||[];
     filtrerLivraisons();
   }catch(e){ if(e.message!=='401') el.innerHTML='<div class="loading">❌ Erreur de chargement</div>'; }
+}
+async function toutPreparer(){
+  const list=(_pgData['liv']&&_pgData['liv'].length)?_pgData['liv']:(_livAll||[]);
+  if(!list.length){ toast('Aucune livraison affichée'); return; }
+  const restant=list.filter(l=>!(l.prepare===true||l.prepare==='true')).length;
+  if(!confirm('Marquer '+list.length+' livraison(s) affichée(s) comme « préparé » ?\n('+restant+' restante(s) à marquer, sans photo)')) return;
+  const ids=list.map(l=>l.id);
+  try{
+    const r=await api('POST','/livraisons/preparer-masse',{ids,prepare:true});
+    const now=new Date().toISOString();
+    (_livAll||[]).forEach(l=>{ if(ids.indexOf(l.id)!==-1){ l.prepare=true; if(!l.date_preparation) l.date_preparation=now; } });
+    toast('✅ '+((r&&r.modifies)||ids.length)+' livraison(s) marquée(s) préparé');
+    filtrerLivraisons();
+  }catch(e){ toast('❌ '+(e.message||'Erreur')); }
 }
 function filtrerLivraisons(){
   const el=document.getElementById('lv-search');
@@ -1409,7 +1426,7 @@ function initAdresseAutocomplete(){
   const box = document.getElementById('cli-sug');
   if(!inp || !box || inp._acInit) return;
   inp._acInit = true;
-  inp.addEventListener('input', ()=>{
+  const lancer = ()=>{
     _cliGeo = null;
     const q = inp.value.trim();
     clearTimeout(_sugTimer);
@@ -1418,25 +1435,27 @@ function initAdresseAutocomplete(){
       try{
         const r = await api('GET','/places/autocomplete?q='+encodeURIComponent(q));
         if(r && r.error){
-          box.innerHTML = '<div class="addr-item" style="color:#c0392b;cursor:default">⚠️ '+esc(r.error)+'</div>';
+          box.innerHTML = '<div class="addr-item" style="padding:10px 12px;color:#c0392b;cursor:default">⚠️ '+esc(r.error)+'</div>';
           box.style.display='block'; return;
         }
         const preds = (r && r.predictions) || [];
         _lastPreds = preds;
         if(!preds.length){
-          box.innerHTML = '<div class="addr-item" style="color:var(--text3,#888);cursor:default">Aucune adresse — précisez (n° + rue + commune)</div>';
+          box.innerHTML = '<div class="addr-item" style="padding:10px 12px;color:var(--text3,#888);cursor:default">Aucune adresse — précisez (n° + rue + commune)</div>';
           box.style.display='block'; return;
         }
-        box.innerHTML = preds.map((p,i)=>'<div class="addr-item" data-idx="'+i+'">📍 '+esc(p.description)+'</div>').join('');
+        box.innerHTML = preds.map((p,i)=>'<div class="addr-item" data-idx="'+i+'" style="padding:11px 12px;cursor:pointer;border-bottom:1px solid var(--border,#eee)">📍 '+esc(p.description)+'</div>').join('');
         box.style.display='block';
-        box.querySelectorAll('.addr-item').forEach(el=>{ if(el.dataset.idx!==undefined) el.onmousedown = e=>{ e.preventDefault(); choisirAdresse(parseInt(el.dataset.idx)); }; });
+        box.querySelectorAll('.addr-item').forEach(el=>{ if(el.dataset.idx!==undefined){ const h=e=>{ e.preventDefault(); choisirAdresse(parseInt(el.dataset.idx)); }; el.onmousedown=h; el.ontouchstart=h; } });
       }catch(e){
-        box.innerHTML = '<div class="addr-item" style="color:#c0392b;cursor:default">⚠️ '+esc(e.message||'Service indisponible (backend déployé ?)')+'</div>';
+        box.innerHTML = '<div class="addr-item" style="padding:10px 12px;color:#c0392b;cursor:default">⚠️ '+esc(e.message||'Service indisponible (backend déployé ?)')+'</div>';
         box.style.display='block';
       }
-    }, 350);
-  });
-  inp.addEventListener('blur', ()=>{ setTimeout(()=>{ box.style.display='none'; }, 150); });
+    }, 300);
+  };
+  inp.addEventListener('input', lancer);
+  inp.addEventListener('focus', ()=>{ if(inp.value.trim().length>=3 && box.style.display!=='block') lancer(); });
+  inp.addEventListener('blur', ()=>{ setTimeout(()=>{ box.style.display='none'; }, 200); });
 }
 async function choisirAdresse(idx){
   const box = document.getElementById('cli-sug');

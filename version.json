@@ -1,7 +1,16 @@
 {
-  "version": "2026.06.25.10",
+  "version": "2026.06.25.11",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25.11",
+      "date": "25/06/2026",
+      "titre": "Préparé en masse + autocomplétion adresse robuste",
+      "notes": [
+        "Onglet Livraisons : bouton « 🧰 Tout marquer préparé » qui tope d'un coup toutes les livraisons affichées (de la date/zone filtrée) en statut préparé, sans photo.",
+        "Modif client : autocomplétion d'adresse robustifiée (déclenchement aussi au clic dans le champ, sélection tactile mobile, suggestions plus lisibles). Libellé corrigé (Base Adresse Nationale, pas Google)."
+      ]
+    },
     {
       "v": "2026.06.25.10",
       "date": "25/06/2026",
