@@ -81,6 +81,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ovl .close{margin-top:16px;width:100%;padding:12px;border:none;border-radius:10px;background:var(--surface2);color:var(--text);font-weight:700;cursor:pointer}
 #lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:9600;padding:16px}
 #lightbox img{max-width:100%;max-height:90vh;border-radius:10px}
+.qte-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.qte-grid label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--text2);font-weight:600}
+.qte-grid input{width:100%;padding:9px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:16px;text-align:center}
+.btn-bo{width:100%;text-align:left;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:11px 13px;font-size:13px;cursor:pointer}
+.btn-bo span{color:var(--gold);font-weight:600}
+.bo-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.bo-row span{font-size:14px}
+.bo-row input{width:74px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:16px;text-align:center}
 </style>
 </head>
 <body>
@@ -125,13 +133,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="close" onclick="fermerNouveautes()">Fermer</button>
   </div>
 </div>
+<div class="ovl" id="boModal">
+  <div class="box">
+    <h3>🥤 Boissons préparées</h3>
+    <div id="boBox"></div>
+    <button class="close" onclick="validerBoissonsPrep()">OK</button>
+  </div>
+</div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lightboxImg" src="" alt=""></div>
 <div id="toast"></div>
 
 <script>
 const CFG = { API_URL: 'https://ajcvbackend-production.up.railway.app' };
 const VERSION_URL = 'https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/version.json';
-const state = { token:'', prenom:'', login:'', role:'', tokenExpiry:0, orders:[], photos:{}, search:'', _date:'' };
+const state = { token:'', prenom:'', login:'', role:'', tokenExpiry:0, orders:[], photos:{}, search:'', _date:'', boissonsRef:[], _boId:null };
 
 /* ─────────── TOAST ─────────── */
 let _toastT=null;
@@ -203,7 +218,18 @@ function lancerApp(){
   document.getElementById('userTag').textContent=' · '+(state.prenom||state.login);
   const dp=document.getElementById('datePicker');
   if(!dp.value) dp.value=new Date().toISOString().split('T')[0];
+  chargerBoissonsRef();
   chargerPrep(true);
+}
+async function chargerBoissonsRef(){
+  try{
+    const resp=await fetch(`${CFG.API_URL}/boissons`,{headers:{'Authorization':`Bearer ${state.token}`}});
+    if(!resp.ok) return;
+    const data=await resp.json();
+    const list=data.boissons||data||[];
+    state.boissonsRef=list.filter(b=>b.actif!==false);
+    if((state.orders||[]).length) renderPrep();
+  }catch(_){}
 }
 function getDateSelectionnee(){
   const p=document.getElementById('datePicker');
@@ -215,6 +241,7 @@ function getDateSelectionnee(){
 /* ─────────── HELPERS COMMANDE ─────────── */
 function colisDe(l){ return parseInt(l.nb_colis||l.colis||0)||0; }
 function charbonsDe(l){ return parseInt(l.nb_charbons||0)||0; }
+function cadeauxDe(l){ return parseInt(l.nb_cadeaux||0)||0; }
 function boissonsDetailDe(l){
   let d=l.boissons_detail;
   if(typeof d==='string'){ try{ d=JSON.parse(d); }catch(_){ d={}; } }
@@ -250,16 +277,23 @@ function renderPrep(){
     const refaire=!!l.photo_a_refaire && !fait;
     const bd=boissonsDetailDe(l);
     const bdTxt=Object.keys(bd).length?Object.entries(bd).map(([n,q])=>`${n}×${q}`).join(' · '):'';
-    const qte=`📦 ${colisDe(l)} colis${bdTxt?` · 🥤 ${bdTxt}`:''}${charbonsDe(l)?` · 🔥 ${charbonsDe(l)}`:''}`;
+    const qteTxt=`📦 ${colisDe(l)} colis${bdTxt?` · 🥤 ${bdTxt}`:''}${charbonsDe(l)?` · 🔥 ${charbonsDe(l)}`:''}${cadeauxDe(l)?` · 🎁 ${cadeauxDe(l)}`:''}`;
     const search=(String(l.client_nom||l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
     let inner=`<div class="c-top"><div><div class="c-client">${esc(l.client_nom||l.client||'')}</div><div class="c-sub">${esc(l.ville||'')} · BL ${esc(l.bl||'—')}</div></div>`;
     if(fait) inner+=`<span class="c-badge b-done">✅ Préparé</span>`;
     else if(refaire) inner+=`<span class="c-badge b-refaire">📷 Photo à refaire</span>`;
-    inner+=`</div><div class="c-qte">${qte}</div>`;
+    inner+=`</div>`;
     if(fait){
+      inner+=`<div class="c-qte">${qteTxt}</div>`;
       inner+=`<img class="thumb-done" src="${l.photo_preparation||''}" onclick="agrandir('${(l.photo_preparation||'').replace(/'/g,'%27')}')" alt="photo préparation">`;
     } else {
-      inner+=`<input type="file" accept="image/*" capture="environment" id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
+      inner+=`<div class="qte-grid">
+          <label>📦 Colis<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_colis" value="${colisDe(l)}" onchange="majQte('${l.id}','nb_colis',this.value)"></label>
+          <label>🔥 Charbons<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_charbons" value="${charbonsDe(l)}" onchange="majQte('${l.id}','nb_charbons',this.value)"></label>
+          <label>🎁 Cadeaux<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_cadeaux" value="${cadeauxDe(l)}" onchange="majQte('${l.id}','nb_cadeaux',this.value)"></label>
+        </div>
+        <button class="btn-bo" onclick="ouvrirBoissonsPrep('${l.id}')">🥤 Boissons : <span id="bolbl-${l.id}">${bdTxt||'aucune'}</span> ✏️</button>
+        <input type="file" accept="image/*" capture="environment" id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
         <div class="c-actions">
           <button class="btn-photo" onclick="document.getElementById('file-${l.id}').click()">📷 Photo</button>
           <img id="prev-${l.id}" class="thumb" style="display:none" alt="">
@@ -311,15 +345,23 @@ async function photoChoisie(id,input){
 async function validerPrep(id){
   const photo=state.photos[id];
   if(!photo){ showToast('📷 Prends d\'abord la photo','error'); return; }
+  const l=(state.orders||[]).find(x=>String(x.id)===String(id));
+  const bd=l?boissonsDetailDe(l):{};
+  const body={ id, photo,
+    nb_colis: lireQte(id,'nb_colis', l?colisDe(l):0),
+    nb_charbons: lireQte(id,'nb_charbons', l?charbonsDe(l):0),
+    nb_cadeaux: lireQte(id,'nb_cadeaux', l?cadeauxDe(l):0),
+    boissons_detail: bd,
+    nb_boissons: Object.values(bd).reduce((a,c)=>a+(parseInt(c)||0),0) };
   const btn=document.getElementById('val-'+id);
   if(btn){ btn.disabled=true; btn.textContent='⏳…'; }
   try{
-    const resp=await fetch(`${CFG.API_URL}/livraisons/preparation`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token}`},body:JSON.stringify({id,photo})});
+    const resp=await fetch(`${CFG.API_URL}/livraisons/preparation`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token}`},body:JSON.stringify(body)});
     if(resp.status===401){ sessionExpiree(); return; }
     const r=await resp.json().catch(()=>({}));
     if(resp.ok&&r.success){
-      const l=(state.orders||[]).find(x=>String(x.id)===String(id));
-      if(l){ l.prepare=true; l.photo_preparation=r.url||''; l.photo_a_refaire=false; }
+      if(l){ l.prepare=true; l.photo_preparation=r.url||''; l.photo_a_refaire=false;
+        l.nb_colis=body.nb_colis; l.nb_charbons=body.nb_charbons; l.nb_cadeaux=body.nb_cadeaux; l.boissons_detail=bd; l.nb_boissons=body.nb_boissons; }
       delete state.photos[id];
       showToast('✅ Préparation validée','success');
       renderPrep();
@@ -333,6 +375,41 @@ async function validerPrep(id){
   }
 }
 function agrandir(url){ if(!url) return; document.getElementById('lightboxImg').src=url; document.getElementById('lightbox').style.display='flex'; }
+
+/* ─────────── SAISIE QUANTITÉS ─────────── */
+function majQte(id, champ, val){
+  const l=(state.orders||[]).find(x=>String(x.id)===String(id));
+  if(l) l[champ]=Math.max(0,parseInt(val)||0);
+}
+function lireQte(id, champ, fallback){
+  const e=document.getElementById('qin-'+id+'-'+champ);
+  return e ? Math.max(0,parseInt(e.value)||0) : (fallback||0);
+}
+function ouvrirBoissonsPrep(id){
+  state._boId=id;
+  const l=(state.orders||[]).find(x=>String(x.id)===String(id));
+  const bd=l?boissonsDetailDe(l):{};
+  const refs=state.boissonsRef||[];
+  document.getElementById('boBox').innerHTML = refs.length
+    ? refs.map(b=>`<div class="bo-row"><span>${esc(b.nom)}</span><input type="number" min="0" inputmode="numeric" id="bo-${esc(String(b.id))}" data-nom="${esc(b.nom)}" value="${parseInt(bd[b.nom])||0}"></div>`).join('')
+    : '<div style="opacity:.7;font-size:13px;padding:8px 0">Aucune référence boisson. Ajoute-les dans l\'admin (onglet 🥤 Boissons).</div>';
+  document.getElementById('boModal').style.display='flex';
+}
+function validerBoissonsPrep(){
+  const id=state._boId;
+  if(id!=null){
+    const l=(state.orders||[]).find(x=>String(x.id)===String(id));
+    const bd={};
+    document.querySelectorAll('#boBox input[data-nom]').forEach(inp=>{
+      const q=Math.max(0,parseInt(inp.value)||0);
+      if(q>0) bd[inp.getAttribute('data-nom')]=q;
+    });
+    if(l){ l.boissons_detail=bd; l.nb_boissons=Object.values(bd).reduce((a,c)=>a+c,0); }
+  }
+  fermerBoissonsPrep();
+  renderPrep();
+}
+function fermerBoissonsPrep(){ state._boId=null; document.getElementById('boModal').style.display='none'; }
 
 /* ─────────── UTILS ─────────── */
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }

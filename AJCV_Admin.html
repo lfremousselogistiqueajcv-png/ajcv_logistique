@@ -246,6 +246,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div><label>Téléphone</label><input id="fl-tel"></div>
       <div><label>Colis</label><input id="fl-colis" type="number" value="1"></div>
       <div><label>🔥 Charbons</label><input id="fl-charbons" type="number" min="0" value="0"></div>
+      <div><label>🎁 Cadeaux</label><input id="fl-cadeaux" type="number" min="0" value="0"></div>
       <div style="grid-column:1/-1"><label>🥤 Boissons (par référence)</label><div id="fl-boissons-box" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px"></div></div>
       <div style="grid-column:1/-1"><label>Email (pour le bon de réception)</label><input id="fl-email" type="email" placeholder="prérempli depuis la fiche client"></div>
       <div style="grid-column:1/-1"><label>Indications</label><input id="fl-indic" placeholder="Instructions de livraison..."></div>
@@ -762,6 +763,7 @@ async function ouvrirAjoutLiv(){
   window._selClientId=null; window._selClientEmail=''; window._selClientTel=''; window._selClientAdresse=''; window._selClientVille=''; window._selClientCp='';
   document.getElementById('fl-colis').value=1;
   document.getElementById('fl-charbons').value=0;
+  document.getElementById('fl-cadeaux').value=0;
   const actives=(_boissons||[]).filter(b=>b.actif!==false);
   document.getElementById('fl-boissons-box').innerHTML = actives.length
     ? actives.map(b=>`<div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 9px"><span style="font-size:12px">${esc(b.nom)}</span><input id="flb-${esc(String(b.id))}" type="number" min="0" value="0" inputmode="numeric" style="width:54px;padding:4px;text-align:center"></div>`).join('')
@@ -841,6 +843,7 @@ async function creerLivraison(){
   body.boissons_detail=boissons_detail;
   body.nb_boissons=Object.values(boissons_detail).reduce((a,c)=>a+c,0);
   body.nb_charbons=parseInt(document.getElementById('fl-charbons').value)||0;
+  body.nb_cadeaux=parseInt(document.getElementById('fl-cadeaux').value)||0;
   // Synchroniser les infos saisies vers la fiche client (email, téléphone, adresse) si modifiées/ajoutées
   if(window._selClientId){
     const upd={};
