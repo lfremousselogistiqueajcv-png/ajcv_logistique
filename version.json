@@ -1,7 +1,16 @@
 {
-  "version": "2026.06.25.3",
+  "version": "2026.06.25.4",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25.4",
+      "date": "25/06/2026",
+      "titre": "Préparateur : plusieurs photos par commande",
+      "notes": [
+        "📷 Appli préparation : on peut désormais ajouter plusieurs photos à une commande (vue d'ensemble, étiquettes, détails…) et en retirer une avant de valider.",
+        "🖼️ Toutes les photos d'une préparation sont visibles dans l'onglet « Préparé » et dans l'onglet Préparation de l'admin."
+      ]
+    },
     {
       "v": "2026.06.25.3",
       "date": "25/06/2026",
