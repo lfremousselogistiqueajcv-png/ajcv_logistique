@@ -1,7 +1,15 @@
 {
-  "version": "2026.06.25.11",
+  "version": "2026.06.25.12",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25.12",
+      "date": "25/06/2026",
+      "titre": "Correctif : livreurs absents du plan d'affectation",
+      "notes": [
+        "Plan de tournée : les livreurs sont de nouveau listés d'après la casquette 🚚 « Peut livrer » (et non plus le seul rôle « Livreur »). Un livreur ayant un autre rôle mais la casquette cochée réapparaît dans le plan et dans les menus d'affectation."
+      ]
+    },
     {
       "v": "2026.06.25.11",
       "date": "25/06/2026",
