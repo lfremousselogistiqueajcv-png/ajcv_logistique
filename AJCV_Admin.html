@@ -484,8 +484,8 @@ function driverOptions(sel){
 async function renderPlan(){
   const today = new Date().toISOString().split('T')[0];
   if(!_plan.date) _plan.date = today;
-  const du = await api('GET','/admin/users').catch(()=>({users:[]}));
-  _plan.drivers = (du.users||[]).filter(u=>(u.peut_livrer!=null ? !!u.peut_livrer : u.role==='Livreur')).map(u=>({ nom:nomLivreur(u), zone:u.zone||'' }));
+  const du = await api('GET','/livreurs').catch(()=>({livreurs:[]}));
+  _plan.drivers = (du.livreurs||[]).map(d=>({ nom:d.nom, zone:d.zone||'' }));
   document.getElementById('content').innerHTML = `
     <div class="card">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">

@@ -1,7 +1,15 @@
 {
-  "version": "2026.06.25.12",
+  "version": "2026.06.25.13",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25.13",
+      "date": "25/06/2026",
+      "titre": "Livreurs visibles sur les comptes non-Admin (dépôt)",
+      "notes": [
+        "Le plan de tournée charge la liste des livreurs via un nouvel endpoint léger accessible à tout compte connecté (ex. DEPOT_JEANFRED). Avant, seul un compte Admin pouvait voir les livreurs et donc affecter."
+      ]
+    },
     {
       "v": "2026.06.25.12",
       "date": "25/06/2026",
