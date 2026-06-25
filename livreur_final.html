@@ -2717,7 +2717,7 @@ async function envoyerSignature() {
       showToast(msg, 'success');
       notifier('Bon de réception signé — ' + l.client);
     } else {
-      showToast('❌ ' + (data.error || 'Erreur serveur'), 'error');
+      showToast('❌ ' + (data.error || 'Erreur serveur') + (data.detail ? '\n· ' + data.detail : ''), 'error');
     }
   } catch(err) {
     // Réseau lent : le serveur a peut-être déjà enregistré le bon de réception. On vérifie avant d'alarmer.
