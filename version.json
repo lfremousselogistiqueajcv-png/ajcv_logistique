@@ -1,7 +1,44 @@
 {
-  "version": "2026.06.25.15",
+  "version": "2026.06.25.19",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.25.19",
+      "date": "25/06/2026",
+      "titre": "Signature : ouverture fiable (fini le « réactualiser avant »)",
+      "notes": [
+        "L'écran de signature dimensionne le canvas une fois la fenêtre réellement affichée (au lieu d'un délai fixe), donc plus besoin de rafraîchir la page quand ça ne s'ouvrait pas correctement.",
+        "Filet supplémentaire : le canvas se réinitialise automatiquement au moment où le doigt touche, s'il n'était pas encore prêt."
+      ]
+    },
+    {
+      "v": "2026.06.25.18",
+      "date": "25/06/2026",
+      "titre": "Signature : fiabilité sur smartphones Samsung",
+      "notes": [
+        "Pad de signature revu : le tracé suit désormais le doigt précisément quelle que soit la densité/taille d'écran (correction du décalage sur Samsung standard).",
+        "Ajout d'un garde anti-canvas-vide si l'écran de signature met du temps à s'afficher (appareils plus lents)."
+      ]
+    },
+    {
+      "v": "2026.06.25.17",
+      "date": "25/06/2026",
+      "titre": "Nouvelles quantités : PLV et TPE (comme charbon)",
+      "notes": [
+        "Deux nouveaux compteurs PLV (🪧) et TPE (💳) ajoutés partout où il y a les charbons : formulaire d'ajout et modale de modification (admin), chargement et signature (livreur), bon de réception PDF.",
+        "Les détails PLV/TPE s'affichent côté livreur (chargement, détail commande, récap signature) quand ils sont présents.",
+        "⚠️ Penser à exécuter ajout_plv_tpe.sql dans Supabase (colonnes nb_plv, nb_tpe)."
+      ]
+    },
+    {
+      "v": "2026.06.25.16",
+      "date": "25/06/2026",
+      "titre": "Signatures : gestion des colonnes trop courtes (varchar)",
+      "notes": [
+        "Cause trouvée : une colonne de la table signatures (date_heure) est trop courte (varchar(10)) pour la date + heure envoyée. Le serveur tronque désormais automatiquement les valeurs trop longues au lieu d'échouer — la signature s'enregistre toujours.",
+        "ALTER TABLE optionnel fourni pour conserver l'heure complète."
+      ]
+    },
     {
       "v": "2026.06.25.15",
       "date": "25/06/2026",

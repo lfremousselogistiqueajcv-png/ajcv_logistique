@@ -400,6 +400,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button type="button" id="sigBoissonsBtn" class="sig-input" style="text-align:left;cursor:pointer;color:var(--gold);font-weight:600" onclick="if(state.livActive)ouvrirBoissons(state.livActive.id,'signature')">—</button>
     <span class="sig-field-label">🔥 Charbons remis</span>
     <input type="number" class="sig-input" id="sigCharbons" placeholder="0" min="0">
+    <span class="sig-field-label">🪧 PLV remises</span>
+    <input type="number" class="sig-input" id="sigPlv" placeholder="0" min="0">
+    <span class="sig-field-label">💳 TPE remis</span>
+    <input type="number" class="sig-input" id="sigTpe" placeholder="0" min="0">
     <span class="sig-field-label">Règlement récupéré</span>
     <select class="sig-input" id="sigReglement" onchange="sigReglementChange()">
       <option value="">Aucun</option>
@@ -1073,6 +1077,8 @@ function boissonsDe(l) {
   return Math.max(0, parseInt(l.nb_boissons) || 0);
 }
 function charbonsDe(l) { return Math.max(0, parseInt(l.nb_charbons) || 0); }
+function plvDe(l) { return Math.max(0, parseInt(l.nb_plv) || 0); }
+function tpeDe(l) { return Math.max(0, parseInt(l.nb_tpe) || 0); }
 
 // ── Catalogue des références boissons (géré dans l'admin) ──
 async function fetchBoissonsRef(){
@@ -1196,7 +1202,7 @@ async function renderPreparation(){
     const done = !!l.prepare;
     const bd = boissonsDetailDe(l) || {};
     const bdTxt = Object.keys(bd).length ? Object.entries(bd).map(([n,q]) => `${n}×${q}`).join(' · ') : '';
-    const ligneQte = `📦 ${colisDe(l)} colis${bdTxt ? ` · 🥤 ${bdTxt}` : ''}${charbonsDe(l) ? ` · 🔥 ${charbonsDe(l)}` : ''}`;
+    const ligneQte = `📦 ${colisDe(l)} colis${bdTxt ? ` · 🥤 ${bdTxt}` : ''}${charbonsDe(l) ? ` · 🔥 ${charbonsDe(l)}` : ''}${plvDe(l) ? ` · 🪧 ${plvDe(l)}` : ''}${tpeDe(l) ? ` · 💳 ${tpeDe(l)}` : ''}`;
     const search = (String(l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
     html += `<div class="charge-card prep-card${done ? ' charge-ok' : ''}" data-search="${search}">
       <div class="charge-top">
@@ -1289,6 +1295,8 @@ function renderChargement() {
   const totalColis = livs.reduce((s,l) => s + colisDe(l), 0);
   const totalBoissons = livs.reduce((s,l) => s + boissonsDe(l), 0);
   const totalCharbons = livs.reduce((s,l) => s + charbonsDe(l), 0);
+  const totalPlv = livs.reduce((s,l) => s + plvDe(l), 0);
+  const totalTpe = livs.reduce((s,l) => s + tpeDe(l), 0);
 
   if (livs.length === 0) {
     content.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>
@@ -1303,7 +1311,9 @@ function renderChargement() {
     <div class="kpi-tile"><div class="kpi-val o">${livs.length - charges}</div><div class="kpi-lbl">Restantes</div></div>
     <div class="kpi-tile"><div class="kpi-val b">${totalColis}</div><div class="kpi-lbl">📦 Colis</div></div>
     <div class="kpi-tile"><div class="kpi-val b">${totalBoissons}</div><div class="kpi-lbl">🥤 Boissons</div></div>
-    <div class="kpi-tile"><div class="kpi-val b">${totalCharbons}</div><div class="kpi-lbl">🔥 Charbons</div></div>
+    <div class="kpi-tile"><div class="kpi-val b">${totalCharbons}</div><div class="kpi-lbl">🔥 Charbons</div></div>${totalPlv?`
+    <div class="kpi-tile"><div class="kpi-val b">${totalPlv}</div><div class="kpi-lbl">🪧 PLV</div></div>`:''}${totalTpe?`
+    <div class="kpi-tile"><div class="kpi-val b">${totalTpe}</div><div class="kpi-lbl">💳 TPE</div></div>`:''}
   </div>`;
 
   html += `<div class="optimize-bar"><div class="optimize-info"><strong>🚚 Chargement du camion</strong>
@@ -1328,7 +1338,9 @@ function renderChargement() {
       <div class="charge-steppers">
         <div class="stp"><span class="stp-lbl">📦 Colis</span><button onclick="ajusterColisCharge('${l.id}',-1)">−</button><b>${colisDe(l)}</b><button onclick="ajusterColisCharge('${l.id}',1)">+</button></div>
         <div class="stp"><span class="stp-lbl">🥤 Boissons</span><button onclick="ouvrirBoissons('${l.id}','chargement')" style="border:1px solid var(--border);background:var(--surface);color:var(--gold);font-weight:700;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer">${boissonsDe(l)} ▸</button></div>
-        <div class="stp"><span class="stp-lbl">🔥 Charbons</span><button onclick="ajusterCharbons('${l.id}',-1)">−</button><b>${charbonsDe(l)}</b><button onclick="ajusterCharbons('${l.id}',1)">+</button></div>
+        <div class="stp"><span class="stp-lbl">🔥 Charbons</span><button onclick="ajusterCharbons('${l.id}',-1)">−</button><b>${charbonsDe(l)}</b><button onclick="ajusterCharbons('${l.id}',1)">+</button></div>${plvDe(l)?`
+        <div class="stp"><span class="stp-lbl">🪧 PLV</span><button onclick="ajusterPlv('${l.id}',-1)">−</button><b>${plvDe(l)}</b><button onclick="ajusterPlv('${l.id}',1)">+</button></div>`:''}${tpeDe(l)?`
+        <div class="stp"><span class="stp-lbl">💳 TPE</span><button onclick="ajusterTpe('${l.id}',-1)">−</button><b>${tpeDe(l)}</b><button onclick="ajusterTpe('${l.id}',1)">+</button></div>`:''}
       </div>
     </div>`;
   });
@@ -1377,6 +1389,18 @@ function ajusterCharbons(id, delta) {
   renderChargement();
   envoyerChargement(l, estCharge(l));
 }
+function ajusterPlv(id, delta) {
+  const l = trouverLiv(id); if (!l) return;
+  l.nb_plv = Math.max(0, plvDe(l) + delta);
+  renderChargement();
+  envoyerChargement(l, estCharge(l));
+}
+function ajusterTpe(id, delta) {
+  const l = trouverLiv(id); if (!l) return;
+  l.nb_tpe = Math.max(0, tpeDe(l) + delta);
+  renderChargement();
+  envoyerChargement(l, estCharge(l));
+}
 
 function toutCharger() {
   const set = chargeSet();
@@ -1391,7 +1415,7 @@ async function envoyerChargement(l, charge) {
     await fetch(`${CFG.API_URL}/livraisons/chargement`, {
       method: 'POST',
       headers: {'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
-      body: JSON.stringify({ id: l.id, charge, colis: colisDe(l), boissons: boissonsDe(l), boissons_detail: boissonsDetailDe(l), charbons: charbonsDe(l) }),
+      body: JSON.stringify({ id: l.id, charge, colis: colisDe(l), boissons: boissonsDe(l), boissons_detail: boissonsDetailDe(l), charbons: charbonsDe(l), plv: plvDe(l), tpe: tpeDe(l) }),
     });
   } catch(_) { /* le localStorage conserve l'état côté livreur */ }
 }
@@ -2238,6 +2262,7 @@ function ouvrirDetail(idx) {
       <div class="detail-row"><span class="detail-label">N° BL</span><span class="detail-val" style="font-family:monospace">${l.bl || '—'}</span></div>
       <div class="detail-row"><span class="detail-label">Nb colis</span><span class="detail-val">${l.nbColis || '—'}</span></div>
       ${(boissonsDe(l)||charbonsDe(l)) ? `<div class="detail-row"><span class="detail-label">Boissons / Charbons</span><span class="detail-val">🥤 ${boissonsDe(l)} · 🔥 ${charbonsDe(l)}</span></div>` : ''}
+      ${(plvDe(l)||tpeDe(l)) ? `<div class="detail-row"><span class="detail-label">PLV / TPE</span><span class="detail-val">🪧 ${plvDe(l)} · 💳 ${tpeDe(l)}</span></div>` : ''}
       <div class="detail-row"><span class="detail-label">Statut</span><span class="detail-val"><span class="pill ${statCls}">${l.statut || 'À livrer'}</span></span></div>
     </div>
     ${routeHtml}
@@ -2349,7 +2374,7 @@ function ouvrirSignature(idx) {
   state.livActive = l;
 
   document.getElementById('sig-recap').innerHTML =
-    `<strong style="color:var(--text)">${l.client}</strong> · ${l.ville || ''}<br>BL: <strong style="color:var(--gold)">${l.bl || '—'}</strong> · ${l.nb_colis || l.nbColis || '—'} colis${boissonsDe(l)?` · ${boissonsDe(l)} 🥤`:''}${charbonsDe(l)?` · ${charbonsDe(l)} 🔥`:''}`;
+    `<strong style="color:var(--text)">${l.client}</strong> · ${l.ville || ''}<br>BL: <strong style="color:var(--gold)">${l.bl || '—'}</strong> · ${l.nb_colis || l.nbColis || '—'} colis${boissonsDe(l)?` · ${boissonsDe(l)} 🥤`:''}${charbonsDe(l)?` · ${charbonsDe(l)} 🔥`:''}${plvDe(l)?` · ${plvDe(l)} 🪧`:''}${tpeDe(l)?` · ${tpeDe(l)} 💳`:''}`;
   document.getElementById('sigStatut').value = '✅ Livré';
   sigStatutChange();
   document.getElementById('sigBL').value    = l.bl || '';
@@ -2357,6 +2382,8 @@ function ouvrirSignature(idx) {
   document.getElementById('sigColis').value = l.nb_colis || l.nbColis || '';
   majBoissonsBtnSignature(l);
   document.getElementById('sigCharbons').value = charbonsDe(l) || '';
+  document.getElementById('sigPlv').value = plvDe(l) || '';
+  document.getElementById('sigTpe').value = tpeDe(l) || '';
   document.getElementById('sigObs').value   = '';
   document.getElementById('sigEmail').value = '';
   document.getElementById('sigReserve').checked = false;
@@ -2376,7 +2403,7 @@ function ouvrirSignature(idx) {
   }
   clearSig();
   document.getElementById('sig-modal').classList.add('active');
-  setTimeout(resizeCanvas, 150);
+  requestAnimationFrame(() => requestAnimationFrame(resizeCanvas));
 }
 
 function fermerSignature() {
@@ -2385,26 +2412,30 @@ function fermerSignature() {
 
 function resizeCanvas() {
   const wrap  = document.getElementById('sigWrap');
+  const w = wrap ? wrap.offsetWidth : 0;
+  if (!w) { setTimeout(resizeCanvas, 100); return; }   // layout pas prêt (appareil lent) → on réessaie
   const ratio = window.devicePixelRatio || 1;
-  canvas.width  = wrap.offsetWidth * ratio;
-  canvas.height = 160 * ratio;
-  ctx.scale(ratio, ratio);
+  canvas.width  = Math.round(w * ratio);
+  canvas.height = Math.round(160 * ratio);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);   // pas de scale : getPos convertit déjà en pixels internes
   ctx.strokeStyle = '#111827';
-  ctx.lineWidth   = 2.5;
+  ctx.lineWidth   = 2.5 * ratio;
   ctx.lineCap     = 'round';
   ctx.lineJoin    = 'round';
 }
 
 function getPos(e) {
   const rect = canvas.getBoundingClientRect();
-  if (e.touches) return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
-  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  const src = (e.touches && e.touches[0]) ? e.touches[0] : e;
+  const scaleX = rect.width  ? (canvas.width  / rect.width)  : 1;
+  const scaleY = rect.height ? (canvas.height / rect.height) : 1;
+  return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
 }
 
-canvas.addEventListener('mousedown',  e => { drawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); });
+canvas.addEventListener('mousedown',  e => { if(!canvas.width) resizeCanvas(); drawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); });
 canvas.addEventListener('mousemove',  e => { if(!drawing) return; const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); setSigned(true); });
 canvas.addEventListener('mouseup',    () => drawing=false);
-canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); }, {passive:false});
+canvas.addEventListener('touchstart', e => { e.preventDefault(); if(!canvas.width) resizeCanvas(); drawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); }, {passive:false});
 canvas.addEventListener('touchmove',  e => { e.preventDefault(); if(!drawing) return; const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); setSigned(true); }, {passive:false});
 canvas.addEventListener('touchend',   () => drawing=false);
 
@@ -2413,7 +2444,7 @@ function setSigned(v) {
   document.getElementById('sigHint').style.opacity = v ? '0' : '1';
 }
 function clearSig() {
-  if (canvas.width) ctx.clearRect(0, 0, canvas.width/(window.devicePixelRatio||1), canvas.height/(window.devicePixelRatio||1));
+  if (canvas.width) ctx.clearRect(0, 0, canvas.width, canvas.height);
   setSigned(false);
 }
 // Signature allégée : on redimensionne le canvas haute résolution vers ~600px + fond blanc.
@@ -2636,6 +2667,8 @@ async function envoyerSignature() {
   const nom    = document.getElementById('sigNom').value.trim();
   const colis  = document.getElementById('sigColis').value.trim();
   const charbons = document.getElementById('sigCharbons').value.trim();
+  const plv = document.getElementById('sigPlv').value.trim();
+  const tpe = document.getElementById('sigTpe').value.trim();
   const conforme = !document.getElementById('sigReserve').checked;   // réserve cochée = non conforme
   const obs      = document.getElementById('sigObs').value.trim();    // commentaire toujours transmis
   const reglement = document.getElementById('sigReglement').value;
@@ -2668,6 +2701,8 @@ async function envoyerSignature() {
     boissonsDetail: boissonsDetailDe(l),
     nbBoissons:    String(boissonsDe(l)),
     nbCharbons:    charbons || '0',
+    nbPlv:         plv || '0',
+    nbTpe:         tpe || '0',
     conforme:      conforme,
     zone:          l.zone || '',
     dateHeure,
