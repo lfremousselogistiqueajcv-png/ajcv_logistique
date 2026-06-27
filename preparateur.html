@@ -153,9 +153,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="ovl" id="boModal">
   <div class="box">
-    <h3>🥤 Boissons préparées</h3>
+    <h3 id="boTitre">🥤 Boissons</h3>
     <div id="boBox"></div>
-    <button class="close" onclick="validerBoissonsPrep()">OK</button>
+    <button class="close" onclick="validerProdPrep()">OK</button>
   </div>
 </div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lightboxImg" src="" alt=""></div>
@@ -241,11 +241,13 @@ function lancerApp(){
 }
 async function chargerBoissonsRef(){
   try{
-    const resp=await fetch(`${CFG.API_URL}/boissons`,{headers:{'Authorization':`Bearer ${state.token}`}});
+    const resp=await fetch(`${CFG.API_URL}/boissons?categorie=ALL`,{headers:{'Authorization':`Bearer ${state.token}`}});
     if(!resp.ok) return;
     const data=await resp.json();
-    const list=data.boissons||data||[];
-    state.boissonsRef=list.filter(b=>b.actif!==false);
+    const list=(data.boissons||data||[]).filter(b=>b.actif!==false);
+    state.boissonsRef=list.filter(b=>((b.categorie||'BOISSON').toUpperCase())==='BOISSON');
+    state.prodRefs={BOISSON:[],CHARBON:[],PLV:[],TPE:[]};
+    list.forEach(b=>{ const c=(b.categorie||'BOISSON').toUpperCase(); if(!state.prodRefs[c]) state.prodRefs[c]=[]; state.prodRefs[c].push(b); });
     if((state.orders||[]).length) renderPrep();
   }catch(_){}
 }
@@ -265,6 +267,7 @@ function boissonsDetailDe(l){
   if(typeof d==='string'){ try{ d=JSON.parse(d); }catch(_){ d={}; } }
   return (d&&typeof d==='object')?d:{};
 }
+function heurePrep(v){ try{ const d=new Date(v); if(isNaN(d)) return ''; return d.toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(_){ return ''; } }
 function estPrepare(l){ return !!l.prepare && !l.photo_a_refaire; }
 function estEnCours(l){ return (!!l.en_preparation && !l.prepare) || !!l.photo_a_refaire; }
 function estAPreparer(l){ return !l.prepare && !l.en_preparation && !l.photo_a_refaire; }
@@ -312,12 +315,15 @@ function renderPrep(){
 }
 function carteCommande(l, volet){
   const bd=boissonsDetailDe(l);
-  const bdTxt=Object.keys(bd).length?Object.entries(bd).map(([n,q])=>`${n}×${q}`).join(' · '):'';
-  const qteTxt=`📦 ${colisDe(l)} colis${bdTxt?` · 🥤 ${bdTxt}`:''}${charbonsDe(l)?` · 🔥 ${charbonsDe(l)}`:''}${cadeauxDe(l)?` · 🎁 ${cadeauxDe(l)}`:''}`;
+  const bdTxt=Object.keys(bd).length?Object.entries(bd).map(([n,q])=>`${n} : ${q}`).join(' · '):'';
+  const chTxt=detailTxt(detailDe(l,'charbons_detail'))||(charbonsDe(l)?String(charbonsDe(l)):'');
+  const plvTxt=detailTxt(detailDe(l,'plv_detail'));
+  const tpeTxt=detailTxt(detailDe(l,'tpe_detail'));
+  const qteTxt=`📦 ${colisDe(l)} colis${bdTxt?` · 🥤 ${bdTxt}`:''}${chTxt?` · 🔥 ${chTxt}`:''}${plvTxt?` · 🪧 ${plvTxt}`:''}${tpeTxt?` · 💳 ${tpeTxt}`:''}${cadeauxDe(l)?` · 🎁 ${cadeauxDe(l)}`:''}`;
   const search=(String(l.client_nom||l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
   let inner=`<div class="c-top"><div><div class="c-client">${esc(l.client_nom||l.client||'')}</div><div class="c-sub">${esc(l.ville||'')} · BL ${esc(l.bl||'—')}</div></div>`;
   if(volet==='prepare'){
-    inner+=`<span class="c-badge b-done">✅ Préparé</span></div><div class="c-qte">${qteTxt}</div>`;
+    inner+=`<span class="c-badge b-done">✅ Préparé</span></div><div class="c-qte">${qteTxt}</div>${l.date_preparation?`<div class="c-sub" style="margin-top:4px;color:#059669">🕒 préparée le ${heurePrep(l.date_preparation)}${l.prepare_par?` par ${esc(l.prepare_par)}`:''}</div>`:''}`;
     const _ph=photosDe(l);
     if(_ph.length) inner+=`<div class="thumbs-wrap">`+_ph.map(u=>`<img class="thumb-g" src="${u}" onclick="agrandir('${u.replace(/'/g,'%27')}')" alt="photo">`).join('')+`</div>`;
     return `<div class="card done" data-search="${search}">${inner}</div>`;
@@ -332,10 +338,9 @@ function carteCommande(l, volet){
   inner+=`</div>
     <div class="qte-grid">
       <label>📦 Colis<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_colis" value="${colisDe(l)}" onchange="majQte('${l.id}','nb_colis',this.value)"></label>
-      <label>🔥 Charbons<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_charbons" value="${charbonsDe(l)}" onchange="majQte('${l.id}','nb_charbons',this.value)"></label>
       <label>🎁 Cadeaux<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_cadeaux" value="${cadeauxDe(l)}" onchange="majQte('${l.id}','nb_cadeaux',this.value)"></label>
     </div>
-    <button class="btn-bo" onclick="ouvrirBoissonsPrep('${l.id}')">🥤 Boissons : <span id="bolbl-${l.id}">${bdTxt||'aucune'}</span> ✏️</button>
+    ${PREP_PRODS.map(p=>{const dt=detailTxt(detailDe(l,p.detail));return `<button class="btn-bo" onclick="ouvrirProdPrep('${l.id}','${p.cat}')">${p.ic} ${p.label} — <span>${dt||'aucun'}</span> ✏️</button>`;}).join('')}
     <input type="file" accept="image/*" capture="environment" id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
     <div id="thumbs-${l.id}" class="thumbs-wrap"></div>
     <div class="c-actions">
@@ -402,13 +407,15 @@ async function validerPrep(id){
   const photos=Array.isArray(state.photos[id])?state.photos[id]:[];
   if(!photos.length){ showToast('📷 Ajoute au moins une photo','error'); return; }
   const l=(state.orders||[]).find(x=>String(x.id)===String(id));
-  const bd=l?boissonsDetailDe(l):{};
+  const bd=l?detailDe(l,'boissons_detail'):{};
   const body={ id, photos,
     nb_colis: lireQte(id,'nb_colis', l?colisDe(l):0),
-    nb_charbons: lireQte(id,'nb_charbons', l?charbonsDe(l):0),
     nb_cadeaux: lireQte(id,'nb_cadeaux', l?cadeauxDe(l):0),
     boissons_detail: bd,
-    nb_boissons: Object.values(bd).reduce((a,c)=>a+(parseInt(c)||0),0) };
+    nb_boissons: Object.values(bd).reduce((a,c)=>a+(parseInt(c)||0),0),
+    charbons_detail: l?detailDe(l,'charbons_detail'):{},
+    plv_detail: l?detailDe(l,'plv_detail'):{},
+    tpe_detail: l?detailDe(l,'tpe_detail'):{} };
   const btn=document.getElementById('val-'+id);
   if(btn){ btn.disabled=true; btn.textContent='⏳…'; }
   try{
@@ -417,7 +424,10 @@ async function validerPrep(id){
     const r=await resp.json().catch(()=>({}));
     if(resp.ok&&r.success){
       if(l){ l.prepare=true; l.en_preparation=false; l.photo_preparation=r.url||''; l.photos_preparation=r.urls||[]; l.photo_a_refaire=false;
-        l.nb_colis=body.nb_colis; l.nb_charbons=body.nb_charbons; l.nb_cadeaux=body.nb_cadeaux; l.boissons_detail=bd; l.nb_boissons=body.nb_boissons; }
+        l.nb_colis=body.nb_colis; l.nb_cadeaux=body.nb_cadeaux; l.boissons_detail=bd; l.nb_boissons=body.nb_boissons;
+        l.charbons_detail=body.charbons_detail; l.nb_charbons=Object.values(body.charbons_detail||{}).reduce((a,c)=>a+(parseInt(c)||0),0);
+        l.plv_detail=body.plv_detail; l.nb_plv=Object.values(body.plv_detail||{}).reduce((a,c)=>a+(parseInt(c)||0),0);
+        l.tpe_detail=body.tpe_detail; l.nb_tpe=Object.values(body.tpe_detail||{}).reduce((a,c)=>a+(parseInt(c)||0),0); }
       delete state.photos[id];
       showToast('✅ Préparation validée','success');
       renderPrep();
@@ -492,6 +502,40 @@ function validerBoissonsPrep(){
   renderPrep();
 }
 function fermerBoissonsPrep(){ state._boId=null; document.getElementById('boModal').style.display='none'; }
+function detailDe(l, field){ let d=l?l[field]:null; if(typeof d==='string'){ try{ d=JSON.parse(d); }catch(_){ d={}; } } return (d&&typeof d==='object')?d:{}; }
+function detailTxt(d){ const k=Object.keys(d||{}); return k.length?Object.entries(d).map(([n,q])=>`${n} : ${q}`).join(' · '):''; }
+const PREP_PRODS=[
+  {cat:'BOISSON',ic:'🥤',label:'Boissons',detail:'boissons_detail',nb:'nb_boissons'},
+  {cat:'CHARBON',ic:'🔥',label:'Charbons',detail:'charbons_detail',nb:'nb_charbons'},
+  {cat:'PLV',ic:'🪧',label:'PLV',detail:'plv_detail',nb:'nb_plv'},
+  {cat:'TPE',ic:'💳',label:'TPE',detail:'tpe_detail',nb:'nb_tpe'},
+];
+function prodCfgPrep(cat){ return PREP_PRODS.find(p=>p.cat===cat)||PREP_PRODS[0]; }
+function ouvrirProdPrep(id,cat){
+  state._boId=id; state._boCat=cat;
+  const cfg=prodCfgPrep(cat);
+  const l=(state.orders||[]).find(x=>String(x.id)===String(id));
+  const d=l?detailDe(l,cfg.detail):{};
+  const refs=(state.prodRefs&&state.prodRefs[cat])||[];
+  const t=document.getElementById('boTitre'); if(t) t.textContent=cfg.ic+' '+cfg.label;
+  document.getElementById('boBox').innerHTML = refs.length
+    ? refs.map(b=>`<div class="bo-row"><span>${esc(b.nom)}</span><input type="number" min="0" inputmode="numeric" data-nom="${esc(b.nom)}" value="${parseInt(d[b.nom])||0}"></div>`).join('')
+    : `<div style="opacity:.7;font-size:13px;padding:8px 0">Aucune référence ${esc(cfg.label)}. Ajoute-les dans l'admin (onglet 📦 Produits).</div>`;
+  document.getElementById('boModal').style.display='flex';
+}
+function validerProdPrep(){
+  const id=state._boId, cfg=prodCfgPrep(state._boCat);
+  if(id!=null){
+    const l=(state.orders||[]).find(x=>String(x.id)===String(id));
+    const d={};
+    document.querySelectorAll('#boBox input[data-nom]').forEach(inp=>{ const q=Math.max(0,parseInt(inp.value)||0); if(q>0) d[inp.getAttribute('data-nom')]=q; });
+    if(l){ l[cfg.detail]=d; l[cfg.nb]=Object.values(d).reduce((a,c)=>a+c,0); }
+  }
+  fermerProdPrep();
+  renderPrep();
+}
+function fermerProdPrep(){ state._boId=null; state._boCat=null; document.getElementById('boModal').style.display='none'; }
+
 
 /* ─────────── UTILS ─────────── */
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }

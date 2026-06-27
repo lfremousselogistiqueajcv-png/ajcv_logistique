@@ -128,11 +128,12 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div class="nav-tab active" data-tab="livraisons" onclick="go('livraisons')">📦 Livraisons</div>
       <div class="nav-tab" data-tab="prep" onclick="go('prep')">🧰 Préparation</div>
       <div class="nav-tab" data-tab="plan" onclick="go('plan')">🗺️ Plan de tournée</div>
+      <div class="nav-tab" data-tab="chargement" onclick="go('chargement')">🚚 Chargement</div>
       <div class="nav-tab" data-tab="zones" onclick="go('zones')">📍 Zones</div>
       <div class="nav-tab" data-tab="impLiv" onclick="go('impLiv')">📥 Import Livraisons</div>
       <div class="nav-tab" data-tab="impCli" onclick="go('impCli')">📥 Import Clients</div>
       <div class="nav-tab" data-tab="clients" onclick="go('clients')">🏪 Clients</div>
-      <div class="nav-tab" data-tab="boissons" onclick="go('boissons')">🥤 Boissons</div>
+      <div class="nav-tab" data-tab="boissons" onclick="go('boissons')">📦 Produits</div>
       <div class="nav-tab" data-tab="users" onclick="go('users')">🔐 Utilisateurs</div>
       <div class="nav-tab" data-tab="docs" onclick="go('docs')">📄 Documents</div>
       <div class="nav-tab" data-tab="flotte" onclick="go('flotte')">🚐 Flotte</div>
@@ -248,6 +249,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div><label>Colis</label><input id="fl-colis" type="number" value="1"></div>
       <div><label>🔥 Charbons</label><input id="fl-charbons" type="number" min="0" value="0"></div>
       <div><label>🎁 Cadeaux</label><input id="fl-cadeaux" type="number" min="0" value="0"></div>
+      <div><label>🪧 PLV</label><input id="fl-plv" type="number" min="0" value="0"></div>
+      <div><label>💳 TPE</label><input id="fl-tpe" type="number" min="0" value="0"></div>
       <div style="grid-column:1/-1"><label>🥤 Boissons (par référence)</label><div id="fl-boissons-box" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px"></div></div>
       <div style="grid-column:1/-1"><label>Email (pour le bon de réception)</label><input id="fl-email" type="email" placeholder="prérempli depuis la fiche client"></div>
       <div style="grid-column:1/-1"><label>Indications</label><input id="fl-indic" placeholder="Instructions de livraison..."></div>
@@ -295,6 +298,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div><label>📦 Colis</label><input id="el-colis" type="number" min="0" inputmode="numeric"></div>
       <div><label>🔥 Charbons</label><input id="el-charbons" type="number" min="0" inputmode="numeric"></div>
       <div><label>🎁 Cadeaux / présentoirs</label><input id="el-cadeaux" type="number" min="0" inputmode="numeric"></div>
+      <div><label>🪧 PLV</label><input id="el-plv" type="number" min="0" inputmode="numeric"></div>
+      <div><label>💳 TPE</label><input id="el-tpe" type="number" min="0" inputmode="numeric"></div>
       <div style="grid-column:1/-1"><label>🥤 Boissons (par référence)</label><div id="el-boissons-box" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px"></div></div>
     </div>
     <p id="elErr" style="display:none;color:#dc2626;font-size:13px;margin-top:10px"></p>
@@ -384,7 +389,40 @@ function go(tab){
   else if(tab==='kpi') renderKPI();
   else if(tab==='odoo') renderImportsOdoo();
   else if(tab==='zones') renderZones();
+  else if(tab==='chargement') renderChargements();
 }
+
+function majDateCharge(v){ S._chargeDate=v; renderChargements(); }
+async function resetCamion(id){
+  if(!confirm('Permettre au livreur de recommencer le chargement de ce camion ?\n\nLe camion confirmé sera supprimé : le livreur pourra refaire son comptage et ses photos.')) return;
+  const r=await api('DELETE','/chargement/camion/'+id).catch(()=>null);
+  if(r&&r.success){ toast('♻️ Le livreur peut recommencer'); renderChargements(); }
+  else toast('❌ '+((r&&r.error)||'Erreur'));
+}
+async function renderChargements(){
+  const c=document.getElementById('content');
+  if(!S._chargeDate){ const n=new Date(); S._chargeDate=n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2); }
+  c.innerHTML=`<div class="card"><label style="font-weight:600">📅 Date <input type="date" id="chargeDate" value="${S._chargeDate}" onchange="majDateCharge(this.value)" style="margin-left:8px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text)"></label> <button class="btn btn-gray btn-sm" onclick="renderChargements()" style="margin-left:8px">🔄 Actualiser</button></div><div id="chargeListe"><div class="loading"><div class="spin"></div></div></div>`;
+  let data=null;
+  try{ data=await api('GET','/chargement/camion?date='+encodeURIComponent(S._chargeDate)); }catch(_){}
+  const liste=(data&&data.chargements)||[];
+  const el=document.getElementById('chargeListe'); if(!el) return;
+  if(!liste.length){ el.innerHTML='<div class="card"><p class="muted" style="margin:0">Aucun camion confirmé pour cette date.</p></div>'; return; }
+  el.innerHTML=liste.map(c=>{
+    const h=c.created_at?new Date(c.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
+    let photos=c.photos; if(typeof photos==='string'){ try{ photos=JSON.parse(photos); }catch(_){ photos=[]; } } if(!Array.isArray(photos)) photos=[];
+    const ph=photos.map(u=>`<img src="${esc(String(u))}" onclick="window.open('${String(u).replace(/'/g,'%27')}','_blank')" style="width:88px;height:88px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer">`).join('');
+    return `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div style="font-size:16px"><b>🚚 ${esc(c.livreur||'—')}</b> <span class="muted">${esc(c.date_chargement||'')}${h?' · '+h:''}</span></div>
+        <button class="btn btn-red btn-sm" onclick="resetCamion('${esc(String(c.id))}')">♻️ Permettre de recommencer</button>
+      </div>
+      <div style="margin-top:10px;font-weight:700;font-size:15px">🥤 ${c.nb_boissons||0} &nbsp; 🔥 ${c.nb_charbons||0} &nbsp; 🪧 ${c.nb_plv||0} &nbsp; 💳 ${c.nb_tpe||0}</div>
+      ${ph?`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">${ph}</div>`:'<p class="muted" style="margin-top:10px">Aucune photo.</p>'}
+    </div>`;
+  }).join('');
+}
+
 
 // ════════════════════════════════════════════════════════════════════════════
 // ZONES — visualisation du découpage CP→zone (source : route /zones = le code)
@@ -625,7 +663,7 @@ function renderPrepList(){
   if(preps.length===0){ el.innerHTML='<p class="muted" style="padding:20px 0">Aucune préparation pour ce filtre.</p>'; return; }
   el.innerHTML = preps.map(l=>{
     const refaire = l.photo_a_refaire===true || l.photo_a_refaire==='true';
-    const dp = l.date_preparation ? toFR(new Date(l.date_preparation)) : '';
+    const dp = l.date_preparation ? dtFR(l.date_preparation) : '';
     const hay = (String(l.client_nom||l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
     const phs = photosDe(l);
     const galerie = phs.length
@@ -636,7 +674,7 @@ function renderPrepList(){
       ${galerie}
       <div style="flex:1;min-width:0">
         <div style="font-weight:700">${esc(l.client_nom||l.client||'')}</div>
-        <div class="muted" style="font-size:12.5px">${esc(l.ville||'')} · BL ${esc(l.bl||'—')}${dp?` · préparée le ${dp}`:''}</div>
+        <div class="muted" style="font-size:12.5px">${esc(l.ville||'')} · BL ${esc(l.bl||'—')}${dp?` · préparée le ${dp}${l.prepare_par?` par ${esc(l.prepare_par)}`:''}`:''}</div>
         ${refaire?`<div style="color:#b45309;font-size:12px;font-weight:700;margin-top:3px">📷 Photo à refaire (demandée)</div>`:''}
         <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
           <button class="btn btn-sm" style="background:#fef3c7;color:#b45309" onclick="refairePhotoPrep('${l.id}')">📷 Redemander la photo</button>
@@ -943,7 +981,7 @@ function renderLivTable(){
           <option value="🟠 Zone 3 — Livreur 3" ${zNum(l.zone)==='3'?'selected':''}>🟠 Z3</option>
           <option value="⛔ NON LIVRÉ" ${/NON LIVR/i.test(l.zone||'')?'selected':''}>⛔ Non livré</option>
         </select></td>
-        <td>${statutPill(l.statut)}</td>
+        <td>${statutPill(l.statut)}${(/livr/i.test(l.statut||'')&&l.date_heure_livraison)?`<div class="muted" style="font-size:11px;margin-top:2px">🕒 ${dtFR(l.date_heure_livraison)}</div>`:''}</td>
         <td>${(l.commercial===true||l.commercial==='true')?'<span style="color:#7c3aed;font-weight:700">👔 Commercial</span>':esc(l.livreur||'—')}</td>
         <td>${l.nb_colis||l.colis||1}</td>
         <td>${(l.prepare===true||l.prepare==='true')&&l.photo_preparation?`<button class="btn btn-sm" style="background:#ecfdf5;color:#059669" title="Photo de préparation" onclick="voirPhotoPrep('${(l.photo_preparation||'').replace(/'/g,'%27')}')">📷</button> `:''}<button class="btn btn-sm" style="background:#e2e8f0;color:#475569" title="Modifier les quantités (colis, boissons, charbons, cadeaux)" onclick="ouvrirEditLiv('${l.id}')">✏️</button> <button class="btn btn-sm" style="background:#eef2ff;color:#4f46e5" title="Reporter à une autre date" onclick="reporterLivraison('${l.id}')">📅</button> <button class="btn btn-sm" style="background:${l.vendredi?'#f59e0b':'#eee'};color:${l.vendredi?'#fff':'#999'}" title="${l.vendredi?'Topée vendredi (cliquer pour retirer)':'Topez pour le vendredi (toute l\'île)'}" onclick="toggleVendredi('${l.id}',${l.vendredi?'true':'false'})">🏁</button> <button class="btn btn-sm" style="background:${l.commercial?'#7c3aed':'#eee'};color:${l.commercial?'#fff':'#999'}" title="${l.commercial?'Livrée par un commercial (cliquer pour remettre en livreur)':'Toper « commercial » (sortie du circuit livreurs)'}" onclick="toggleCommercial('${l.id}',${l.commercial?'true':'false'})">👔</button> <button class="btn btn-red btn-sm" onclick="suppLivraison('${l.id}','${esc(l.client_nom).replace(/'/g,"\\'")}')">🗑️</button></td>
@@ -1006,6 +1044,8 @@ async function ouvrirEditLiv(id){
   document.getElementById('el-colis').value=parseInt(l.nb_colis)||0;
   document.getElementById('el-charbons').value=parseInt(l.nb_charbons)||0;
   document.getElementById('el-cadeaux').value=parseInt(l.nb_cadeaux)||0;
+  document.getElementById('el-plv').value=parseInt(l.nb_plv)||0;
+  document.getElementById('el-tpe').value=parseInt(l.nb_tpe)||0;
   let det=l.boissons_detail; if(typeof det==='string'){ try{ det=JSON.parse(det); }catch(_){ det={}; } } det=det||{};
   const actives=(_boissons||[]).filter(b=>b.actif!==false);
   document.getElementById('el-boissons-box').innerHTML = actives.length
@@ -1025,6 +1065,8 @@ async function enregistrerEditLiv(){
     nb_colis: parseInt(document.getElementById('el-colis').value)||0,
     nb_charbons: parseInt(document.getElementById('el-charbons').value)||0,
     nb_cadeaux: parseInt(document.getElementById('el-cadeaux').value)||0,
+    nb_plv: parseInt(document.getElementById('el-plv').value)||0,
+    nb_tpe: parseInt(document.getElementById('el-tpe').value)||0,
     boissons_detail,
     nb_boissons: Object.values(boissons_detail).reduce((a,c)=>a+c,0)
   };
@@ -1034,7 +1076,7 @@ async function enregistrerEditLiv(){
     if(r&&r.success){
       fermerModal('modalEditLiv');
       toast('✅ Livraison modifiée');
-      const upd=l=>{ if(!l)return; l.nb_colis=body.nb_colis; l.nb_charbons=body.nb_charbons; l.nb_cadeaux=body.nb_cadeaux; l.nb_boissons=body.nb_boissons; l.boissons_detail=body.boissons_detail; };
+      const upd=l=>{ if(!l)return; l.nb_colis=body.nb_colis; l.nb_charbons=body.nb_charbons; l.nb_cadeaux=body.nb_cadeaux; l.nb_plv=body.nb_plv; l.nb_tpe=body.nb_tpe; l.nb_boissons=body.nb_boissons; l.boissons_detail=body.boissons_detail; };
       upd((_livAll||[]).find(x=>String(x.id)===String(_editLivId)));
       upd((_pgData['liv']||[]).find(x=>String(x.id)===String(_editLivId)));
       renderLivTable();
@@ -1052,6 +1094,8 @@ async function ouvrirAjoutLiv(){
   document.getElementById('fl-colis').value=1;
   document.getElementById('fl-charbons').value=0;
   document.getElementById('fl-cadeaux').value=0;
+  document.getElementById('fl-plv').value=0;
+  document.getElementById('fl-tpe').value=0;
   const actives=(_boissons||[]).filter(b=>b.actif!==false);
   document.getElementById('fl-boissons-box').innerHTML = actives.length
     ? actives.map(b=>`<div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 9px"><span style="font-size:12px">${esc(b.nom)}</span><input id="flb-${esc(String(b.id))}" type="number" min="0" value="0" inputmode="numeric" style="width:54px;padding:4px;text-align:center"></div>`).join('')
@@ -1132,6 +1176,8 @@ async function creerLivraison(){
   body.nb_boissons=Object.values(boissons_detail).reduce((a,c)=>a+c,0);
   body.nb_charbons=parseInt(document.getElementById('fl-charbons').value)||0;
   body.nb_cadeaux=parseInt(document.getElementById('fl-cadeaux').value)||0;
+  body.nb_plv=parseInt(document.getElementById('fl-plv').value)||0;
+  body.nb_tpe=parseInt(document.getElementById('fl-tpe').value)||0;
   // Synchroniser les infos saisies vers la fiche client (email, téléphone, adresse) si modifiées/ajoutées
   if(window._selClientId){
     const upd={};
@@ -1185,6 +1231,7 @@ function renderImportLiv(){
     </div>`;
 }
 // Date Excel (objet Date) ou texte → JJ/MM/AAAA
+function dtFR(v){ try{ const d=new Date(v); if(isNaN(d)) return ''; return d.toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(_){ return ''; } }
 function toFR(v){
   if(v instanceof Date && !isNaN(v)) return String(v.getDate()).padStart(2,'0')+'/'+String(v.getMonth()+1).padStart(2,'0')+'/'+v.getFullYear();
   const s=String(v==null?'':v).trim();
@@ -1406,51 +1453,83 @@ function pageClients(delta){
 // ════════════════════════════════════════════════════════════════════════════
 // BOISSONS — catalogue des références (affichées dans l'appli livreur)
 // ════════════════════════════════════════════════════════════════════════════
-let _boissons = null;
+let _boissons = null;            // cache catégorie BOISSON (utilisé par les sélecteurs existants)
+let _prodCat  = 'BOISSON';
+let _prodList = [];
+const PROD_CATS = [
+  {cat:'BOISSON', label:'🥤 Boissons', ex:'SAMBO'},
+  {cat:'CHARBON', label:'🔥 Charbons', ex:'CHARBON 1'},
+  {cat:'PLV',     label:'🪧 PLV',      ex:'PLV 1'},
+  {cat:'TPE',     label:'💳 TPE',      ex:'TPE 1'},
+];
 async function renderBoissons(){
-  const d = await api('GET','/boissons').catch(()=>({boissons:[]}));
-  _boissons = d.boissons || [];
+  const tabs = PROD_CATS.map(c=>`<button class="btn btn-sm" onclick="choisirProdCat('${c.cat}')" style="${c.cat===_prodCat?'background:var(--gold);color:#1a1a1a;font-weight:700':'background:#e2e8f0;color:#475569'}">${c.label}</button>`).join(' ');
   document.getElementById('content').innerHTML = `
     <div class="card">
-      <h3>🥤 Références boissons (${_boissons.length})</h3>
-      <p class="muted" style="margin:6px 0 14px">Ces références apparaissent dans l'appli livreur (au chargement et à la signature). Ajoute, renomme ou désactive-les ici — la liste se met à jour côté livreur.</p>
-      <div style="display:flex;gap:8px;margin-bottom:16px">
-        <input id="bo-nom" placeholder="Nom de la boisson (ex: SAMBO)" style="flex:1" onkeydown="if(event.key==='Enter')ajouterBoisson()">
-        <button class="btn btn-green" onclick="ajouterBoisson()">➕ Ajouter</button>
-      </div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Nom</th><th style="width:70px;text-align:center">Actif</th><th style="width:60px"></th></tr></thead>
-        <tbody>${_boissons.map(b=>`<tr>
-          <td><input value="${esc(b.nom)}" onchange="renommerBoisson('${b.id}',this.value)" style="width:100%;background:transparent;border:1px solid transparent;color:var(--text);padding:5px 7px;border-radius:6px;font-weight:600" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='transparent'"></td>
-          <td style="text-align:center"><input type="checkbox" ${b.actif!==false?'checked':''} onchange="toggleBoissonActif('${b.id}',this.checked)"></td>
-          <td><button class="btn btn-red btn-sm" onclick="supprimerBoisson('${b.id}','${esc(b.nom).replace(/'/g,"\\'")}')">🗑️</button></td>
-        </tr>`).join('')}</tbody>
-      </table></div>
-      ${_boissons.length===0?'<p class="muted" style="margin-top:12px">Aucune référence pour l\'instant. Ajoute ta première boisson ci-dessus.</p>':''}
+      <h3>📦 Produits — références</h3>
+      <p class="muted" style="margin:6px 0 12px">Gère les références par catégorie, comme les boissons. Elles apparaissent dans les apps (chargement, signature, préparation).</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${tabs}</div>
+      <div id="prod-zone"><div class="loading">Chargement…</div></div>
     </div>`;
+  renderProdCat(_prodCat);
+}
+function choisirProdCat(cat){ _prodCat = cat; renderBoissons(); }
+async function renderProdCat(cat){
+  const d = await api('GET','/boissons?categorie='+encodeURIComponent(cat)).catch(()=>({boissons:[]}));
+  _prodList = d.boissons || [];
+  if (cat === 'BOISSON') _boissons = _prodList;
+  const meta = PROD_CATS.find(c=>c.cat===cat) || {label:cat, ex:''};
+  const zone = document.getElementById('prod-zone');
+  if(!zone) return;
+  zone.innerHTML = `
+    <h4 style="margin:0 0 10px">${meta.label} (${_prodList.length})</h4>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input id="bo-nom" placeholder="Nom (ex: ${meta.ex})" style="flex:1" onkeydown="if(event.key==='Enter')ajouterBoisson()">
+      <button class="btn btn-green" onclick="ajouterBoisson()">➕ Ajouter</button>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Nom</th><th style="width:70px;text-align:center">Actif</th><th style="width:60px"></th></tr></thead>
+      <tbody>${_prodList.map(b=>`<tr>
+        <td style="font-weight:600">${esc(b.nom)}</td>
+        <td style="text-align:center"><input type="checkbox" ${b.actif!==false?'checked':''} onchange="toggleBoissonActif('${b.id}',this.checked)"></td>
+        <td style="white-space:nowrap"><button class="btn btn-sm" style="background:#e2e8f0;color:#475569" title="Renommer" onclick="modifierProduit('${b.id}')">✏️</button> <button class="btn btn-red btn-sm" onclick="supprimerBoisson('${b.id}','${esc(b.nom).replace(/'/g,"\\'")}')">🗑️</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    ${_prodList.length===0?`<p class="muted" style="margin-top:12px">Aucune référence ${meta.label}. Ajoute la première ci-dessus.</p>`:''}`;
 }
 async function ajouterBoisson(){
   const nom=(document.getElementById('bo-nom').value||'').trim();
   if(!nom){ toast('⚠️ Entre un nom'); return; }
-  const r=await api('POST','/boissons',{nom, ordre:(_boissons?_boissons.length:0)+1}).catch(()=>null);
-  if(r&&r.success){ document.getElementById('bo-nom').value=''; toast('✅ Boisson ajoutée'); renderBoissons(); }
+  const r=await api('POST','/boissons',{nom, categorie:_prodCat, ordre:(_prodList?_prodList.length:0)+1}).catch(()=>null);
+  if(r&&r.success){ document.getElementById('bo-nom').value=''; toast('✅ Ajouté'); renderProdCat(_prodCat); }
   else toast('❌ '+((r&&r.error)||'Erreur (doublon ?)'));
 }
 async function renommerBoisson(id,nom){
   nom=(nom||'').trim(); if(!nom) return;
   await api('PATCH','/boissons/'+id,{nom}).then(()=>toast('✏️ Renommé'),()=>toast('❌ Erreur'));
-  if(_boissons){ const b=_boissons.find(x=>String(x.id)===String(id)); if(b) b.nom=nom; }
+  const b=(_prodList||[]).find(x=>String(x.id)===String(id)); if(b) b.nom=nom;
 }
 async function toggleBoissonActif(id,actif){
-  await api('PATCH','/boissons/'+id,{actif}).then(()=>toast(actif?'✅ Activée':'🚫 Désactivée'),()=>toast('❌ Erreur'));
-  if(_boissons){ const b=_boissons.find(x=>String(x.id)===String(id)); if(b) b.actif=actif; }
+  await api('PATCH','/boissons/'+id,{actif}).then(()=>toast(actif?'✅ Activé':'🚫 Désactivé'),()=>toast('❌ Erreur'));
+  const b=(_prodList||[]).find(x=>String(x.id)===String(id)); if(b) b.actif=actif;
 }
 async function supprimerBoisson(id,nom){
-  if(!confirm('Supprimer la boisson "'+nom+'" ?')) return;
+  if(!confirm('Supprimer "'+nom+'" ?')) return;
   const r=await api('DELETE','/boissons/'+id).catch(()=>null);
-  if(r&&r.success){ toast('🗑️ Supprimée'); renderBoissons(); }
+  if(r&&r.success){ toast('🗑️ Supprimé'); renderProdCat(_prodCat); }
   else toast('❌ Erreur suppression');
 }
+async function modifierProduit(id){
+  const b=(_prodList||[]).find(x=>String(x.id)===String(id)); if(!b) return;
+  const nv=prompt('Nouveau nom :', b.nom);
+  if(nv===null) return;
+  const nom=(nv||'').trim();
+  if(!nom || nom===b.nom) return;
+  const r=await api('PATCH','/boissons/'+id,{nom}).catch(()=>null);
+  if(r&&r.success){ toast('✏️ Renommé'); renderProdCat(_prodCat); }
+  else toast('❌ '+((r&&r.error)||'Erreur'));
+}
+
 // ── Autocomplétion d'adresse Google Places (via proxy backend, clé cachée) ──
 let _cliGeo = null, _sugTimer = null, _lastPreds = [];
 function initAdresseAutocomplete(){

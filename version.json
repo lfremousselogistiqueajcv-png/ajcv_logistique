@@ -1,7 +1,23 @@
 {
-  "version": "2026.06.25.19",
+  "version": "2026.06.27.1",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.27.1",
+      "date": "27/06/2026",
+      "titre": "Produits typés, chargement camion confirmé & traçabilité",
+      "notes": [
+        "📦 Charbons, PLV et TPE se gèrent comme les boissons : par type/référence à la préparation, au chargement et à la livraison. Saisie par menu détaillé pour éviter les erreurs.",
+        "🧰 Admin : onglet Produits avec 4 catégories (boissons, charbons, PLV, TPE) — créer, renommer ✏️ et supprimer 🗑️ chaque référence.",
+        "🚚 Livreur : confirmation du chargement camion (comptage 🥤🔥🪧💳 + photos). Chaque commande se coche individuellement au chargement.",
+        "🔒 Une fois confirmé, le camion est verrouillé. L'admin peut le rouvrir pour permettre de recommencer.",
+        "🚚 Admin : nouvel onglet Chargement — traçabilité de tous les camions confirmés par date, avec photos.",
+        "👆 Livreur : cliquer un total produit ouvre le détail « quel client, combien, par type ».",
+        "🧰 Préparation : le nom du préparateur et l'heure de préparation sont enregistrés et visibles (admin + préparateur).",
+        "🕒 Admin & carte : date et heure de livraison terminée visibles ; les livraisons « commercial » sont exclues de la carte et des KPI livreurs.",
+        "👓 Affichage des quantités clarifié partout : « DÉSIGNATION : quantité »."
+      ]
+    },
     {
       "v": "2026.06.25.19",
       "date": "25/06/2026",

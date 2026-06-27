@@ -399,11 +399,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="sig-field-label">🥤 Boissons remises</span>
     <button type="button" id="sigBoissonsBtn" class="sig-input" style="text-align:left;cursor:pointer;color:var(--gold);font-weight:600" onclick="if(state.livActive)ouvrirBoissons(state.livActive.id,'signature')">—</button>
     <span class="sig-field-label">🔥 Charbons remis</span>
-    <input type="number" class="sig-input" id="sigCharbons" placeholder="0" min="0">
+    <button type="button" id="sigCharbonsBtn" class="sig-input" style="text-align:left;cursor:pointer;color:var(--gold);font-weight:600" onclick="if(state.livActive)ouvrirBoissons(state.livActive.id,'signature','CHARBON')">—</button>
     <span class="sig-field-label">🪧 PLV remises</span>
-    <input type="number" class="sig-input" id="sigPlv" placeholder="0" min="0">
+    <button type="button" id="sigPlvBtn" class="sig-input" style="text-align:left;cursor:pointer;color:var(--gold);font-weight:600" onclick="if(state.livActive)ouvrirBoissons(state.livActive.id,'signature','PLV')">—</button>
     <span class="sig-field-label">💳 TPE remis</span>
-    <input type="number" class="sig-input" id="sigTpe" placeholder="0" min="0">
+    <button type="button" id="sigTpeBtn" class="sig-input" style="text-align:left;cursor:pointer;color:var(--gold);font-weight:600" onclick="if(state.livActive)ouvrirBoissons(state.livActive.id,'signature','TPE')">—</button>
     <span class="sig-field-label">Règlement récupéré</span>
     <select class="sig-input" id="sigReglement" onchange="sigReglementChange()">
       <option value="">Aucun</option>
@@ -470,15 +470,51 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="toast" id="toast"></div>
 
 <!-- POPUP DÉTAIL BOISSONS (chargement + signature) -->
+<!-- POPUP TOP CAMION (chargement : comptage + photos) -->
+<div id="topCamionModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;align-items:flex-end;justify-content:center">
+  <div style="background:var(--surface);width:100%;max-width:520px;border-radius:18px 18px 0 0;max-height:90vh;display:flex;flex-direction:column;border:1px solid var(--border)">
+    <div style="padding:16px 18px;border-bottom:1px solid var(--border)">
+      <div style="font-weight:700;font-size:16px">🚚 Confirmer le chargement du camion</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:2px">Corrige si besoin les quantités réellement chargées, ajoute au moins une photo.</div>
+    </div>
+    <div style="padding:14px 18px;overflow-y:auto;flex:1">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <label style="font-size:13px;color:var(--text2)">🥤 Boissons<input type="number" min="0" inputmode="numeric" id="tc-boissons" style="width:100%;margin-top:4px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:16px;font-weight:700;box-sizing:border-box"></label>
+        <label style="font-size:13px;color:var(--text2)">🔥 Charbons<input type="number" min="0" inputmode="numeric" id="tc-charbons" style="width:100%;margin-top:4px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:16px;font-weight:700;box-sizing:border-box"></label>
+        <label style="font-size:13px;color:var(--text2)">🪧 PLV<input type="number" min="0" inputmode="numeric" id="tc-plv" style="width:100%;margin-top:4px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:16px;font-weight:700;box-sizing:border-box"></label>
+        <label style="font-size:13px;color:var(--text2)">💳 TPE<input type="number" min="0" inputmode="numeric" id="tc-tpe" style="width:100%;margin-top:4px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:16px;font-weight:700;box-sizing:border-box"></label>
+      </div>
+      <input type="file" accept="image/*" capture="environment" id="tc-file" style="display:none" onchange="camionPhotoChoisie(this)">
+      <button onclick="document.getElementById('tc-file').click()" style="margin-top:14px;width:100%;padding:12px;border-radius:10px;border:1px dashed var(--gold);background:transparent;color:var(--gold);font-weight:700;cursor:pointer">📷 Ajouter une photo</button>
+      <div id="tc-thumbs" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+    </div>
+    <div style="padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="fermerTopCamion()" style="padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);font-weight:600;cursor:pointer">Annuler</button>
+      <button id="tc-valider" onclick="validerTopCamion()" style="padding:10px 18px;border-radius:10px;border:none;background:var(--green);color:#fff;font-weight:700;cursor:pointer">Valider le camion ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP RÉCAP PRODUIT (chargement) -->
+<div id="recapModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;align-items:flex-end;justify-content:center">
+  <div style="background:var(--surface);width:100%;max-width:520px;border-radius:18px 18px 0 0;max-height:85vh;display:flex;flex-direction:column;border:1px solid var(--border)">
+    <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <div id="recapTitre" style="font-weight:700;font-size:16px">Récap</div>
+      <button onclick="fermerRecap()" style="background:transparent;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div id="recapBox" style="padding:4px 18px 18px;overflow-y:auto;flex:1"></div>
+  </div>
+</div>
+
 <div id="boissonsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;align-items:flex-end;justify-content:center">
   <div style="background:var(--surface);width:100%;max-width:520px;border-radius:18px 18px 0 0;max-height:85vh;display:flex;flex-direction:column;border:1px solid var(--border)">
     <div style="padding:16px 18px;border-bottom:1px solid var(--border)">
-      <div style="font-weight:700;font-size:16px">🥤 Détail boissons</div>
+      <div id="bdet-titre" style="font-weight:700;font-size:16px">🥤 Détail boissons</div>
       <div id="bdet-client" style="font-size:13px;color:var(--text2);margin-top:2px"></div>
     </div>
     <div id="bdet-list" style="padding:6px 14px;overflow-y:auto;flex:1"></div>
     <div style="padding:12px 18px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
-      <div style="font-size:14px">Total : <b id="bdet-total" style="color:var(--gold)">0</b> packs</div>
+      <div style="font-size:14px">Total : <b id="bdet-total" style="color:var(--gold)">0</b> <span id="bdet-unit">packs</span></div>
       <div style="display:flex;gap:8px">
         <button onclick="fermerBoissons(false)" style="padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);font-weight:600;cursor:pointer">Annuler</button>
         <button onclick="fermerBoissons(true)" style="padding:10px 18px;border-radius:10px;border:none;background:var(--green);color:#fff;font-weight:700;cursor:pointer">Valider</button>
@@ -898,6 +934,13 @@ function getDateSelectionnee() {
   const d = new Date(picker.value);
   return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
 }
+function getDateISO(){
+  const picker = document.getElementById('datePicker');
+  if (!picker || !picker.value) { const n=new Date(); return n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2); }
+  const d = new Date(picker.value);
+  if (isNaN(d)) { const n=new Date(); return n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2); }
+  return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+}
 
 function getJourSelectionne() {
   const picker = document.getElementById('datePicker');
@@ -1041,6 +1084,7 @@ async function chargerLivraisons() {
 // ════════════════════════════════════════
 function switchTab(tab) {
   state.activeTab = tab;
+  if (tab === 'chargement') state._camionStatutDate = null;
   document.querySelectorAll('.tab').forEach((t,i) => {
     t.classList.toggle('active', ['livraisons','chargement','carte','done'][i] === tab);
   });
@@ -1084,28 +1128,37 @@ function tpeDe(l) { return Math.max(0, parseInt(l.nb_tpe) || 0); }
 async function fetchBoissonsRef(){
   try { const c = localStorage.getItem('ajcv_boissons_ref'); if (c) { const a = JSON.parse(c); if (Array.isArray(a)) state.boissonsRef = a; } } catch(_){}
   try {
-    const resp = await fetch(`${CFG.API_URL}/boissons`, { headers:{'Authorization':`Bearer ${state.token||''}`} });
+    const resp = await fetch(`${CFG.API_URL}/boissons?categorie=ALL`, { headers:{'Authorization':`Bearer ${state.token||''}`} });
     if (resp.ok) {
       const d = await resp.json();
-      const noms = (d.boissons||[]).filter(b=>b.actif!==false).sort((a,b)=>(a.ordre||0)-(b.ordre||0)).map(b=>b.nom);
-      state.boissonsRef = noms;
-      try { localStorage.setItem('ajcv_boissons_ref', JSON.stringify(noms)); } catch(_){}
+      const all = (d.boissons||[]).filter(b=>b.actif!==false).sort((a,b)=>(a.ordre||0)-(b.ordre||0));
+      const refs={BOISSON:[],CHARBON:[],PLV:[],TPE:[]};
+      all.forEach(b=>{ const c=(b.categorie||'BOISSON').toUpperCase(); if(!refs[c]) refs[c]=[]; refs[c].push(b.nom); });
+      state.prodRefs = refs;
+      state.boissonsRef = refs.BOISSON;
+      try { localStorage.setItem('ajcv_boissons_ref', JSON.stringify(refs.BOISSON)); } catch(_){}
     }
   } catch(_){}
 }
 
 // ── Popup détail boissons (partagée chargement + signature) ──
 let _boissonsTarget = null, _boissonsTmp = {};
-function ouvrirBoissons(id, ctx){
+const LIV_PRODS={ BOISSON:{ic:'🥤',label:'Détail boissons',detail:'boissons_detail',nb:'nb_boissons',unit:'packs'}, CHARBON:{ic:'🔥',label:'Détail charbons',detail:'charbons_detail',nb:'nb_charbons',unit:''}, PLV:{ic:'🪧',label:'Détail PLV',detail:'plv_detail',nb:'nb_plv',unit:''}, TPE:{ic:'💳',label:'Détail TPE',detail:'tpe_detail',nb:'nb_tpe',unit:''} };
+function ouvrirBoissons(id, ctx, cat){
   const l = trouverLiv(id); if (!l) return;
-  _boissonsTarget = { id, ctx };
-  _boissonsTmp = Object.assign({}, boissonsDetailDe(l));
+  cat = cat || 'BOISSON';
+  const cfg = LIV_PRODS[cat] || LIV_PRODS.BOISSON;
+  _boissonsTarget = { id, ctx, cat };
+  _boissonsTmp = Object.assign({}, detailDe(l, cfg.detail));
+  const t=document.getElementById('bdet-titre'); if(t) t.textContent = cfg.ic+' '+cfg.label;
+  const u=document.getElementById('bdet-unit'); if(u) u.textContent = cfg.unit||'';
   document.getElementById('bdet-client').textContent = (l.client||'') + ' · BL ' + (l.bl||'—');
   renderBoissonsList();
   document.getElementById('boissonsModal').style.display = 'flex';
 }
 function renderBoissonsList(){
-  const refs = state.boissonsRef || [];
+  const cat = (_boissonsTarget && _boissonsTarget.cat) || 'BOISSON';
+  const refs = (state.prodRefs && state.prodRefs[cat]) || state.boissonsRef || [];
   const list = document.getElementById('bdet-list');
   if (!refs.length) {
     list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:16px 4px">Aucune référence configurée.<br>Demande à l\'admin d\'ajouter les boissons (onglet 🥤 Boissons).</div>';
@@ -1135,10 +1188,12 @@ function fermerBoissons(valider){
   document.getElementById('boissonsModal').style.display='none';
   if (!valider || !_boissonsTarget){ _boissonsTarget=null; return; }
   const l = trouverLiv(_boissonsTarget.id);
+  const cat = _boissonsTarget.cat || 'BOISSON';
+  const cfg = LIV_PRODS[cat] || LIV_PRODS.BOISSON;
   if (l) {
     const clean={}; for (const k of Object.keys(_boissonsTmp)){ const v=Math.max(0,parseInt(_boissonsTmp[k])||0); if (v>0) clean[k]=v; }
-    l.boissons_detail = clean;
-    l.nb_boissons = Object.values(clean).reduce((a,v)=>a+v,0);
+    l[cfg.detail] = clean;
+    l[cfg.nb] = Object.values(clean).reduce((a,v)=>a+v,0);
     const ctx = _boissonsTarget.ctx;
     if (ctx==='chargement'){ renderChargement(); envoyerChargement(l, estCharge(l)); }
     else if (ctx==='signature'){ majBoissonsBtnSignature(l); }
@@ -1146,9 +1201,13 @@ function fermerBoissons(valider){
   _boissonsTarget=null;
 }
 function majBoissonsBtnSignature(l){
-  const b = document.getElementById('sigBoissonsBtn'); if (!b) return;
-  const t = boissonsDe(l), d = boissonsDetailDe(l), n = Object.keys(d).length;
-  b.textContent = t>0 ? `${t} packs · ${n} réf. — appuyer pour modifier ▸` : 'Aucune — appuyer pour saisir ▸';
+  if(!l) return;
+  [['sigBoissonsBtn','boissons_detail'],['sigCharbonsBtn','charbons_detail'],['sigPlvBtn','plv_detail'],['sigTpeBtn','tpe_detail']].forEach(([id,field])=>{
+    const b=document.getElementById(id); if(!b) return;
+    const d=detailDe(l,field);
+    const e=Object.entries(d).filter(([n,q])=>(parseInt(q)||0)>0);
+    b.textContent = e.length ? e.map(([n,q])=>`${n} : ${q}`).join('   ·   ') + '   ✏️' : 'Aucun — appuyer pour saisir ▸';
+  });
 }
 function estCharge(l) { return l.charge === true || chargeSet().has(String(l.id)); }
 function trouverLiv(id) { return state.livraisons.find(l => String(l.id) === String(id)); }
@@ -1200,9 +1259,9 @@ async function renderPreparation(){
   if (livs.length === 0) html += '<div style="padding:30px 14px;text-align:center;color:var(--text2)">Aucune commande ce jour.</div>';
   livs.forEach(l => {
     const done = !!l.prepare;
-    const bd = boissonsDetailDe(l) || {};
-    const bdTxt = Object.keys(bd).length ? Object.entries(bd).map(([n,q]) => `${n}×${q}`).join(' · ') : '';
-    const ligneQte = `📦 ${colisDe(l)} colis${bdTxt ? ` · 🥤 ${bdTxt}` : ''}${charbonsDe(l) ? ` · 🔥 ${charbonsDe(l)}` : ''}${plvDe(l) ? ` · 🪧 ${plvDe(l)}` : ''}${tpeDe(l) ? ` · 💳 ${tpeDe(l)}` : ''}`;
+    const _fmtD = (field, fb) => { const d=detailDe(l,field); const e=Object.entries(d).filter(([n,q])=>(parseInt(q)||0)>0); return e.length ? e.map(([n,q])=>`${n} : ${q}`).join(', ') : (fb? String(fb):''); };
+    const _txtBo=_fmtD('boissons_detail',0), _txtCh=_fmtD('charbons_detail',charbonsDe(l)), _txtPlv=_fmtD('plv_detail',plvDe(l)), _txtTpe=_fmtD('tpe_detail',tpeDe(l));
+    const ligneQte = `📦 ${colisDe(l)} colis${_txtBo?` · 🥤 ${_txtBo}`:''}${_txtCh?` · 🔥 ${_txtCh}`:''}${_txtPlv?` · 🪧 ${_txtPlv}`:''}${_txtTpe?` · 💳 ${_txtTpe}`:''}`;
     const search = (String(l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
     html += `<div class="charge-card prep-card${done ? ' charge-ok' : ''}" data-search="${search}">
       <div class="charge-top">
@@ -1310,15 +1369,27 @@ function renderChargement() {
     <div class="kpi-tile"><div class="kpi-val g">${charges}</div><div class="kpi-lbl">Chargées</div></div>
     <div class="kpi-tile"><div class="kpi-val o">${livs.length - charges}</div><div class="kpi-lbl">Restantes</div></div>
     <div class="kpi-tile"><div class="kpi-val b">${totalColis}</div><div class="kpi-lbl">📦 Colis</div></div>
-    <div class="kpi-tile"><div class="kpi-val b">${totalBoissons}</div><div class="kpi-lbl">🥤 Boissons</div></div>
-    <div class="kpi-tile"><div class="kpi-val b">${totalCharbons}</div><div class="kpi-lbl">🔥 Charbons</div></div>${totalPlv?`
-    <div class="kpi-tile"><div class="kpi-val b">${totalPlv}</div><div class="kpi-lbl">🪧 PLV</div></div>`:''}${totalTpe?`
-    <div class="kpi-tile"><div class="kpi-val b">${totalTpe}</div><div class="kpi-lbl">💳 TPE</div></div>`:''}
+    <div class="kpi-tile" onclick="ouvrirRecapProduit('BOISSON')" style="cursor:pointer"><div class="kpi-val b">${totalBoissons}</div><div class="kpi-lbl">🥤 Boissons ▸</div></div>
+    <div class="kpi-tile" onclick="ouvrirRecapProduit('CHARBON')" style="cursor:pointer"><div class="kpi-val b">${totalCharbons}</div><div class="kpi-lbl">🔥 Charbons ▸</div></div>${totalPlv?`
+    <div class="kpi-tile" onclick="ouvrirRecapProduit('PLV')" style="cursor:pointer"><div class="kpi-val b">${totalPlv}</div><div class="kpi-lbl">🪧 PLV ▸</div></div>`:''}${totalTpe?`
+    <div class="kpi-tile" onclick="ouvrirRecapProduit('TPE')" style="cursor:pointer"><div class="kpi-val b">${totalTpe}</div><div class="kpi-lbl">💳 TPE ▸</div></div>`:''}
   </div>`;
 
+  if (state._camionStatutDate !== getDateISO()) {
+    state._camionStatutDate = getDateISO();
+    state.camionDuJour = undefined;
+    chargerStatutCamion();
+  }
+  const _tousCharges = charges === livs.length && livs.length > 0;
+  const _camionLoading = state.camionDuJour === undefined;
+  const _confCamion = state.camionDuJour || null;
+  if (!_camionLoading && !_confCamion && livs.length > 0) {
+    html += `<div style="margin:0 14px 12px;padding:14px;border-radius:12px;background:rgba(255,179,0,.12);border:1px solid var(--gold);text-align:center"><div style="font-weight:700;margin-bottom:8px">🚚 ${charges}/${livs.length} commande(s) cochée(s) chargée(s)</div><button onclick="ouvrirTopCamion()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--gold);color:#1a1a1a;font-weight:700;font-size:15px;cursor:pointer">✅ Confirmer le camion (comptage + photo)</button></div>`;
+  } else if (_confCamion) {
+    html += `<div style="margin:0 14px 12px;padding:12px 14px;border-radius:12px;background:rgba(34,197,94,.12);border:1px solid var(--green);font-weight:600">✅ Camion confirmé${_confCamion.created_at?` à ${new Date(_confCamion.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`:''} · 🥤${_confCamion.nb_boissons||0} 🔥${_confCamion.nb_charbons||0} 🪧${_confCamion.nb_plv||0} 💳${_confCamion.nb_tpe||0}<div style="font-weight:500;font-size:12px;color:var(--text2);margin-top:4px">🔒 Validé — vois l'admin pour recommencer.</div></div>`;
+  }
   html += `<div class="optimize-bar"><div class="optimize-info"><strong>🚚 Chargement du camion</strong>
-    Coche chaque commande chargée, et n'oublie pas boissons et charbons</div>
-    <button class="btn-optimize" onclick="toutCharger()">✓ Tout</button></div>`;
+    Coche chaque commande au fur et à mesure que tu la charges, puis confirme le camion</div></div>`;
 
   html += `<div style="padding:10px 14px 0"><input id="searchCharge" value="${(state.searchCharge||'').replace(/"/g,'&quot;')}" oninput="filtrerChargement(this.value)" placeholder="🔍 Rechercher un client, un BL..." style="width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;box-sizing:border-box"></div>`;
   html += `<div class="list-section"><div class="section-label">${charges}/${livs.length} commandes chargées</div>`;
@@ -1338,9 +1409,9 @@ function renderChargement() {
       <div class="charge-steppers">
         <div class="stp"><span class="stp-lbl">📦 Colis</span><button onclick="ajusterColisCharge('${l.id}',-1)">−</button><b>${colisDe(l)}</b><button onclick="ajusterColisCharge('${l.id}',1)">+</button></div>
         <div class="stp"><span class="stp-lbl">🥤 Boissons</span><button onclick="ouvrirBoissons('${l.id}','chargement')" style="border:1px solid var(--border);background:var(--surface);color:var(--gold);font-weight:700;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer">${boissonsDe(l)} ▸</button></div>
-        <div class="stp"><span class="stp-lbl">🔥 Charbons</span><button onclick="ajusterCharbons('${l.id}',-1)">−</button><b>${charbonsDe(l)}</b><button onclick="ajusterCharbons('${l.id}',1)">+</button></div>${plvDe(l)?`
-        <div class="stp"><span class="stp-lbl">🪧 PLV</span><button onclick="ajusterPlv('${l.id}',-1)">−</button><b>${plvDe(l)}</b><button onclick="ajusterPlv('${l.id}',1)">+</button></div>`:''}${tpeDe(l)?`
-        <div class="stp"><span class="stp-lbl">💳 TPE</span><button onclick="ajusterTpe('${l.id}',-1)">−</button><b>${tpeDe(l)}</b><button onclick="ajusterTpe('${l.id}',1)">+</button></div>`:''}
+        <div class="stp"><span class="stp-lbl">🔥 Charbons</span><button onclick="ouvrirBoissons('${l.id}','chargement','CHARBON')" style="border:1px solid var(--border);background:var(--surface);color:var(--gold);font-weight:700;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer">${charbonsDe(l)} ▸</button></div>
+        <div class="stp"><span class="stp-lbl">🪧 PLV</span><button onclick="ouvrirBoissons('${l.id}','chargement','PLV')" style="border:1px solid var(--border);background:var(--surface);color:var(--gold);font-weight:700;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer">${plvDe(l)} ▸</button></div>
+        <div class="stp"><span class="stp-lbl">💳 TPE</span><button onclick="ouvrirBoissons('${l.id}','chargement','TPE')" style="border:1px solid var(--border);background:var(--surface);color:var(--gold);font-weight:700;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer">${tpeDe(l)} ▸</button></div>
       </div>
     </div>`;
   });
@@ -1402,6 +1473,92 @@ function ajusterTpe(id, delta) {
   envoyerChargement(l, estCharge(l));
 }
 
+let _camionPhotos = [];
+function camionConfirme(){ return state.camionDuJour || null; }
+async function chargerStatutCamion(){
+  const d = getDateISO();
+  try {
+    const r = await fetch(`${CFG.API_URL}/chargement/camion?date=${encodeURIComponent(d)}&mine=1`, { headers:{'Authorization':`Bearer ${state.token||''}`} });
+    const data = await r.json().catch(()=>({}));
+    const list = (data && data.chargements) || [];
+    state.camionDuJour = list.length ? list[list.length-1] : null;
+  } catch(_) { state.camionDuJour = null; }
+  if (state.activeTab==='chargement' && getDateISO()===d) renderChargement();
+}
+function ouvrirTopCamion(){
+  const livs = state.livraisons.filter(l => l.statut !== '✅ Livré');
+  document.getElementById('tc-boissons').value = livs.reduce((s,l)=>s+boissonsDe(l),0);
+  document.getElementById('tc-charbons').value = livs.reduce((s,l)=>s+charbonsDe(l),0);
+  document.getElementById('tc-plv').value = livs.reduce((s,l)=>s+plvDe(l),0);
+  document.getElementById('tc-tpe').value = livs.reduce((s,l)=>s+tpeDe(l),0);
+  _camionPhotos = [];
+  document.getElementById('tc-thumbs').innerHTML = '';
+  const btn = document.getElementById('tc-valider'); if(btn){ btn.disabled=false; btn.textContent='Valider le camion ✓'; }
+  document.getElementById('topCamionModal').style.display = 'flex';
+}
+function fermerTopCamion(){ document.getElementById('topCamionModal').style.display = 'none'; }
+function detailDe(l, field){ let d=l?l[field]:null; if(typeof d==='string'){ try{ d=JSON.parse(d); }catch(_){ d={}; } } return (d&&typeof d==='object')?d:{}; }
+const RECAP_CFG={
+  BOISSON:{ic:'🥤',label:'Boissons',detail:'boissons_detail',nb:l=>boissonsDe(l)},
+  CHARBON:{ic:'🔥',label:'Charbons',detail:'charbons_detail',nb:l=>charbonsDe(l)},
+  PLV:{ic:'🪧',label:'PLV',detail:'plv_detail',nb:l=>plvDe(l)},
+  TPE:{ic:'💳',label:'TPE',detail:'tpe_detail',nb:l=>tpeDe(l)}
+};
+function ouvrirRecapProduit(cat){
+  const cfg=RECAP_CFG[cat]||RECAP_CFG.BOISSON;
+  const livs=state.livraisons.filter(l=>l.statut!=='✅ Livré');
+  let total=0;
+  const rows=livs.map(l=>{
+    const d=detailDe(l,cfg.detail);
+    const n=cfg.nb(l)||0;
+    if(!n && !Object.keys(d).length) return '';
+    total+=n;
+    const types=Object.keys(d).length?Object.entries(d).map(([t,q])=>`${t} : ${q}`).join('   ·   '):(n?String(n):'—');
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--border)"><div style="font-weight:600">${(l.client||'—')}</div><div style="font-size:12px;color:var(--text2)">${(l.ville||'')} · BL ${(l.bl||'—')}</div><div style="margin-top:3px;font-weight:600;color:var(--gold)">${types}</div></div>`;
+  }).filter(Boolean).join('');
+  const t=document.getElementById('recapTitre'); if(t) t.textContent=`${cfg.ic} ${cfg.label} · total ${total}`;
+  document.getElementById('recapBox').innerHTML=rows||`<div style="padding:14px 0;color:var(--text2)">Aucun ${cfg.label.toLowerCase()} sur cette tournée.</div>`;
+  document.getElementById('recapModal').style.display='flex';
+}
+function fermerRecap(){ document.getElementById('recapModal').style.display='none'; }
+
+async function camionPhotoChoisie(input){
+  const f = input.files && input.files[0]; if(!f) return;
+  try { const b64 = await compresserPhoto(f, 1200, 0.7); _camionPhotos.push(b64); renderCamionThumbs(); }
+  catch(_) { showToast('❌ Photo illisible',''); }
+  input.value='';
+}
+function renderCamionThumbs(){
+  const el = document.getElementById('tc-thumbs'); if(!el) return;
+  el.innerHTML = _camionPhotos.map((u,i)=>`<div style="position:relative"><img src="${u}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div onclick="retirerCamionPhoto(${i})" style="position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer">×</div></div>`).join('');
+}
+function retirerCamionPhoto(i){ _camionPhotos.splice(i,1); renderCamionThumbs(); }
+async function validerTopCamion(){
+  if(!_camionPhotos.length){ showToast('📷 Ajoute au moins une photo',''); return; }
+  const btn = document.getElementById('tc-valider'); if(btn){ btn.disabled=true; btn.textContent='Envoi…'; }
+  const body = {
+    nb_boissons: parseInt(document.getElementById('tc-boissons').value)||0,
+    nb_charbons: parseInt(document.getElementById('tc-charbons').value)||0,
+    nb_plv: parseInt(document.getElementById('tc-plv').value)||0,
+    nb_tpe: parseInt(document.getElementById('tc-tpe').value)||0,
+    photos: _camionPhotos,
+    date: getDateISO(),
+  };
+  try {
+    const resp = await fetch(`${CFG.API_URL}/chargement/camion`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`}, body: JSON.stringify(body) });
+    const data = await resp.json().catch(()=>({}));
+    if(!resp.ok || !data.success) throw new Error(data.error||'Erreur serveur');
+    state.camionDuJour = { nb_boissons:body.nb_boissons, nb_charbons:body.nb_charbons, nb_plv:body.nb_plv, nb_tpe:body.nb_tpe, created_at:new Date().toISOString() };
+    state._camionStatutDate = getDateISO();
+    fermerTopCamion();
+    renderChargement();
+    showToast('✅ Camion confirmé','success');
+  } catch(e) {
+    if(btn){ btn.disabled=false; btn.textContent='Valider le camion ✓'; }
+    showToast('❌ '+(e.message||'Erreur'),'');
+  }
+}
+
 function toutCharger() {
   const set = chargeSet();
   state.livraisons.filter(l => l.statut !== '✅ Livré').forEach(l => { set.add(String(l.id)); l.charge = true; envoyerChargement(l, true); });
@@ -1415,7 +1572,7 @@ async function envoyerChargement(l, charge) {
     await fetch(`${CFG.API_URL}/livraisons/chargement`, {
       method: 'POST',
       headers: {'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
-      body: JSON.stringify({ id: l.id, charge, colis: colisDe(l), boissons: boissonsDe(l), boissons_detail: boissonsDetailDe(l), charbons: charbonsDe(l), plv: plvDe(l), tpe: tpeDe(l) }),
+      body: JSON.stringify({ id: l.id, charge, colis: colisDe(l), boissons: boissonsDe(l), boissons_detail: boissonsDetailDe(l), charbons: charbonsDe(l), plv: plvDe(l), tpe: tpeDe(l), charbons_detail: detailDe(l,'charbons_detail'), plv_detail: detailDe(l,'plv_detail'), tpe_detail: detailDe(l,'tpe_detail') }),
     });
   } catch(_) { /* le localStorage conserve l'état côté livreur */ }
 }
@@ -2381,9 +2538,7 @@ function ouvrirSignature(idx) {
   document.getElementById('sigNom').value   = '';
   document.getElementById('sigColis').value = l.nb_colis || l.nbColis || '';
   majBoissonsBtnSignature(l);
-  document.getElementById('sigCharbons').value = charbonsDe(l) || '';
-  document.getElementById('sigPlv').value = plvDe(l) || '';
-  document.getElementById('sigTpe').value = tpeDe(l) || '';
+  // 🔥🪧💳 charbon/PLV/TPE : boutons détaillés mis à jour par majBoissonsBtnSignature(l)
   document.getElementById('sigObs').value   = '';
   document.getElementById('sigEmail').value = '';
   document.getElementById('sigReserve').checked = false;
@@ -2666,9 +2821,9 @@ async function envoyerSignature() {
   const bl     = document.getElementById('sigBL').value.trim();
   const nom    = document.getElementById('sigNom').value.trim();
   const colis  = document.getElementById('sigColis').value.trim();
-  const charbons = document.getElementById('sigCharbons').value.trim();
-  const plv = document.getElementById('sigPlv').value.trim();
-  const tpe = document.getElementById('sigTpe').value.trim();
+  const charbons = String(charbonsDe(l) || '');
+  const plv = String(plvDe(l) || '');
+  const tpe = String(tpeDe(l) || '');
   const conforme = !document.getElementById('sigReserve').checked;   // réserve cochée = non conforme
   const obs      = document.getElementById('sigObs').value.trim();    // commentaire toujours transmis
   const reglement = document.getElementById('sigReglement').value;
@@ -2703,6 +2858,9 @@ async function envoyerSignature() {
     nbCharbons:    charbons || '0',
     nbPlv:         plv || '0',
     nbTpe:         tpe || '0',
+    charbonsDetail: detailDe(l,'charbons_detail'),
+    plvDetail:     detailDe(l,'plv_detail'),
+    tpeDetail:     detailDe(l,'tpe_detail'),
     conforme:      conforme,
     zone:          l.zone || '',
     dateHeure,
