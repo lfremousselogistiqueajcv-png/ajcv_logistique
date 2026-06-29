@@ -247,10 +247,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div><label>Date de livraison</label><input id="fl-date" type="date"></div>
       <div><label>Téléphone</label><input id="fl-tel"></div>
       <div><label>Colis</label><input id="fl-colis" type="number" value="1"></div>
-      <div><label>🔥 Charbons</label><input id="fl-charbons" type="number" min="0" value="0"></div>
       <div><label>🎁 Cadeaux</label><input id="fl-cadeaux" type="number" min="0" value="0"></div>
-      <div><label>🪧 PLV</label><input id="fl-plv" type="number" min="0" value="0"></div>
-      <div><label>💳 TPE</label><input id="fl-tpe" type="number" min="0" value="0"></div>
+      <div style="grid-column:1/-1"><label>🔥 Charbons (par référence)</label><div id="fl-charbons-box" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px"></div></div>
+      <div style="grid-column:1/-1"><label>🪧 PLV (par référence)</label><div id="fl-plv-box" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px"></div></div>
+      <div style="grid-column:1/-1"><label>💳 TPE (par référence)</label><div id="fl-tpe-box" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px"></div></div>
       <div style="grid-column:1/-1"><label>🥤 Boissons (par référence)</label><div id="fl-boissons-box" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px"></div></div>
       <div style="grid-column:1/-1"><label>Email (pour le bon de réception)</label><input id="fl-email" type="email" placeholder="prérempli depuis la fiche client"></div>
       <div style="grid-column:1/-1"><label>Indications</label><input id="fl-indic" placeholder="Instructions de livraison..."></div>
@@ -296,10 +296,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <p id="el-info" class="muted" style="margin-bottom:14px"></p>
     <div class="form-grid">
       <div><label>📦 Colis</label><input id="el-colis" type="number" min="0" inputmode="numeric"></div>
-      <div><label>🔥 Charbons</label><input id="el-charbons" type="number" min="0" inputmode="numeric"></div>
       <div><label>🎁 Cadeaux / présentoirs</label><input id="el-cadeaux" type="number" min="0" inputmode="numeric"></div>
-      <div><label>🪧 PLV</label><input id="el-plv" type="number" min="0" inputmode="numeric"></div>
-      <div><label>💳 TPE</label><input id="el-tpe" type="number" min="0" inputmode="numeric"></div>
+      <div style="grid-column:1/-1"><label>🔥 Charbons (par référence)</label><div id="el-charbons-box" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px"></div></div>
+      <div style="grid-column:1/-1"><label>🪧 PLV (par référence)</label><div id="el-plv-box" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px"></div></div>
+      <div style="grid-column:1/-1"><label>💳 TPE (par référence)</label><div id="el-tpe-box" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px"></div></div>
       <div style="grid-column:1/-1"><label>🥤 Boissons (par référence)</label><div id="el-boissons-box" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px"></div></div>
     </div>
     <p id="elErr" style="display:none;color:#dc2626;font-size:13px;margin-top:10px"></p>
@@ -479,7 +479,11 @@ async function renderZones(){
   const zones = data.zones || [];
   const legende = zones.map(z=>`<span class="zchip"><span class="zdot" style="background:${z.couleur}"></span>${esc(z.titre)} · ${esc(z.livreur)}</span>`).join('');
   const cartes = zones.map(z=>{
-    const lignes = z.cp.map(c=>`<tr><td class="zcp">${c.cp}</td><td>${esc(CP_COMMUNE[c.cp]||'—')}<span class="zsect">${esc(c.secteur)}</span></td></tr>`).join('');
+    const lignes = z.cp.map(c=>{
+      const del = c.perso ? ` <button class="zdel" onclick="supprimerCP('${c.cp}')" title="Retirer cet ajout perso">🗑️</button>` : '';
+      const tag = c.perso ? ` <span class="zperso">perso</span>` : '';
+      return `<tr><td class="zcp">${c.cp}${del}</td><td>${esc(CP_COMMUNE[c.cp]||c.ville||'—')}<span class="zsect">${esc(c.secteur)}${tag}</span></td></tr>`;
+    }).join('');
     return `<div class="zcard"><div class="zhdr" style="background:${z.couleur}"><span>${esc(z.titre)}</span><small>${esc(z.livreur)} · ${z.cp.length} CP</small></div><table class="ztbl">${lignes}</table></div>`;
   }).join('');
   document.getElementById('content').innerHTML = `
@@ -496,6 +500,13 @@ async function renderZones(){
       .zlegend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
       .zchip{display:inline-flex;align-items:center;gap:7px;font-size:13px;border:1px solid var(--border);border-radius:999px;padding:5px 11px;color:var(--text)}
       .zdot{width:12px;height:12px;border-radius:50%}
+      .zperso{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:#7c3aed;border-radius:4px;padding:1px 5px;vertical-align:middle}
+      .zdel{border:none;background:transparent;cursor:pointer;font-size:13px;padding:0 0 0 4px;vertical-align:middle}
+      .zform{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:4px}
+      .zform label{font-size:12px;color:var(--text2);font-weight:600}
+      .zform input,.zform select{display:block;margin-top:3px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px}
+      .zform input#zcpInput{width:92px;font-variant-numeric:tabular-nums;letter-spacing:1px}
+      .zaddbtn{padding:9px 16px;border:none;border-radius:8px;background:#2563eb;color:#fff;font-weight:600;font-size:14px;cursor:pointer}
     </style>
     <div class="card">
       <h3 style="margin:0 0 6px">📍 Zones de livraison</h3>
@@ -503,12 +514,49 @@ async function renderZones(){
       <div class="zlegend">${legende}</div>
       <div id="zoneMap" style="height:360px;border-radius:10px;overflow:hidden;margin-top:12px;border:1px solid var(--border)"></div>
     </div>
+    <div class="card">
+      <h3 style="margin:0 0 6px">➕ Ajouter ou corriger un code postal</h3>
+      <p class="muted" style="margin:0 0 4px">Pour un CP manquant, ou pour changer l'affectation d'un CP existant. Le <b>code postal fait foi</b> pour toutes les futures livraisons. Tes ajouts portent le tag <span class="zperso">perso</span> et se retirent avec 🗑️ (retour au défaut).</p>
+      <div class="zform">
+        <label>Code postal<input id="zcpInput" maxlength="5" inputmode="numeric" placeholder="97XXX"></label>
+        <label>Commune (info, optionnel)<input id="zvilleInput" placeholder="ex. Saint-Denis"></label>
+        <label>Secteur → zone<select id="zsectInput">
+          <option value="Sud">Sud → 🟢 Zone 1</option>
+          <option value="Nord">Nord → 🔵 Zone 2</option>
+          <option value="Est">Est → 🔵 Zone 2</option>
+          <option value="Ouest">Ouest → 🟠 Zone 3</option>
+        </select></label>
+        <button class="zaddbtn" onclick="ajouterCP()">Enregistrer</button>
+      </div>
+    </div>
     <div class="zgrid">${cartes}</div>
     <div class="card">
       <p class="muted" style="margin:0"><b>Codes CEDEX</b> (97487, 97495 → Zone 2 ; 97415 → Zone 3) : classés automatiquement.</p>
       <p class="muted" style="margin:6px 0 0"><b>Mafate</b> (97428) : rattaché à aucune zone — accès uniquement pédestre/hélico, non desservi en camion. Un bon sur ce code ressort sans zone et se traite à la main.</p>
     </div>`;
   initZoneMap();
+}
+
+async function ajouterCP(){
+  const cp = (document.getElementById('zcpInput').value||'').trim();
+  const ville = (document.getElementById('zvilleInput').value||'').trim();
+  const secteur = document.getElementById('zsectInput').value;
+  if(!/^97\d{3}$/.test(cp)){ alert('Code postal invalide — format attendu : 97XXX'); return; }
+  try {
+    const r = await api('POST','/zones/cp',{cp,secteur,ville});
+    if(r && r.error){ alert('Erreur : '+r.error); return; }
+    toast('✅ '+cp+' enregistré');
+    renderZones();
+  } catch(e){ alert('Erreur : '+(e.message||e)); }
+}
+async function supprimerCP(cp){
+  if(!confirm('Retirer le code postal '+cp+' de tes ajouts perso ?\n\nIl reviendra à son affectation par défaut si elle existe dans le système.')) return;
+  try {
+    const r = await api('DELETE','/zones/cp/'+cp);
+    if(r && r.error){ alert('Erreur : '+r.error); return; }
+    toast('🗑️ '+cp+' retiré');
+    renderZones();
+  } catch(e){ alert('Erreur : '+(e.message||e)); }
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1042,15 +1090,17 @@ async function ouvrirEditLiv(id){
   if(!_boissons){ const dd=await api('GET','/boissons').catch(()=>({boissons:[]})); _boissons=dd.boissons||[]; }
   document.getElementById('el-info').textContent=(l.client_nom||'')+(l.bl?' · BL '+l.bl:'');
   document.getElementById('el-colis').value=parseInt(l.nb_colis)||0;
-  document.getElementById('el-charbons').value=parseInt(l.nb_charbons)||0;
   document.getElementById('el-cadeaux').value=parseInt(l.nb_cadeaux)||0;
-  document.getElementById('el-plv').value=parseInt(l.nb_plv)||0;
-  document.getElementById('el-tpe').value=parseInt(l.nb_tpe)||0;
   let det=l.boissons_detail; if(typeof det==='string'){ try{ det=JSON.parse(det); }catch(_){ det={}; } } det=det||{};
   const actives=(_boissons||[]).filter(b=>b.actif!==false);
   document.getElementById('el-boissons-box').innerHTML = actives.length
     ? actives.map(b=>`<div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 9px"><span style="font-size:12px">${esc(b.nom)}</span><input id="elb-${esc(String(b.id))}" type="number" min="0" value="${parseInt(det[b.nom])||0}" inputmode="numeric" style="width:54px;padding:4px;text-align:center"></div>`).join('')
     : '<span class="muted">Aucune référence boisson.</span>';
+  await chargerRefsCat();
+  const _pd=s=>{ if(typeof s==='string'){ try{return JSON.parse(s)||{};}catch(_){return {};} } return s||{}; };
+  remplirBoiteRefs('el-charbons-box','CHARBON','elc',_pd(l.charbons_detail));
+  remplirBoiteRefs('el-plv-box','PLV','elp',_pd(l.plv_detail));
+  remplirBoiteRefs('el-tpe-box','TPE','elt',_pd(l.tpe_detail));
   const err=document.getElementById('elErr'); err.style.display='none'; err.textContent='';
   document.getElementById('modalEditLiv').classList.add('active');
 }
@@ -1061,12 +1111,15 @@ async function enregistrerEditLiv(){
     const v=el?(parseInt(el.value)||0):0;
     if(v>0) boissons_detail[b.nom]=v;
   });
+  const charbons_detail=lireBoiteRefs('CHARBON','elc');
+  const plv_detail=lireBoiteRefs('PLV','elp');
+  const tpe_detail=lireBoiteRefs('TPE','elt');
   const body={
     nb_colis: parseInt(document.getElementById('el-colis').value)||0,
-    nb_charbons: parseInt(document.getElementById('el-charbons').value)||0,
     nb_cadeaux: parseInt(document.getElementById('el-cadeaux').value)||0,
-    nb_plv: parseInt(document.getElementById('el-plv').value)||0,
-    nb_tpe: parseInt(document.getElementById('el-tpe').value)||0,
+    charbons_detail, nb_charbons: Object.values(charbons_detail).reduce((a,c)=>a+c,0),
+    plv_detail,       nb_plv:      Object.values(plv_detail).reduce((a,c)=>a+c,0),
+    tpe_detail,       nb_tpe:      Object.values(tpe_detail).reduce((a,c)=>a+c,0),
     boissons_detail,
     nb_boissons: Object.values(boissons_detail).reduce((a,c)=>a+c,0)
   };
@@ -1076,7 +1129,7 @@ async function enregistrerEditLiv(){
     if(r&&r.success){
       fermerModal('modalEditLiv');
       toast('✅ Livraison modifiée');
-      const upd=l=>{ if(!l)return; l.nb_colis=body.nb_colis; l.nb_charbons=body.nb_charbons; l.nb_cadeaux=body.nb_cadeaux; l.nb_plv=body.nb_plv; l.nb_tpe=body.nb_tpe; l.nb_boissons=body.nb_boissons; l.boissons_detail=body.boissons_detail; };
+      const upd=l=>{ if(!l)return; l.nb_colis=body.nb_colis; l.nb_charbons=body.nb_charbons; l.nb_cadeaux=body.nb_cadeaux; l.nb_plv=body.nb_plv; l.nb_tpe=body.nb_tpe; l.nb_boissons=body.nb_boissons; l.boissons_detail=body.boissons_detail; l.charbons_detail=body.charbons_detail; l.plv_detail=body.plv_detail; l.tpe_detail=body.tpe_detail; };
       upd((_livAll||[]).find(x=>String(x.id)===String(_editLivId)));
       upd((_pgData['liv']||[]).find(x=>String(x.id)===String(_editLivId)));
       renderLivTable();
@@ -1092,14 +1145,15 @@ async function ouvrirAjoutLiv(){
   ['fl-client','fl-ville','fl-cp','fl-adresse','fl-tel','fl-indic','fl-bl','fl-email'].forEach(id=>document.getElementById(id).value='');
   window._selClientId=null; window._selClientEmail=''; window._selClientTel=''; window._selClientAdresse=''; window._selClientVille=''; window._selClientCp='';
   document.getElementById('fl-colis').value=1;
-  document.getElementById('fl-charbons').value=0;
   document.getElementById('fl-cadeaux').value=0;
-  document.getElementById('fl-plv').value=0;
-  document.getElementById('fl-tpe').value=0;
   const actives=(_boissons||[]).filter(b=>b.actif!==false);
   document.getElementById('fl-boissons-box').innerHTML = actives.length
     ? actives.map(b=>`<div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 9px"><span style="font-size:12px">${esc(b.nom)}</span><input id="flb-${esc(String(b.id))}" type="number" min="0" value="0" inputmode="numeric" style="width:54px;padding:4px;text-align:center"></div>`).join('')
     : '<span class="muted">Aucune référence — ajoute-les dans l\'onglet 🥤 Boissons.</span>';
+  await chargerRefsCat();
+  remplirBoiteRefs('fl-charbons-box','CHARBON','flc',{});
+  remplirBoiteRefs('fl-plv-box','PLV','flp',{});
+  remplirBoiteRefs('fl-tpe-box','TPE','flt',{});
   document.getElementById('fl-vendredi').checked=false;
   document.getElementById('fl-date').value=document.getElementById('lv-date').value;
   document.getElementById('livErr').style.display='none';
@@ -1174,10 +1228,13 @@ async function creerLivraison(){
   });
   body.boissons_detail=boissons_detail;
   body.nb_boissons=Object.values(boissons_detail).reduce((a,c)=>a+c,0);
-  body.nb_charbons=parseInt(document.getElementById('fl-charbons').value)||0;
+  const charbons_detail=lireBoiteRefs('CHARBON','flc');
+  const plv_detail=lireBoiteRefs('PLV','flp');
+  const tpe_detail=lireBoiteRefs('TPE','flt');
+  body.charbons_detail=charbons_detail; body.nb_charbons=Object.values(charbons_detail).reduce((a,c)=>a+c,0);
+  body.plv_detail=plv_detail;           body.nb_plv=Object.values(plv_detail).reduce((a,c)=>a+c,0);
+  body.tpe_detail=tpe_detail;           body.nb_tpe=Object.values(tpe_detail).reduce((a,c)=>a+c,0);
   body.nb_cadeaux=parseInt(document.getElementById('fl-cadeaux').value)||0;
-  body.nb_plv=parseInt(document.getElementById('fl-plv').value)||0;
-  body.nb_tpe=parseInt(document.getElementById('fl-tpe').value)||0;
   // Synchroniser les infos saisies vers la fiche client (email, téléphone, adresse) si modifiées/ajoutées
   if(window._selClientId){
     const upd={};
@@ -1454,6 +1511,31 @@ function pageClients(delta){
 // BOISSONS — catalogue des références (affichées dans l'appli livreur)
 // ════════════════════════════════════════════════════════════════════════════
 let _boissons = null;            // cache catégorie BOISSON (utilisé par les sélecteurs existants)
+let _refsCat = null;             // refs typées CHARBON/PLV/TPE pour les formulaires livraison
+async function chargerRefsCat(){
+  const d = await api('GET','/boissons?categorie=ALL').catch(()=>({boissons:[]}));
+  const all = d.boissons||[];
+  _refsCat = {
+    CHARBON: all.filter(b=>b.categorie==='CHARBON' && b.actif!==false),
+    PLV:     all.filter(b=>b.categorie==='PLV'     && b.actif!==false),
+    TPE:     all.filter(b=>b.categorie==='TPE'     && b.actif!==false)
+  };
+}
+// Génère les inputs par référence d'une catégorie dans une boîte (préremplis depuis "detail")
+function remplirBoiteRefs(boxId, cat, prefix, detail){
+  const box = document.getElementById(boxId); if(!box) return;
+  const refs = (_refsCat && _refsCat[cat]) || [];
+  box.innerHTML = refs.length
+    ? refs.map(r=>`<div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 9px"><span style="font-size:12px">${esc(r.nom)}</span><input id="${prefix}-${esc(String(r.id))}" type="number" min="0" value="${parseInt((detail||{})[r.nom])||0}" inputmode="numeric" style="width:54px;padding:4px;text-align:center"></div>`).join('')
+    : '<span class="muted">Aucune référence — ajoute-les dans l\'onglet 📦 Produits.</span>';
+}
+// Lit les quantités saisies d'une catégorie → objet { nom: qty } (qty>0 seulement)
+function lireBoiteRefs(cat, prefix){
+  const refs = (_refsCat && _refsCat[cat]) || [];
+  const det = {};
+  refs.forEach(r=>{ const el=document.getElementById(prefix+'-'+r.id); const v=el?(parseInt(el.value)||0):0; if(v>0) det[r.nom]=v; });
+  return det;
+}
 let _prodCat  = 'BOISSON';
 let _prodList = [];
 const PROD_CATS = [

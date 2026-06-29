@@ -1,7 +1,18 @@
 {
-  "version": "2026.06.27.1",
+  "version": "2026.06.27.2",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.27.2",
+      "date": "27/06/2026",
+      "titre": "Zones configurables + Charbons / PLV / TPE par référence",
+      "notes": [
+        "Onglet Zones : tu peux maintenant ajouter ou corriger un code postal toi-même (avec son secteur → zone), sans intervention technique.",
+        "Création et modification d'une livraison : Charbons, PLV et TPE se saisissent par référence (CHARBON 1, CHARBON 2…), comme les Boissons.",
+        "Cohérence totale entre admin, préparateur et livreur sur les produits typés.",
+        "Aucune donnée existante modifiée."
+      ]
+    },
     {
       "v": "2026.06.27.1",
       "date": "27/06/2026",
