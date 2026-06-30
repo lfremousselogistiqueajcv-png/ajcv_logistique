@@ -1,7 +1,20 @@
 {
-  "version": "2026.06.27.2",
+  "version": "2026.06.30.1",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.06.30.1",
+      "date": "30/06/2026",
+      "titre": "Mode maintenance, thème clair/sombre & module Production CBD",
+      "notes": [
+        "🌓 Thème clair / sombre : un bouton ☀️/🌙 en haut de chaque écran pour un meilleur confort de lecture (accessibilité). Ton choix est mémorisé d'une fois sur l'autre.",
+        "🔧 Admin : nouvel onglet Maintenance — mets une application en maintenance en un clic (avec un message). Les utilisateurs voient alors une page « Application en maintenance » ; les administrateurs gardent toujours l'accès.",
+        "🌿 Nouveau module Production CBD : console dédiée (production, ateliers, stock & ventes du jour, journal de production) avec une vue Préparateur simplifiée.",
+        "📄 Admin → Documents : colonne N° BL ajoutée et recherche par numéro de BLV.",
+        "📊 Admin → KPI : tableau de bord (livraisons, préparations, produits ; détail par jour, zone, livreur et préparateur).",
+        "Aucune donnée existante n'a été modifiée."
+      ]
+    },
     {
       "v": "2026.06.27.2",
       "date": "27/06/2026",
