@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>🌿 Production CBD — AJCV</title>
+<style>
+:root{
+  --navy:#0D1B4B; --gold:#FFB300; --gold2:#FFC933;
+  --dark:#080F28; --surface:#111827; --surface2:#1F2937; --surface3:#283549;
+  --green:#22C55E; --red:#EF4444; --blue:#3B82F6; --orange:#F97316; --purple:#A855F7;
+  --text:#F9FAFB; --text2:#9CA3AF; --text3:#6B7280; --border:rgba(255,255,255,0.08);
+  --r:14px; --rs:9px;
+}
+/* ── MODE CLAIR (accessibilité — haute lisibilité) ── */
+html[data-theme="light"]{
+  --dark:#EDF1F7; --surface:#FFFFFF; --surface2:#EBEFF5; --surface3:#DCE2EC;
+  --text:#0F172A; --text2:#475569; --text3:#64748B;
+  --border:rgba(15,23,42,0.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--dark);color:var(--text);-webkit-tap-highlight-color:transparent}
+h1,h2,h3{font-weight:700}
+.muted{color:var(--text2)} .small{font-size:12px} .hidden{display:none!important}
+.right{text-align:right} .center{text-align:center}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+a{color:var(--blue)}
+
+#test-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--purple);color:#fff;font:600 13px/1.4 Arial,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+
+/* Login */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px 24px;width:100%;max-width:380px}
+.login-card .logo{font-size:26px;font-weight:800;text-align:center;margin-bottom:4px}
+.login-card .logo span{color:var(--green)}
+.login-card .sub{text-align:center;color:var(--text2);font-size:13px;margin-bottom:22px}
+label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin:12px 0 5px}
+.fld{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:15px}
+.fld:focus{outline:none;border-color:var(--green)}
+.chk{display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-weight:500;color:var(--text)}
+.chk input{width:18px;height:18px}
+.btn{padding:11px 16px;border:none;border-radius:var(--rs);font-size:15px;font-weight:700;background:var(--green);color:#06231a}
+.btn:active{transform:scale(.98)} .btn:disabled{opacity:.6}
+.btn-block{width:100%;margin-top:18px}
+.btn-gold{background:var(--gold);color:#1a1300}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-blue{background:var(--blue);color:#04122e}
+.btn-danger{background:var(--red);color:#fff}
+.btn-sm{padding:7px 11px;font-size:13px;font-weight:600}
+.btn-icon{background:transparent;border:none;font-size:16px;padding:4px 6px;color:var(--text2)}
+.btn-icon:hover{color:var(--text)}
+.err{color:var(--red);font-size:13px;margin-top:10px;min-height:16px}
+
+/* Shell */
+#app{max-width:1200px;margin:0 auto;padding:14px 14px 70px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.topbar .brand{font-size:18px;font-weight:800} .topbar .brand span{color:var(--green)}
+.who{font-size:12px;color:var(--text2);text-align:right;line-height:1.3}
+.tabs{display:flex;gap:7px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;-webkit-overflow-scrolling:touch}
+.tab{flex:0 0 auto;padding:9px 13px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:13px;font-weight:600;white-space:nowrap}
+.tab.active{background:var(--green);color:#06231a;border-color:var(--green)}
+.subtabs{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
+.subtab{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600}
+.subtab.active{background:var(--surface3);color:var(--text);border-color:var(--green)}
+
+/* Cards / tables / KPI */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.card h3{font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between}
+.card h3 .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row .col{flex:1 1 150px;min-width:130px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;border-top:3px solid var(--text3)}
+.kpi.k-red{border-top-color:var(--red)} .kpi.k-green{border-top-color:var(--green)}
+.kpi.k-blue{border-top-color:var(--blue)} .kpi.k-gold{border-top-color:var(--gold)} .kpi.k-orange{border-top-color:var(--orange)}
+.kpi-v{font-size:30px;font-weight:800;line-height:1}
+.kpi-u{font-size:14px;font-weight:600;color:var(--text2)}
+.kpi-l{font-size:12px;color:var(--text2);margin-top:6px}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+th{color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+tr.inactif{opacity:.45}
+td .qin{width:72px;padding:6px;text-align:center;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text)}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+.b-urgent{background:rgba(239,68,68,.18);color:#fca5a5}
+.b-aprod{background:rgba(249,115,22,.18);color:#fdba74}
+.b-ok{background:rgba(34,197,94,.18);color:#86efac}
+.b-info{background:rgba(59,130,246,.18);color:#93c5fd}
+.b-grey{background:rgba(148,163,184,.18);color:#cbd5e1}
+.tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:6px;background:var(--surface3);color:var(--text2)}
+.loading{text-align:center;color:var(--text2);padding:24px}
+.empty{text-align:center;color:var(--text3);padding:18px}
+.hint{font-size:12px;color:var(--text2);margin-top:8px;line-height:1.5}
+
+/* Dashboard — cellules de production */
+.cells{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.cell{background:var(--surface2);border-radius:var(--r);padding:15px;border-left:6px solid var(--text3);position:relative}
+.cell.ok{border-left-color:var(--green)} .cell.sous{border-left-color:var(--orange)} .cell.arret{border-left-color:var(--text3)}
+.cell.goulot{box-shadow:0 0 0 2px var(--red);}
+.cell .flow{position:absolute;top:14px;right:14px;font-size:11px;color:var(--text3);font-weight:700}
+.cell .nm{font-size:13px;font-weight:700;margin-bottom:10px;padding-right:28px}
+.cell .big{font-size:34px;font-weight:800;line-height:1}
+.cell .tgt{font-size:13px;color:var(--text2);margin-left:4px}
+.cell .prog{height:7px;background:var(--surface);border-radius:5px;margin-top:10px;overflow:hidden}
+.cell .prog>div{height:100%;border-radius:5px;background:var(--green)}
+.cell.sous .prog>div{background:var(--orange)}
+.cell .meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:10px}
+.cell .meta b{color:var(--text);font-size:13px}
+.goulot-tag{display:inline-block;font-size:10px;font-weight:800;color:#fff;background:var(--red);padding:2px 7px;border-radius:6px;margin-top:8px}
+
+/* barres horizontales */
+.bars{margin-top:4px}
+.bar-row{display:flex;align-items:center;gap:10px;margin:7px 0}
+.bar-label{width:140px;font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.bar-track{flex:1;background:var(--surface2);border-radius:6px;height:20px;overflow:hidden;min-width:60px}
+.bar-fill{height:100%;border-radius:6px;background:var(--blue);min-width:2px}
+.bar-fill.g{background:var(--green)} .bar-fill.o{background:var(--orange)}
+.bar-val{width:54px;text-align:right;font-size:13px;font-weight:700;flex-shrink:0}
+
+/* Toast / Modal */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--surface3);color:var(--text);border:1px solid var(--border);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;transition:.25s;z-index:10000;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9998}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;width:100%;max-width:480px;max-height:92vh;overflow:auto}
+.modal h3{font-size:16px;margin-bottom:14px}
+.modal .row2{display:flex;gap:10px} .modal .row2>div{flex:1}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.modal-actions .btn,.modal-actions .btn-ghost{flex:1;padding:11px}
+.toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.toggle input{width:0;height:0;opacity:0;position:absolute}
+.toggle .sw{width:42px;height:24px;background:var(--surface3);border-radius:999px;position:relative;transition:.2s}
+.toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+.toggle input:checked + .sw{background:var(--green)}
+.toggle input:checked + .sw::after{transform:translateX(18px)}
+
+/* Bouton bascule thème (toujours accessible) */
+#theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}
+#theme-btn:active{transform:scale(.94)}
+/* Badges lisibles en mode clair */
+html[data-theme="light"] .b-urgent{color:#b91c1c;background:rgba(239,68,68,.12)}
+html[data-theme="light"] .b-aprod{color:#c2410c;background:rgba(249,115,22,.14)}
+html[data-theme="light"] .b-ok{color:#15803d;background:rgba(22,163,74,.14)}
+html[data-theme="light"] .b-info{color:#1d4ed8;background:rgba(59,130,246,.12)}
+html[data-theme="light"] .b-grey{color:#475569;background:rgba(100,116,139,.14)}
+html[data-theme="light"] #test-banner{box-shadow:0 2px 8px rgba(0,0,0,.18)}
+</style>
+<script>try{var _t=localStorage.getItem('ajcv_theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-card">
+    <div class="logo">🌿 <span>Production</span> CBD</div>
+    <div class="sub">AJCV — conditionnement</div>
+    <label for="li-login">Identifiant</label>
+    <input id="li-login" class="fld" autocapitalize="characters" autocomplete="username" placeholder="IDENTIFIANT">
+    <label for="li-mdp">Mot de passe</label>
+    <input id="li-mdp" class="fld" type="password" autocomplete="current-password" placeholder="••••••••">
+    <label class="chk"><input type="checkbox" id="li-remember" checked> Se souvenir de moi</label>
+    <button class="btn btn-block" id="li-btn">Se connecter</button>
+    <div class="err center" id="li-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <div class="topbar">
+    <div class="brand">🌿 <span>Production</span> CBD</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="who" id="who"></div>
+      <button class="btn-ghost btn-sm" id="pwd" title="Changer mon mot de passe">🔑</button>
+      <button class="btn-ghost btn-sm" id="logout">Quitter</button>
+    </div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div id="content"></div>
+</div>
+
+<div id="toast"></div>
+<button id="theme-btn" title="Mode clair / sombre (accessibilité)" aria-label="Basculer le mode clair ou sombre">☀️</button>
+
+<script>
+// ════════════ MODE TEST ════════════
+const IS_TEST  = false;
+const API_BASE = 'https://ajcvbackend-production.up.railway.app';
+if (IS_TEST){
+  const b=document.createElement('div'); b.id='test-banner';
+  b.textContent='🧪 ENVIRONNEMENT DE TEST · Production CBD — données fictives, sans impact prod';
+  document.addEventListener('DOMContentLoaded',()=>{ document.body.appendChild(b); document.body.style.paddingTop='32px'; });
+}
+const API = API_BASE;
+
+// ════════════ THÈME CLAIR / SOMBRE (accessibilité) ════════════
+function appliquerTheme(t){ document.documentElement.setAttribute('data-theme',t); const b=document.getElementById('theme-btn'); if(b)b.textContent=(t==='light'?'🌙':'☀️'); }
+function toggleTheme(){ const cur=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark'; const n=cur==='light'?'dark':'light'; try{localStorage.setItem('ajcv_theme',n);}catch(_){ } appliquerTheme(n); }
+(function(){ const t=document.documentElement.getAttribute('data-theme')||'dark'; appliquerTheme(t); const b=document.getElementById('theme-btn'); if(b)b.onclick=toggleTheme; })();
+
+// ════════════ ÉTAT + HELPERS ════════════
+const S = { token:'', user:null, mode:'', config:null, tab:'', subtab:'', _timer:null, refs:{} };
+const SESSION_KEY='ajcv_cbd_session', LOGIN_KEY='ajcv_cbd_login', REMEMBER_KEY='ajcv_cbd_remember';
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const todayISO = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const num = (v,d=0)=>{ const n=parseFloat(v); return isNaN(n)?d:n; };
+const fmtKg = v => (Math.round((Number(v)||0)*1000)/1000)+' kg';
+const heure = () => { const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0'); };
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
+
+async function api(method, path, body){
+  const o={ method, headers:{ 'Authorization':'Bearer '+S.token } };
+  if (body){ o.headers['Content-Type']='application/json'; o.body=JSON.stringify(body); }
+  let r; try{ r=await fetch(API+path,o); }catch(e){ return {error:'Réseau indisponible',_status:0}; }
+  if (r.status===401){ deconnexion(true); return {error:'Session expirée',_status:401}; }
+  let d={}; try{ d=await r.json(); }catch(_){ d={}; }
+  if (!r.ok && !d.error) d.error='Erreur '+r.status;
+  d._status=r.status; return d;
+}
+const cfgPrix = ()=> !!(S.config && S.config.prix_visible);
+const devise = ()=> (S.config && S.config.devise) || 'EUR';
+
+// ════════════ SESSION ════════════
+function saveSession(remember){
+  const p=JSON.stringify({token:S.token,user:S.user});
+  try{ if(remember){localStorage.setItem(SESSION_KEY,p);sessionStorage.removeItem(SESSION_KEY);}
+       else{sessionStorage.setItem(SESSION_KEY,p);localStorage.removeItem(SESSION_KEY);} }catch(_){}
+}
+function lireSession(){ try{return localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY);}catch(_){return null;} }
+function effacerSession(){ try{localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY);}catch(_){} }
+function prefillLogin(){ try{ const l=localStorage.getItem(LOGIN_KEY); if(l&&$('li-login'))$('li-login').value=l;
+  if($('li-remember'))$('li-remember').checked=(localStorage.getItem(REMEMBER_KEY)!=='0'); }catch(_){} }
+
+// ════════════ CONNEXION ════════════
+$('li-btn').onclick=connexion;
+$('li-mdp').addEventListener('keydown',e=>{if(e.key==='Enter')connexion();});
+$('li-login').addEventListener('keydown',e=>{if(e.key==='Enter')$('li-mdp').focus();});
+async function connexion(){
+  const login=$('li-login').value.trim(), mdp=$('li-mdp').value;
+  if(!login||!mdp){ $('li-err').textContent='Identifiant et mot de passe requis'; return; }
+  $('li-err').textContent=''; $('li-btn').textContent='Connexion…'; $('li-btn').disabled=true;
+  let res; try{ res=await(await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login,mdp,app:((new URLSearchParams(location.search).get('vue')||'').toLowerCase().slice(0,4)==='prep'?'cbd_preparateur':'cbd_admin')})})).json(); }
+  catch(e){ res={error:'Réseau indisponible'}; }
+  $('li-btn').textContent='Se connecter'; $('li-btn').disabled=false;
+  if(!res||res.error||!res.token){ $('li-err').textContent=(res&&res.error)||'Identifiant ou mot de passe incorrect'; return; }
+  S.token=res.token; S.user=res;
+  const cfg=await api('GET','/cbd/config');
+  if(cfg.error){
+    S.token='';S.user=null;
+    if(cfg._status===404) $('li-err').textContent='Module Production absent du backend (route /cbd manquante).';
+    else if(cfg._status===403) $('li-err').textContent="Ce compte n'a pas accès au module Production.";
+    else $('li-err').textContent='Production indisponible : '+(cfg.error||'erreur');
+    return;
+  }
+  S.config=cfg; S.mode=calcMode(res.role);
+  const remember=$('li-remember')?$('li-remember').checked:true;
+  try{ localStorage.setItem(LOGIN_KEY,login); localStorage.setItem(REMEMBER_KEY,remember?'1':'0'); }catch(_){}
+  saveSession(remember); demarrer();
+}
+function deconnexion(expired){
+  if(S._timer){clearInterval(S._timer);S._timer=null;}
+  S.token='';S.user=null;S.mode='';S.config=null;
+  effacerSession();
+  $('app').classList.add('hidden'); $('login').classList.remove('hidden');
+  prefillLogin(); $('li-mdp').value='';
+  if(expired)$('li-err').textContent='Session expirée, reconnecte-toi.';
+}
+$('logout').onclick=()=>deconnexion(false);
+$('pwd').onclick=formMotDePasse;
+(async function reprise(){
+  prefillLogin();
+  let s=null; try{ s=JSON.parse(lireSession()||'null'); }catch(_){}
+  if(s&&s.token){ S.token=s.token; S.user=s.user;
+    const cfg=await api('GET','/cbd/config');
+    if(!cfg.error){ S.config=cfg; S.mode=calcMode(s.user.role); demarrer(); }
+    else deconnexion(false);
+  }
+})();
+
+// ════════════ NAVIGATION ════════════
+function calcMode(role){ const p=(new URLSearchParams(location.search).get('vue')||'').toLowerCase(); S.forced=(p==='preparateur'||p==='prepa'); if(S.forced)return 'preparateur'; return ['Admin','Depot'].includes(role)?'responsable':'preparateur'; }
+let TABS=[];
+function demarrer(){
+  $('login').classList.add('hidden'); $('app').classList.remove('hidden');
+  const u=S.user;
+  $('who').innerHTML=esc((u.prenom||'')+' '+(u.nom||'')).trim()+'<br>'+(S.mode==='responsable'?'Responsable':'Préparateur'+(S.forced&&['Admin','Depot'].includes(u.role)?' · aperçu':''));
+  if(S.mode==='responsable'){
+    TABS=[
+      {id:'dash',label:'📊 Tableau de bord',render:renderDashboard},
+      {id:'stock',label:'📋 Stock du jour',render:renderStock},
+      {id:'saisie',label:'➕ Saisie',render:renderSaisie},
+      {id:'receptions',label:'📦 Réceptions',render:renderReceptions},
+      {id:'ateliers',label:'🏭 Ateliers',render:renderAteliers},
+      {id:'ref',label:'🗂️ Référentiel',render:renderReferentiel},
+      {id:'perf',label:'📈 Performance',render:renderPerformance},
+      {id:'prepa',label:'👥 Préparateurs',render:renderPreparateurs},
+      {id:'param',label:'⚙️ Paramètres',render:renderConfig},
+    ];
+  } else {
+    TABS=[
+      {id:'saisie',label:'➕ Saisie',render:renderSaisie},
+      {id:'stock',label:'📋 Stock du jour',render:renderStock},
+    ];
+  }
+  const t=$('tabs'); t.innerHTML='';
+  TABS.forEach(tb=>{ const b=document.createElement('button'); b.className='tab'; b.textContent=tb.label; b.dataset.id=tb.id; b.onclick=()=>ouvrir(tb.id); t.appendChild(b); });
+  ouvrir(TABS[0].id);
+}
+function ouvrir(id){
+  if(S._timer){clearInterval(S._timer);S._timer=null;}   // stop auto-refresh dashboard
+  const tb=TABS.find(x=>x.id===id); if(!tb)return;
+  S.tab=id;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
+  $('content').innerHTML='<div class="loading">Chargement…</div>';
+  tb.render();
+}
+
+// Priorités (libellés paramétrables)
+function prioLabel(p){ const lib=(S.config&&S.config.priorite_labels)||{}; return (lib[p]||{urgent:'🔴 Urgent',a_produire:'🟠 À produire',ok:'✅ OK'}[p]||p||'').replace(/^[^\s]+\s/,''); }
+function prioBadge(p){ if(!p)return '<span class="muted">—</span>';
+  const cls={urgent:'b-urgent',a_produire:'b-aprod',ok:'b-ok'}[p]||'b-grey';
+  const ico={urgent:'🔴',a_produire:'🟠',ok:'✅'}[p]||'';
+  return `<span class="badge ${cls}">${ico} ${esc(prioLabel(p))}</span>`; }
+
+// Modal de formulaire générique (CRUD)
+function openForm(title, fields, cur, onSave){
+  cur=cur||{};
+  const bg=document.createElement('div'); bg.className='modal-bg';
+  const html=fields.map(f=>{
+    const v=cur[f.key];
+    if(f.type==='checkbox') return `<label class="chk"><input type="checkbox" data-k="${f.key}" ${(v===undefined?f.def:v)?'checked':''}> ${esc(f.label)}</label>`;
+    if(f.type==='select'){ const o=(f.options||[]).map(x=>`<option value="${esc(x.value)}" ${String(v||'')===String(x.value)?'selected':''}>${esc(x.label)}</option>`).join(''); return `<label>${esc(f.label)}</label><select class="fld" data-k="${f.key}">${o}</select>`; }
+    const t=f.type==='number'?'number':(f.type==='date'?'date':'text');
+    const ex=f.type==='number'?`min="${f.min!=null?f.min:0}" ${f.step?`step="${f.step}"`:''} inputmode="${f.step?'decimal':'numeric'}"`:'';
+    return `<label>${esc(f.label)}</label><input class="fld" data-k="${f.key}" type="${t}" ${ex} value="${v==null?'':esc(v)}" placeholder="${esc(f.placeholder||'')}">`;
+  }).join('');
+  bg.innerHTML=`<div class="modal"><h3>${esc(title)}</h3>${html}<div class="err" data-err></div><div class="modal-actions"><button class="btn-ghost" data-cancel>Annuler</button><button class="btn" data-save>Enregistrer</button></div></div>`;
+  document.body.appendChild(bg);
+  const close=()=>bg.remove();
+  bg.querySelector('[data-cancel]').onclick=close;
+  bg.onclick=e=>{ if(e.target===bg)close(); };
+  bg.querySelector('[data-save]').onclick=async ()=>{
+    const vals={}; bg.querySelectorAll('[data-k]').forEach(el=>{ vals[el.dataset.k]= el.type==='checkbox'?el.checked:el.value; });
+    const errEl=bg.querySelector('[data-err]'), sv=bg.querySelector('[data-save]');
+    sv.disabled=true; sv.textContent='…'; errEl.textContent='';
+    const fail=m=>{ errEl.textContent='❌ '+m; sv.disabled=false; sv.textContent='Enregistrer'; };
+    try{ await onSave(vals, close, fail); }catch(e){ fail(e.message||String(e)); }
+  };
+}
+
+// Modale de confirmation (remplace confirm() — plus claire, accessible)
+function confirmModal(message, onYes, danger){
+  const bg=document.createElement('div'); bg.className='modal-bg';
+  bg.innerHTML=`<div class="modal" style="max-width:420px">
+    <h3>${danger?'⚠️ Supprimer':'Confirmer'}</h3>
+    <p style="color:var(--text2);line-height:1.5;margin-bottom:4px">${esc(message)}</p>
+    <div class="modal-actions"><button class="btn-ghost" data-no>Annuler</button><button class="btn ${danger?'btn-danger':''}" data-yes>${danger?'Supprimer':'Confirmer'}</button></div></div>`;
+  document.body.appendChild(bg);
+  const close=()=>bg.remove();
+  bg.querySelector('[data-no]').onclick=close; bg.onclick=e=>{ if(e.target===bg)close(); };
+  bg.querySelector('[data-yes]').onclick=()=>{ close(); onYes(); };
+}
+
+// ════════════════════════════════════════════════════════════
+// TABLEAU DE BORD — mur de production (lecture seule, auto-refresh)
+// ════════════════════════════════════════════════════════════
+let _dashDate=todayISO(), _dashAuto=true;
+function renderDashboard(){
+  $('content').innerHTML=`
+    <div class="card">
+      <h3>📊 Mur de production
+        <span class="actions">
+          <input type="date" id="d-date" class="fld" style="width:auto;padding:8px 10px" value="${_dashDate}">
+          <label class="toggle small"><input type="checkbox" id="d-auto" ${_dashAuto?'checked':''}><span class="sw"></span> Auto</label>
+          <span class="small muted" id="d-maj"></span>
+          <button class="btn-ghost btn-sm" id="d-refresh">🔄</button>
+          <button class="btn-ghost btn-sm" id="d-full" title="Mode TV plein écran">⛶</button>
+        </span>
+      </h3>
+      <div id="d-body"><div class="loading">Chargement…</div></div>
+    </div>`;
+  $('d-date').onchange=e=>{ _dashDate=e.target.value; chargerDashboard(); };
+  $('d-refresh').onclick=()=>chargerDashboard();
+  $('d-auto').onchange=e=>{ _dashAuto=e.target.checked; majAuto(); };
+  $('d-full').onclick=()=>{ const el=document.documentElement; if(!document.fullscreenElement&&el.requestFullscreen)el.requestFullscreen(); else if(document.exitFullscreen)document.exitFullscreen(); };
+  majAuto(); chargerDashboard();
+}
+function majAuto(){ if(S._timer){clearInterval(S._timer);S._timer=null;} if(_dashAuto&&S.tab==='dash') S._timer=setInterval(()=>chargerDashboard(true),45000); }
+function bars(items, getLabel, getVal, cls){
+  const max=Math.max(1,...items.map(getVal));
+  if(!items.length) return '<div class="empty">—</div>';
+  return '<div class="bars">'+items.map(it=>{
+    const v=getVal(it), w=Math.round(v/max*100);
+    return `<div class="bar-row"><div class="bar-label">${esc(getLabel(it))}</div><div class="bar-track"><div class="bar-fill ${cls||''}" style="width:${w}%"></div></div><div class="bar-val">${v}</div></div>`;
+  }).join('')+'</div>';
+}
+async function chargerDashboard(silent){
+  if(!silent)$('d-body').innerHTML='<div class="loading">Chargement…</div>';
+  const d=await api('GET','/cbd/dashboard?date='+_dashDate);
+  if(d.error){ $('d-body').innerHTML='<div class="empty">❌ '+esc(d.error)+'</div>'; return; }
+  const cells=d.ateliers||[], kpi=d.kpi||{}, stock=d.stock||[];
+  // KPI : conditionné = ateliers consommant du vrac ; WIP total = somme des en-cours
+  const conditionne=cells.filter(c=>c.consomme_vrac).reduce((s,c)=>s+(c.produit_jour||0),0);
+  const wipTotal=cells.reduce((s,c)=>s+(c.wip||0),0);
+  // Goulot (TOC) : la file d'attente amont la plus grande désigne la contrainte
+  let goulotId=null,maxQ=0; cells.forEach((c,i)=>{ if(i>0){ const q=cells[i-1].wip||0; if(q>maxQ){maxQ=q;goulotId=c.id;} } });
+  const urgent=stock.filter(s=>s.priorite==='urgent').length;
+
+  const kpisHtml=`<div class="kpis">
+    <div class="kpi k-orange"><div class="kpi-v">${kpi.a_produire_total||0}</div><div class="kpi-l">À produire (demande)</div></div>
+    <div class="kpi k-green"><div class="kpi-v">${conditionne}</div><div class="kpi-l">Conditionné aujourd'hui</div></div>
+    <div class="kpi k-blue"><div class="kpi-v">${wipTotal}</div><div class="kpi-l">En-cours (WIP) inter-postes</div></div>
+    <div class="kpi k-gold"><div class="kpi-v" style="font-size:24px">${fmtKg(kpi.vrac_restant_total_kg)}</div><div class="kpi-l">Vrac restant · ${fmtKg(kpi.vrac_engage_jour_kg)} engagé auj.</div></div>
+  </div>`;
+
+  const cellsHtml=`<div class="card" style="background:var(--surface2)">
+    <h3>🏭 Cellules de production <span class="small muted">${cells.length} poste(s) · flux →</span></h3>
+    <div class="cells">${cells.length?cells.map((c,i)=>{
+      const cible=c.cible_jour, pct=cible?Math.min(100,Math.round((c.produit_jour||0)/cible*100)):(c.produit_jour>0?100:0);
+      return `<div class="cell ${c.statut} ${c.id===goulotId?'goulot':''}">
+        <div class="flow">#${i+1}${i<cells.length-1?' →':''}</div>
+        <div class="nm">${esc(c.nom)}</div>
+        <div><span class="big">${c.produit_jour||0}</span>${cible!=null?`<span class="tgt">/ ${cible} ${esc(c.unite||'')}</span>`:`<span class="tgt"> ${esc(c.unite||'')}</span>`}</div>
+        <div class="prog"><div style="width:${pct}%"></div></div>
+        <div class="meta"><span>Cadence<br><b>${c.cadence!=null?c.cadence+' /h':'—'}</b></span><span class="right">En-cours →<br><b>${c.wip!=null?c.wip:'—'}</b></span></div>
+        ${c.id===goulotId?'<div class="goulot-tag">🔴 GOULOT — file amont '+maxQ+'</div>':''}
+      </div>`;
+    }).join(''):'<div class="empty">Aucun atelier actif. Crée-les dans 🏭 Ateliers.</div>'}</div>
+    ${goulotId?'<div class="hint">🔴 <b>Goulot (TOC)</b> : c\'est le poste qui limite le débit — le plus gros stock d\'en-cours s\'accumule juste devant lui. Concentre les renforts ici ; accélérer les autres postes ne ferait que gonfler l\'en-cours.</div>':''}
+  </div>`;
+
+  const chargeHtml=`<div class="row" style="align-items:stretch">
+    <div class="col" style="flex:1 1 320px"><div class="card" style="margin:0;height:100%">
+      <h3>⚖️ Charge par poste (jour)</h3>
+      ${bars((d.charge_par_atelier||[]),x=>x.nom,x=>x.quantite,'g')}
+    </div></div>
+    <div class="col" style="flex:1 1 320px"><div class="card" style="margin:0;height:100%">
+      <h3>🧩 En-cours par référence</h3>
+      ${(d.wip_par_reference&&d.wip_par_reference.length)?bars(d.wip_par_reference.slice(0,8),x=>(x.code||'')+' '+(x.designation||''),x=>x.wip,'o'):'<div class="empty">Aucun en-cours — flux à jour ✅</div>'}
+    </div></div>
+  </div>`;
+
+  const prio=stock.slice().sort((a,b)=>({urgent:0,a_produire:1,ok:2,null:3}[a.priorite]??3)-({urgent:0,a_produire:1,ok:2,null:3}[b.priorite]??3));
+  const stockHtml=`<div class="card">
+    <h3>🎯 Priorités de réassort <span class="small muted">${urgent} urgent(s)</span></h3>
+    <div class="table-wrap"><table><thead><tr><th>Réf.</th><th>Stock</th><th>À produire</th><th>Priorité</th><th>Fait</th><th>Reste</th></tr></thead><tbody>
+      ${prio.length?prio.map(s=>`<tr><td><b>${esc(s.code||'')}</b> <span class="small muted">${esc(s.designation||'')}</span></td>
+        <td>${s.stock_compte!=null?s.stock_compte:'<span class="muted">non compté</span>'}</td>
+        <td><b>${s.a_produire!=null?s.a_produire:'—'}</b></td>
+        <td>${prioBadge(s.priorite)}</td><td>${s.produit_auj||0}</td><td>${s.reste!=null?s.reste:'—'}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">Aucun produit actif.</td></tr>'}
+    </tbody></table></div>
+  </div>`;
+
+  const vrac=d.receptions||[];
+  const vracHtml=`<div class="card">
+    <h3>🛢️ Vrac par lot (traçabilité)</h3>
+    <div class="table-wrap"><table><thead><tr><th>Lot vrac</th><th>Reçu</th><th>Engagé</th><th>Restant</th></tr></thead><tbody>
+      ${vrac.length?vrac.map(r=>`<tr><td><b>${esc(r.lot_vrac)}</b></td><td>${fmtKg(r.quantite_kg)}</td><td>${fmtKg(r.vrac_engage_kg)}</td><td><b>${fmtKg(r.vrac_restant_kg)}</b></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Aucune réception.</td></tr>'}
+    </tbody></table></div>
+  </div>`;
+
+  $('d-body').innerHTML=kpisHtml+cellsHtml+chargeHtml+stockHtml+vracHtml;
+  $('d-maj').textContent='MAJ '+heure();
+}
+
+// ════════════════════════════════════════════════════════════
+// STOCK DU JOUR
+// ════════════════════════════════════════════════════════════
+let _stockDate=todayISO();
+function renderStock(){
+  const resp=S.mode==='responsable';
+  $('content').innerHTML=`
+    <div class="card">
+      <h3>📋 Stock journalier &amp; ventes
+        <span class="actions"><input type="date" id="st-date" class="fld" style="width:auto;padding:8px 10px" value="${_stockDate}"><button class="btn-ghost btn-sm" id="st-refresh">🔄</button>${resp?'<button class="btn btn-sm" id="st-saveall">💾 Tout enregistrer</button>':''}</span>
+      </h3>
+      <div class="kpis" id="st-kpis"></div>
+      <div id="st-body"><div class="loading">Chargement…</div></div>
+      ${resp?'<div class="hint">Chaque jour, saisis le <b>stock relevé dans Odoo</b> par référence. L\'appli en déduit les <b>ventes du jour</b> (= stock de la veille + production du jour − stock du jour) et l\'<b>à produire</b> (= cible − stock). Produire doit couvrir les ventes <i>et</i> remettre au niveau cible.</div>':''}
+    </div>`;
+  $('st-date').onchange=e=>{ _stockDate=e.target.value; chargerStock(); };
+  $('st-refresh').onclick=chargerStock;
+  if(resp&&$('st-saveall'))$('st-saveall').onclick=enregistrerToutStock;
+  chargerStock();
+}
+async function chargerStock(){
+  const resp=S.mode==='responsable', body=$('st-body'); body.innerHTML='<div class="loading">Chargement…</div>';
+  const d=await api('GET','/cbd/stock-jour?date='+_stockDate);
+  if(d.error){ body.innerHTML='<div class="empty">❌ '+esc(d.error)+'</div>'; return; }
+  const L=d.lignes||[]; let nbU=0,aP=0,pr=0,nc=0,vt=0,vtK=false;
+  L.forEach(l=>{ if(l.priorite==='urgent')nbU++; aP+=(l.a_produire||0); pr+=(l.produit_auj||0); if(!l.saisi)nc++; if(l.ventes!=null){vt+=l.ventes;vtK=true;} });
+  const bilan= vtK ? (pr>=vt?'<span class="badge b-ok">✅ ≥ ventes</span>':'<span class="badge b-urgent">⚠️ &lt; ventes</span>') : '';
+  $('st-kpis').innerHTML=`
+    <div class="kpi"><div class="kpi-v">${L.length}</div><div class="kpi-l">Références</div></div>
+    <div class="kpi k-red"><div class="kpi-v">${nbU}</div><div class="kpi-l">🔴 Urgent</div></div>
+    <div class="kpi k-orange"><div class="kpi-v">${aP}</div><div class="kpi-l">À produire</div></div>
+    <div class="kpi k-green"><div class="kpi-v">${pr}</div><div class="kpi-l">Produit du jour</div></div>
+    <div class="kpi k-blue"><div class="kpi-v">${vtK?vt:'—'}</div><div class="kpi-l">Ventes du jour ${bilan}</div></div>
+    ${nc?`<div class="kpi"><div class="kpi-v" style="color:var(--text2)">${nc}</div><div class="kpi-l">Non saisis</div></div>`:''}`;
+  if(!L.length){ body.innerHTML='<div class="empty">Aucun produit actif. Ajoute des produits dans le 🗂️ Référentiel.</div>'; return; }
+  const head=resp
+    ? `<tr><th>Réf.</th><th>Variété</th><th>Format</th><th>Stock veille</th><th>Stock du jour (Odoo)</th><th>Cible</th><th>À produire</th><th>Priorité</th><th>Produit</th><th>Ventes est.</th><th>Reste</th><th></th></tr>`
+    : `<tr><th>Réf.</th><th>Variété</th><th>Format</th><th>Stock du jour</th><th>À produire</th><th>Priorité</th><th>Produit</th><th>Reste</th></tr>`;
+  body.innerHTML=`<div class="table-wrap"><table><thead>${head}</thead><tbody>${L.map(l=>{
+    if(resp) return `<tr data-pid="${l.produit_id}">
+      <td><b>${esc(l.code||'')}</b><br><span class="small muted">${esc(l.designation||'')}</span></td>
+      <td>${esc(l.variete_nom||'—')}</td><td>${l.format_g!=null?l.format_g+' g':'—'}</td>
+      <td>${l.stock_veille!=null?l.stock_veille:'<span class="muted">—</span>'}</td>
+      <td><input class="qin st-c" type="number" min="0" inputmode="numeric" value="${l.stock_compte!=null?l.stock_compte:''}"></td>
+      <td>${l.stock_cible||0}</td><td><b>${l.a_produire!=null?l.a_produire:'—'}</b></td>
+      <td>${prioBadge(l.priorite)}</td><td>${l.produit_auj||0}</td>
+      <td>${l.ventes!=null?'<b>'+l.ventes+'</b>':'—'}</td>
+      <td>${l.reste!=null?l.reste:'—'}</td>
+      <td><button class="btn btn-sm st-save">💾</button></td></tr>`;
+    return `<tr><td><b>${esc(l.code||'')}</b><br><span class="small muted">${esc(l.designation||'')}</span></td>
+      <td>${esc(l.variete_nom||'—')}</td><td>${l.format_g!=null?l.format_g+' g':'—'}</td>
+      <td>${l.stock_compte!=null?l.stock_compte:'—'}</td><td><b>${l.a_produire!=null?l.a_produire:'—'}</b></td>
+      <td>${prioBadge(l.priorite)}</td><td>${l.produit_auj||0}</td><td>${l.reste!=null?l.reste:'—'}</td></tr>`;
+  }).join('')}</tbody></table></div>`;
+  if(resp) body.querySelectorAll('.st-save').forEach(btn=>btn.onclick=async ()=>{
+    const tr=btn.closest('tr'), c=tr.querySelector('.st-c').value;
+    btn.textContent='…'; btn.disabled=true;
+    const r=await api('POST','/cbd/stock-jour',{produit_id:tr.dataset.pid,date_jour:_stockDate,stock_compte:c===''?0:num(c)});
+    btn.disabled=false; btn.textContent='💾';
+    if(r.error){ toast('❌ '+r.error); return; } toast('✅ Enregistré'); chargerStock();
+  });
+}
+async function enregistrerToutStock(){
+  const rows=document.querySelectorAll('#st-body tr[data-pid]'), todo=[];
+  rows.forEach(tr=>{ const c=tr.querySelector('.st-c'); if(c&&c.value!=='') todo.push({produit_id:tr.dataset.pid,stock_compte:num(c.value)}); });
+  if(!todo.length){ toast('Rien à enregistrer'); return; }
+  const b=$('st-saveall'); b.textContent='…'; b.disabled=true; let ok=0;
+  for(const t of todo){ const r=await api('POST','/cbd/stock-jour',{produit_id:t.produit_id,date_jour:_stockDate,stock_compte:t.stock_compte}); if(!r.error)ok++; }
+  b.disabled=false; b.textContent='💾 Tout enregistrer';
+  toast('✅ '+ok+'/'+todo.length+' enregistré(s)'); chargerStock();
+}
+
+// ════════════════════════════════════════════════════════════
+// SAISIE PRODUCTION
+// ════════════════════════════════════════════════════════════
+let _prodDate=todayISO();
+async function renderSaisie(){
+  $('content').innerHTML=`
+    <div class="card"><h3>➕ Nouvelle production</h3><div id="sa-form"><div class="loading">Chargement…</div></div></div>
+    <div class="card"><h3>📦 Journal de production <span class="actions"><input type="date" id="sa-listdate" class="fld" style="width:auto;padding:8px 10px" value="${_prodDate}"><button class="btn-ghost btn-sm" id="sa-refresh">🔄</button></span></h3><div id="sa-list"><div class="loading">Chargement…</div></div></div>`;
+  $('sa-refresh').onclick=chargerProdJour;
+  if($('sa-listdate'))$('sa-listdate').onchange=e=>{ _prodDate=e.target.value; chargerProdJour(); };
+  const [a,p,r]=await Promise.all([api('GET','/cbd/ateliers'),api('GET','/cbd/produits'),api('GET','/cbd/receptions')]);
+  S.refs.ateliers=(a.ateliers||[]).filter(x=>x.actif!==false);
+  S.refs.produits=(p.produits||[]).filter(x=>x.actif!==false);
+  S.refs.receptions=(r.receptions||[]);
+  formSaisie(); chargerProdJour();
+}
+function formSaisie(){
+  const f=$('sa-form'), R=S.refs;
+  if(!R.ateliers.length){ f.innerHTML='<div class="empty">Aucun atelier actif → onglet 🏭 Ateliers.</div>'; return; }
+  if(!R.produits.length){ f.innerHTML='<div class="empty">Aucun produit → 🗂️ Référentiel.</div>'; return; }
+  const oa=R.ateliers.map(a=>`<option value="${a.id}" data-vrac="${a.consomme_vrac?1:0}" data-unite="${esc(a.unite||'')}">${esc(a.nom)}${a.unite?' ('+esc(a.unite)+')':''}</option>`).join('');
+  const op=R.produits.map(p=>`<option value="${p.id}">${esc(p.code||'')} — ${esc(p.designation||'')}</option>`).join('');
+  const orc='<option value="">— aucune —</option>'+R.receptions.filter(r=>(r.stock_vrac_restant==null||r.stock_vrac_restant>0)).map(r=>`<option value="${r.id}">${esc(r.lot_vrac||'')}${r.stock_vrac_restant!=null?' · reste '+r.stock_vrac_restant+' kg':''}</option>`).join('');
+  f.innerHTML=`
+    <div class="row">
+      <div class="col"><label>Atelier</label><select id="sa-at" class="fld">${oa}</select></div>
+      <div class="col"><label>Produit (pochon)</label><select id="sa-p" class="fld">${op}</select></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Quantité (<span id="sa-u">unité</span>)</label><input id="sa-q" class="fld" type="number" min="1" inputmode="numeric" placeholder="0"></div>
+      <div class="col"><label>N° lot pochon (option)</label><input id="sa-lot" class="fld" placeholder="ex. LP-001"></div>
+    </div>
+    <div class="row" id="sa-vz">
+      <div class="col"><label>Lot vrac source</label><select id="sa-rc" class="fld">${orc}</select></div>
+      <div class="col"><label>Vrac engagé (kg)</label><input id="sa-v" class="fld" type="number" min="0" step="0.001" inputmode="decimal" placeholder="0"></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Temps passé (min, option)</label><input id="sa-t" class="fld" type="number" min="0" inputmode="numeric" placeholder="ex. 30"></div>
+      <div class="col"><label>Date</label><input id="sa-d" class="fld" type="date" value="${todayISO()}"></div>
+    </div>
+    <button class="btn btn-block" id="sa-go">✅ Enregistrer la production</button>`;
+  const maj=()=>{ const s=$('sa-at').selectedOptions[0]; const vr=s&&s.dataset.vrac==='1'; $('sa-vz').style.display=vr?'flex':'none'; $('sa-u').textContent=(s&&s.dataset.unite)||'unité'; };
+  $('sa-at').onchange=maj; maj();
+  $('sa-go').onclick=submitProd;
+}
+async function submitProd(){
+  const q=$('sa-q').value; if(!q||num(q)<=0){ toast('❌ Quantité invalide'); return; }
+  const s=$('sa-at').selectedOptions[0], vr=s&&s.dataset.vrac==='1';
+  const body={ atelier_id:$('sa-at').value, produit_id:$('sa-p').value, quantite:num(q), lot_pochon:$('sa-lot').value.trim()||null, date_prod:$('sa-d').value||todayISO(), temps_min:$('sa-t').value===''?null:num($('sa-t').value), reception_id:vr?($('sa-rc').value||null):null, vrac_engage_kg:vr?($('sa-v').value===''?null:num($('sa-v').value)):null };
+  const b=$('sa-go'); b.textContent='Enregistrement…'; b.disabled=true;
+  const r=await api('POST','/cbd/productions',body);
+  b.textContent='✅ Enregistrer la production'; b.disabled=false;
+  if(r.error){ toast('❌ '+r.error); return; }
+  toast('✅ Production enregistrée'); ['sa-q','sa-lot','sa-t','sa-v'].forEach(id=>$(id).value=''); chargerProdJour();
+}
+async function chargerProdJour(){
+  const list=$('sa-list'); list.innerHTML='<div class="loading">Chargement…</div>';
+  const d=await api('GET','/cbd/productions?date='+_prodDate);
+  if(d.error){ list.innerHTML='<div class="empty">❌ '+esc(d.error)+'</div>'; return; }
+  const P=d.productions||[]; if(!P.length){ list.innerHTML='<div class="empty">Aucune production ce jour.</div>'; return; }
+  const resp=S.mode==='responsable';
+  const totQ=P.reduce((s,p)=>s+(p.quantite||0),0);
+  list.innerHTML=`<div class="small muted" style="margin-bottom:8px">${P.length} saisie(s) · ${totQ} unités</div><div class="table-wrap"><table><thead><tr><th>Atelier</th><th>Produit</th><th>Qté</th><th>Lot pochon</th><th>Vrac</th><th>Rdt</th><th>Temps</th><th>Par</th><th></th></tr></thead><tbody>
+    ${P.map(p=>`<tr><td>${esc(p.atelier_nom||'—')}</td><td><b>${esc(p.produit_code||'')}</b> ${esc(p.produit_designation||'')}</td>
+      <td><b>${p.quantite}</b> ${esc(p.atelier_unite||'')}</td><td>${esc(p.lot_pochon||'—')}</td>
+      <td>${p.vrac_engage_kg!=null?p.vrac_engage_kg+' kg':'—'}${p.lot_vrac_source?'<br><span class="small muted">'+esc(p.lot_vrac_source)+'</span>':''}</td>
+      <td>${p.rendement!=null?Math.round(p.rendement*100)+'%':'—'}</td><td>${p.temps_min!=null?p.temps_min+' min':'—'}</td><td>${esc(p.preparateur||'')}</td>
+      <td style="white-space:nowrap">${(resp||p.preparateur===S.user.login)?`<button class="btn-icon sa-edit" data-id="${p.id}">✏️</button><button class="btn-icon sa-del" data-id="${p.id}">🗑️</button>`:''}</td></tr>`).join('')}
+  </tbody></table></div>`;
+  list.querySelectorAll('.sa-edit').forEach(b=>b.onclick=()=>formProduction(P.find(x=>x.id===b.dataset.id)));
+  list.querySelectorAll('.sa-del').forEach(b=>b.onclick=()=>confirmModal('Supprimer cette production ?', async ()=>{ const r=await api('DELETE','/cbd/productions/'+b.dataset.id); if(r.error){toast('❌ '+r.error);return;} toast('🗑️ Supprimée'); chargerProdJour(); }, true));
+}
+function formProduction(p){
+  if(!p)return;
+  const oa=[{value:'',label:'— atelier —'}].concat((S.refs.ateliers||[]).map(a=>({value:a.id,label:a.nom})));
+  const orc=[{value:'',label:'— aucune —'}].concat((S.refs.receptions||[]).map(r=>({value:r.id,label:(r.lot_vrac||'')+(r.stock_vrac_restant!=null?' (reste '+r.stock_vrac_restant+' kg)':'')})));
+  openForm('Modifier la production'+(p.produit_code?' — '+p.produit_code:''),[
+    {key:'atelier_id',label:'Atelier',type:'select',options:oa},
+    {key:'quantite',label:'Quantité',type:'number',min:1},
+    {key:'lot_pochon',label:'N° lot pochon (option)'},
+    {key:'reception_id',label:'Lot vrac source (option)',type:'select',options:orc},
+    {key:'vrac_engage_kg',label:'Vrac engagé (kg, option)',type:'number',step:'0.001'},
+    {key:'temps_min',label:'Temps passé (min, option)',type:'number'},
+  ], {atelier_id:p.atelier_id,quantite:p.quantite,lot_pochon:p.lot_pochon,reception_id:p.reception_id,vrac_engage_kg:p.vrac_engage_kg,temps_min:p.temps_min},
+  async (v,close,fail)=>{
+    if(!v.quantite||num(v.quantite)<=0)return fail('Quantité invalide');
+    const body={atelier_id:v.atelier_id||null,quantite:num(v.quantite),lot_pochon:v.lot_pochon||null,reception_id:v.reception_id||null,vrac_engage_kg:(v.vrac_engage_kg===''||v.vrac_engage_kg==null)?null:num(v.vrac_engage_kg),temps_min:(v.temps_min===''||v.temps_min==null)?null:num(v.temps_min)};
+    const r=await api('PATCH','/cbd/productions/'+p.id,body);
+    if(r.error)return fail(r.error); close(); toast('✅ Production modifiée'); chargerProdJour();
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// RÉCEPTIONS (vrac entrant + traçabilité + FIFO)
+// ════════════════════════════════════════════════════════════
+async function renderReceptions(){
+  $('content').innerHTML=`
+    <div class="card"><h3>📦 Réceptions de vrac <span class="actions"><button class="btn btn-sm" id="rc-add">➕ Réception</button></span></h3>
+      <div class="hint">Chaque pochon produit est rattaché à un lot vrac (traçabilité descendante). Le vrac restant se calcule automatiquement. Conseil <b>FIFO</b> : consommer d'abord les lots les plus anciens.</div>
+      <div id="rc-body" style="margin-top:12px"><div class="loading">Chargement…</div></div></div>`;
+  const [f,v]=await Promise.all([api('GET','/cbd/fournisseurs'),api('GET','/cbd/varietes')]);
+  S.refs.fournisseurs=f.fournisseurs||[]; S.refs.varietes=v.varietes||[];
+  $('rc-add').onclick=()=>formReception(null);
+  chargerReceptions();
+}
+async function chargerReceptions(){
+  const body=$('rc-body'); body.innerHTML='<div class="loading">Chargement…</div>';
+  const d=await api('GET','/cbd/receptions');
+  if(d.error){ body.innerHTML='<div class="empty">❌ '+esc(d.error)+'</div>'; return; }
+  const R=d.receptions||[];
+  const dispo=R.filter(r=>(r.stock_vrac_restant||0)>0).slice().sort((a,b)=>String(a.date_reception).localeCompare(String(b.date_reception)));
+  const totalRest=R.reduce((s,r)=>s+(r.stock_vrac_restant||0),0);
+  if(!R.length){ body.innerHTML='<div class="empty">Aucune réception. Clique « Réception ».</div>'; return; }
+  body.innerHTML=`
+    <div class="kpis">
+      <div class="kpi k-gold"><div class="kpi-v" style="font-size:24px">${fmtKg(totalRest)}</div><div class="kpi-l">Vrac disponible</div></div>
+      <div class="kpi"><div class="kpi-v">${dispo.length}</div><div class="kpi-l">Lots avec stock</div></div>
+      ${dispo[0]?`<div class="kpi k-blue"><div class="kpi-v" style="font-size:18px">${esc(dispo[0].lot_vrac)}</div><div class="kpi-l">FIFO — à consommer en 1er</div></div>`:''}
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Lot vrac</th><th>Fournisseur</th><th>Variété</th><th>Lot fourn.</th><th>Certif</th><th>Reçu</th><th>Engagé</th><th>Restant</th><th></th></tr></thead><tbody>
+      ${R.map(r=>`<tr><td>${esc(r.date_reception||'')}</td><td><b>${esc(r.lot_vrac)}</b></td><td>${esc(r.fournisseur_nom||'—')}</td><td>${esc(r.variete_nom||'—')}</td>
+        <td>${esc(r.lot_fournisseur||'—')}</td><td>${esc(r.certif_fournisseur||'—')}</td><td>${fmtKg(r.quantite_kg)}</td><td>${fmtKg(r.vrac_engage_kg)}</td>
+        <td><b>${fmtKg(r.stock_vrac_restant)}</b></td>
+        <td style="white-space:nowrap"><button class="btn-icon rc-e" data-id="${r.id}">✏️</button><button class="btn-icon rc-d" data-id="${r.id}">🗑️</button></td></tr>`).join('')}
+    </tbody></table></div>`;
+  body.querySelectorAll('.rc-e').forEach(b=>b.onclick=()=>formReception(R.find(x=>x.id===b.dataset.id)));
+  body.querySelectorAll('.rc-d').forEach(b=>b.onclick=()=>confirmModal('Supprimer cette réception ?', async ()=>{ const r=await api('DELETE','/cbd/receptions/'+b.dataset.id); if(r.error){toast('❌ '+r.error);return;} toast('🗑️ Supprimée'); chargerReceptions(); }, true));
+}
+function formReception(r){
+  const fo=[{value:'',label:'— fournisseur —'}].concat((S.refs.fournisseurs||[]).map(f=>({value:f.id,label:f.nom})));
+  const vo=[{value:'',label:'— variété —'}].concat((S.refs.varietes||[]).map(v=>({value:v.id,label:v.nom})));
+  openForm(r?'Modifier la réception':'Nouvelle réception',[
+    {key:'date_reception',label:'Date de réception',type:'date'},
+    {key:'lot_vrac',label:'N° lot vrac (unique)',placeholder:'ex. VR-2026-001'},
+    {key:'fournisseur_id',label:'Fournisseur',type:'select',options:fo},
+    {key:'variete_id',label:'Variété',type:'select',options:vo},
+    {key:'lot_fournisseur',label:'Lot fournisseur (option)'},
+    {key:'certif_fournisseur',label:'Certificat / COA (option)'},
+    {key:'quantite_kg',label:'Quantité reçue (kg)',type:'number',step:'0.001'},
+  ], r?{date_reception:r.date_reception,lot_vrac:r.lot_vrac,fournisseur_id:r.fournisseur_id,variete_id:r.variete_id,lot_fournisseur:r.lot_fournisseur,certif_fournisseur:r.certif_fournisseur,quantite_kg:r.quantite_kg}:{date_reception:todayISO()},
+  async (v,close,fail)=>{
+    if(!v.lot_vrac||!v.lot_vrac.trim())return fail('N° lot vrac requis');
+    if(!v.quantite_kg||num(v.quantite_kg)<=0)return fail('Quantité (kg) invalide');
+    const body={date_reception:v.date_reception||todayISO(),fournisseur_id:v.fournisseur_id||null,variete_id:v.variete_id||null,lot_vrac:v.lot_vrac.trim(),lot_fournisseur:v.lot_fournisseur||null,certif_fournisseur:v.certif_fournisseur||null,quantite_kg:num(v.quantite_kg)};
+    const res=r?await api('PATCH','/cbd/receptions/'+r.id,body):await api('POST','/cbd/receptions',body);
+    if(res.error)return fail(res.error); close(); toast(r?'✅ Réception modifiée':'✅ Réception ajoutée'); chargerReceptions();
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// ATELIERS
+// ════════════════════════════════════════════════════════════
+async function renderAteliers(){
+  $('content').innerHTML=`
+    <div class="card"><h3>🏭 Ateliers de production <span class="actions"><button class="btn btn-sm" id="at-add">➕ Atelier</button></span></h3>
+      <div class="hint">L'<b>ordre</b> définit le flux (poste 1 → 2 → 3). « Pochons / unité » = nb de pochons dans 1 unité de l'atelier (ex. Lots de 5 = 5) → sert au calcul des en-cours (WIP) entre postes. « Consomme vrac » = poste de pesée qui décrémente le vrac.</div>
+      <div id="at-body" style="margin-top:12px"><div class="loading">Chargement…</div></div></div>`;
+  $('at-add').onclick=()=>formAtelier(null); chargerAteliers();
+}
+async function chargerAteliers(){
+  const body=$('at-body'); body.innerHTML='<div class="loading">Chargement…</div>';
+  const d=await api('GET','/cbd/ateliers');
+  if(d.error){ body.innerHTML='<div class="empty">❌ '+esc(d.error)+'</div>'; return; }
+  const A=d.ateliers||[]; if(!A.length){ body.innerHTML='<div class="empty">Aucun atelier. Clique « Atelier ».</div>'; return; }
+  body.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Ordre</th><th>Nom</th><th>Unité</th><th>Pochons/u.</th><th>Objectif/j</th><th>Vrac</th><th>Actif</th><th></th></tr></thead><tbody>
+    ${A.map(a=>`<tr class="${a.actif?'':'inactif'}"><td>${a.ordre}</td><td><b>${esc(a.nom)}</b></td><td>${esc(a.unite||'')}</td><td>${a.unites_base}</td><td>${a.cible_jour!=null?a.cible_jour:'—'}</td><td>${a.consomme_vrac?'🛢️':'—'}</td><td>${a.actif?'✅':'⛔'}</td>
+      <td style="white-space:nowrap"><button class="btn-icon at-e" data-id="${a.id}">✏️</button><button class="btn-icon at-d" data-id="${a.id}">🗑️</button></td></tr>`).join('')}
+  </tbody></table></div>`;
+  body.querySelectorAll('.at-e').forEach(b=>b.onclick=()=>formAtelier(A.find(x=>x.id===b.dataset.id)));
+  body.querySelectorAll('.at-d').forEach(b=>b.onclick=()=>confirmModal('Supprimer cet atelier ?\n(impossible s\'il a des productions — désactive-le plutôt)', async ()=>{ const r=await api('DELETE','/cbd/ateliers/'+b.dataset.id); if(r.error){toast('❌ '+r.error);return;} toast('🗑️ Supprimé'); chargerAteliers(); }, true));
+}
+function formAtelier(a){
+  openForm(a?'Modifier l\'atelier':'Nouvel atelier',[
+    {key:'nom',label:'Nom',placeholder:'ex. Perçage & étiquetage'},
+    {key:'ordre',label:'Ordre dans le flux',type:'number'},
+    {key:'unite',label:'Unité',placeholder:'pochon, pack…'},
+    {key:'unites_base',label:'Pochons par unité',type:'number',min:1},
+    {key:'cible_jour',label:'Objectif / jour (option)',type:'number'},
+    {key:'consomme_vrac',label:'Consomme du vrac (poste de pesée)',type:'checkbox',def:false},
+    {key:'actif',label:'Actif',type:'checkbox',def:true},
+  ], a?{nom:a.nom,ordre:a.ordre,unite:a.unite,unites_base:a.unites_base,cible_jour:a.cible_jour,consomme_vrac:a.consomme_vrac,actif:a.actif}:{unite:'pochon',unites_base:1,actif:true},
+  async (v,close,fail)=>{
+    if(!v.nom||!v.nom.trim())return fail('Nom requis');
+    const body={nom:v.nom.trim(),ordre:num(v.ordre,0),unite:(v.unite||'pochon').trim()||'pochon',unites_base:num(v.unites_base,1),cible_jour:v.cible_jour===''?null:num(v.cible_jour),consomme_vrac:!!v.consomme_vrac,actif:!!v.actif};
+    const res=a?await api('PATCH','/cbd/ateliers/'+a.id,body):await api('POST','/cbd/ateliers',body);
+    if(res.error)return fail(res.error); close(); toast(a?'✅ Atelier modifié':'✅ Atelier créé'); chargerAteliers();
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// RÉFÉRENTIEL (Produits / Variétés / Fournisseurs)
+// ════════════════════════════════════════════════════════════
+function renderReferentiel(){
+  if(!S.subtab)S.subtab='produits';
+  $('content').innerHTML=`<div class="subtabs">
+    <button class="subtab" data-s="produits">🌿 Produits</button>
+    <button class="subtab" data-s="varietes">🧬 Variétés</button>
+    <button class="subtab" data-s="fournisseurs">🚚 Fournisseurs</button>
+  </div><div id="ref-body"><div class="loading">Chargement…</div></div>`;
+  document.querySelectorAll('.subtab').forEach(b=>b.onclick=()=>{ S.subtab=b.dataset.s; majSub(); });
+  majSub();
+}
+function majSub(){ document.querySelectorAll('.subtab').forEach(b=>b.classList.toggle('active',b.dataset.s===S.subtab));
+  ({produits:refProduits,varietes:refVarietes,fournisseurs:refFournisseurs}[S.subtab])(); }
+
+async function refProduits(){
+  const body=$('ref-body'); body.innerHTML='<div class="loading">Chargement…</div>';
+  const [p,v]=await Promise.all([api('GET','/cbd/produits'),api('GET','/cbd/varietes')]);
+  if(p.error){ body.innerHTML='<div class="empty">❌ '+esc(p.error)+'</div>'; return; }
+  S.refs.varietes=v.varietes||[]; const P=p.produits||[]; const pv=cfgPrix();
+  body.innerHTML=`<div class="card"><h3>🌿 Produits (pochons) <span class="actions"><button class="btn btn-sm" id="p-add">➕ Produit</button></span></h3>
+    ${P.length?`<div class="table-wrap"><table><thead><tr><th>Code</th><th>Désignation</th><th>Variété</th><th>Format</th><th>Mini</th><th>Cible</th>${pv?'<th>Prix</th>':''}<th>Actif</th><th></th></tr></thead><tbody>
+      ${P.map(x=>`<tr class="${x.actif?'':'inactif'}"><td><b>${esc(x.code||'')}</b></td><td>${esc(x.designation||'')}</td><td>${esc(x.variete_nom||'—')}</td><td>${x.format_g!=null?x.format_g+' g':'—'}</td><td>${x.stock_mini||0}</td><td>${x.stock_cible||0}</td>${pv?`<td>${x.prix_vente!=null?x.prix_vente+' '+esc(devise()):'—'}</td>`:''}<td>${x.actif?'✅':'⛔'}</td>
+        <td style="white-space:nowrap"><button class="btn-icon p-e" data-id="${x.id}">✏️</button><button class="btn-icon p-d" data-id="${x.id}">🗑️</button></td></tr>`).join('')}
+    </tbody></table></div>`:'<div class="empty">Aucun produit. Clique « Produit ».</div>'}</div>`;
+  $('p-add').onclick=()=>formProduit(null);
+  body.querySelectorAll('.p-e').forEach(b=>b.onclick=()=>formProduit(P.find(x=>x.id===b.dataset.id)));
+  body.querySelectorAll('.p-d').forEach(b=>b.onclick=()=>confirmModal('Supprimer ce produit ?\n(désactive-le plutôt s\'il a un historique)', async ()=>{ const r=await api('DELETE','/cbd/produits/'+b.dataset.id); if(r.error){toast('❌ '+r.error);return;} toast('🗑️ Supprimé'); refProduits(); }, true));
+}
+function formProduit(x){
+  const vo=[{value:'',label:'— variété —'}].concat((S.refs.varietes||[]).map(v=>({value:v.id,label:v.nom})));
+  const f=[
+    {key:'code',label:'Code (unique)',placeholder:'ex. PCH-OG-5G'},
+    {key:'designation',label:'Désignation',placeholder:'ex. Pochon OG Kush 5 g'},
+    {key:'variete_id',label:'Variété',type:'select',options:vo},
+    {key:'format_g',label:'Format (g par pochon)',type:'number',step:'0.01',min:0},
+    {key:'stock_mini',label:'Stock mini (seuil urgent)',type:'number'},
+    {key:'stock_cible',label:'Stock cible',type:'number'},
+  ];
+  if(cfgPrix())f.push({key:'prix_vente',label:'Prix de vente ('+devise()+', option)',type:'number',step:'0.01'});
+  f.push({key:'ordre',label:'Ordre d\'affichage',type:'number'});
+  if(x)f.push({key:'actif',label:'Actif',type:'checkbox',def:true});
+  openForm(x?'Modifier le produit':'Nouveau produit', f,
+    x?{code:x.code,designation:x.designation,variete_id:x.variete_id,format_g:x.format_g,stock_mini:x.stock_mini,stock_cible:x.stock_cible,prix_vente:x.prix_vente,ordre:x.ordre,actif:x.actif}:{stock_mini:0,stock_cible:0,ordre:0},
+    async (v,close,fail)=>{
+      if(!v.code||!v.code.trim())return fail('Code requis');
+      if(!v.designation||!v.designation.trim())return fail('Désignation requise');
+      if(!v.format_g||num(v.format_g)<=0)return fail('Format (g) invalide');
+      const body={code:v.code.trim(),designation:v.designation.trim(),variete_id:v.variete_id||null,format_g:num(v.format_g),stock_mini:num(v.stock_mini,0),stock_cible:num(v.stock_cible,0),prix_vente:(v.prix_vente===''||v.prix_vente==null)?null:num(v.prix_vente),ordre:num(v.ordre,0)};
+      if(x&&v.actif!==undefined)body.actif=!!v.actif;
+      const res=x?await api('PATCH','/cbd/produits/'+x.id,body):await api('POST','/cbd/produits',body);
+      if(res.error)return fail(res.error); close(); toast(x?'✅ Produit modifié':'✅ Produit créé'); refProduits();
+    });
+}
+
+async function refVarietes(){
+  const body=$('ref-body'); body.innerHTML='<div class="loading">Chargement…</div>';
+  const d=await api('GET','/cbd/varietes'); if(d.error){ body.innerHTML='<div class="empty">❌ '+esc(d.error)+'</div>'; return; }
+  const V=d.varietes||[];
+  body.innerHTML=`<div class="card"><h3>🧬 Variétés <span class="actions"><button class="btn btn-sm" id="v-add">➕ Variété</button></span></h3>
+    ${V.length?`<div class="table-wrap"><table><thead><tr><th>Ordre</th><th>Nom</th><th>Actif</th><th></th></tr></thead><tbody>
+      ${V.map(x=>`<tr class="${x.actif===false?'inactif':''}"><td>${x.ordre||0}</td><td><b>${esc(x.nom)}</b></td><td>${x.actif===false?'⛔':'✅'}</td>
+        <td style="white-space:nowrap"><button class="btn-icon v-e" data-id="${x.id}">✏️</button><button class="btn-icon v-d" data-id="${x.id}">🗑️</button></td></tr>`).join('')}
+    </tbody></table></div>`:'<div class="empty">Aucune variété. Clique « Variété ».</div>'}</div>`;
+  $('v-add').onclick=()=>formVariete(null);
+  body.querySelectorAll('.v-e').forEach(b=>b.onclick=()=>formVariete(V.find(x=>x.id===b.dataset.id)));
+  body.querySelectorAll('.v-d').forEach(b=>b.onclick=()=>confirmModal('Supprimer cette variété ?', async ()=>{ const r=await api('DELETE','/cbd/varietes/'+b.dataset.id); if(r.error){toast('❌ '+r.error);return;} toast('🗑️ Supprimée'); refVarietes(); }, true));
+}
+function formVariete(x){
+  const f=[{key:'nom',label:'Nom',placeholder:'ex. OG Kush'},{key:'ordre',label:'Ordre',type:'number'}];
+  if(x)f.push({key:'actif',label:'Actif',type:'checkbox',def:true});
+  openForm(x?'Modifier la variété':'Nouvelle variété', f, x?{nom:x.nom,ordre:x.ordre,actif:x.actif!==false}:{ordre:0},
+    async (v,close,fail)=>{ if(!v.nom||!v.nom.trim())return fail('Nom requis');
+      const body={nom:v.nom.trim(),ordre:num(v.ordre,0)}; if(x&&v.actif!==undefined)body.actif=!!v.actif;
+      const res=x?await api('PATCH','/cbd/varietes/'+x.id,body):await api('POST','/cbd/varietes',body);
+      if(res.error)return fail(res.error); close(); toast('✅ Enregistré'); refVarietes(); });
+}
+
+async function refFournisseurs(){
+  const body=$('ref-body'); body.innerHTML='<div class="loading">Chargement…</div>';
+  const d=await api('GET','/cbd/fournisseurs'); if(d.error){ body.innerHTML='<div class="empty">❌ '+esc(d.error)+'</div>'; return; }
+  const F=d.fournisseurs||[];
+  body.innerHTML=`<div class="card"><h3>🚚 Fournisseurs <span class="actions"><button class="btn btn-sm" id="f-add">➕ Fournisseur</button></span></h3>
+    ${F.length?`<div class="table-wrap"><table><thead><tr><th>Ordre</th><th>Nom</th><th>Contact</th><th>Actif</th><th></th></tr></thead><tbody>
+      ${F.map(x=>`<tr class="${x.actif===false?'inactif':''}"><td>${x.ordre||0}</td><td><b>${esc(x.nom)}</b></td><td>${esc(x.contact||'—')}</td><td>${x.actif===false?'⛔':'✅'}</td>
+        <td style="white-space:nowrap"><button class="btn-icon f-e" data-id="${x.id}">✏️</button><button class="btn-icon f-d" data-id="${x.id}">🗑️</button></td></tr>`).join('')}
+    </tbody></table></div>`:'<div class="empty">Aucun fournisseur. Clique « Fournisseur ».</div>'}</div>`;
+  $('f-add').onclick=()=>formFournisseur(null);
+  body.querySelectorAll('.f-e').forEach(b=>b.onclick=()=>formFournisseur(F.find(x=>x.id===b.dataset.id)));
+  body.querySelectorAll('.f-d').forEach(b=>b.onclick=()=>confirmModal('Supprimer ce fournisseur ?', async ()=>{ const r=await api('DELETE','/cbd/fournisseurs/'+b.dataset.id); if(r.error){toast('❌ '+r.error);return;} toast('🗑️ Supprimé'); refFournisseurs(); }, true));
+}
+function formFournisseur(x){
+  const f=[{key:'nom',label:'Nom'},{key:'contact',label:'Contact (tel / email, option)'},{key:'ordre',label:'Ordre',type:'number'}];
+  if(x)f.push({key:'actif',label:'Actif',type:'checkbox',def:true});
+  openForm(x?'Modifier le fournisseur':'Nouveau fournisseur', f, x?{nom:x.nom,contact:x.contact,ordre:x.ordre,actif:x.actif!==false}:{ordre:0},
+    async (v,close,fail)=>{ if(!v.nom||!v.nom.trim())return fail('Nom requis');
+      const body={nom:v.nom.trim(),contact:v.contact||null,ordre:num(v.ordre,0)}; if(x&&v.actif!==undefined)body.actif=!!v.actif;
+      const res=x?await api('PATCH','/cbd/fournisseurs/'+x.id,body):await api('POST','/cbd/fournisseurs',body);
+      if(res.error)return fail(res.error); close(); toast('✅ Enregistré'); refFournisseurs(); });
+}
+
+// ════════════════════════════════════════════════════════════
+// PERFORMANCE PRÉPARATEURS
+// ════════════════════════════════════════════════════════════
+let _perfDate=todayISO();
+function renderPerformance(){
+  $('content').innerHTML=`<div class="card"><h3>📈 Performance préparateurs
+    <span class="actions"><input type="date" id="pf-date" class="fld" style="width:auto;padding:8px 10px" value="${_perfDate}"><button class="btn-ghost btn-sm" id="pf-refresh">🔄</button></span></h3>
+    <div id="pf-body"><div class="loading">Chargement…</div></div>
+    <div class="hint">Cadence = pochons / heure de temps déclaré. Utile pour équilibrer la charge entre préparateurs, pas pour fliquer : un temps non saisi = pas de cadence calculable.</div></div>`;
+  $('pf-date').onchange=e=>{ _perfDate=e.target.value; chargerPerf(); };
+  $('pf-refresh').onclick=chargerPerf; chargerPerf();
+}
+async function chargerPerf(){
+  const body=$('pf-body'); body.innerHTML='<div class="loading">Chargement…</div>';
+  const d=await api('GET','/cbd/performance?date='+_perfDate);
+  if(d.error){ body.innerHTML='<div class="empty">❌ '+esc(d.error)+'</div>'; return; }
+  const P=d.performance||[]; if(!P.length){ body.innerHTML='<div class="empty">Aucune production ce jour.</div>'; return; }
+  const totJour=P.reduce((s,p)=>s+(p.pochons_jour||0),0);
+  body.innerHTML=`<div class="kpis">
+      <div class="kpi k-green"><div class="kpi-v">${totJour}</div><div class="kpi-l">Pochons produits (jour)</div></div>
+      <div class="kpi"><div class="kpi-v">${P.length}</div><div class="kpi-l">Préparateurs actifs</div></div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Préparateur</th><th>Pochons (jour)</th><th>Saisies</th><th>Temps</th><th>Cadence</th><th>Cumul total</th></tr></thead><tbody>
+      ${P.map(p=>`<tr><td><b>${esc(p.nom||p.preparateur)}</b></td><td><b>${p.pochons_jour}</b></td><td>${p.nb_productions}</td><td>${p.temps_min?p.temps_min+' min':'—'}</td><td>${p.cadence!=null?p.cadence+' /h':'—'}</td><td>${p.pochons_total}</td></tr>`).join('')}
+    </tbody></table></div>
+    <div style="margin-top:14px">${bars(P,p=>p.nom||p.preparateur,p=>p.pochons_jour,'g')}</div>`;
+}
+
+// ════════════════════════════════════════════════════════════
+// PRÉPARATEURS (casquette CBD)
+// ════════════════════════════════════════════════════════════
+async function renderPreparateurs(){
+  $('content').innerHTML=`<div class="card"><h3>👥 Accès Production CBD <button class="btn-ghost btn-sm" id="pr-refresh">🔄</button></h3>
+    <div class="hint">Active la casquette « préparateur CBD » pour les comptes autorisés à saisir la production. Les rôles Admin / Dépôt y ont accès d'office.</div>
+    <div id="pr-body" style="margin-top:12px"><div class="loading">Chargement…</div></div></div>`;
+  $('pr-refresh').onclick=chargerPreparateurs; chargerPreparateurs();
+}
+async function chargerPreparateurs(){
+  const body=$('pr-body'); body.innerHTML='<div class="loading">Chargement…</div>';
+  const d=await api('GET','/cbd/users-activables');
+  if(d.error){ body.innerHTML='<div class="empty">❌ '+esc(d.error)+'</div>'; return; }
+  const U=d.users||[]; if(!U.length){ body.innerHTML='<div class="empty">Aucun compte actif.</div>'; return; }
+  body.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Compte</th><th>Rôle</th><th>Accès Production</th></tr></thead><tbody>
+    ${U.map(u=>{ const doffice=['Admin','Depot'].includes(u.role);
+      return `<tr><td><b>${esc(u.nom||u.login)}</b><br><span class="small muted">${esc(u.login)}</span></td><td><span class="tag">${esc(u.role||'—')}</span></td>
+      <td>${doffice?'<span class="badge b-info">d\'office</span>':`<label class="toggle"><input type="checkbox" class="pr-t" data-login="${esc(u.login)}" ${u.peut_preparer_cbd?'checked':''}><span class="sw"></span></label>`}</td></tr>`; }).join('')}
+  </tbody></table></div>`;
+  body.querySelectorAll('.pr-t').forEach(t=>t.onchange=async ()=>{ const r=await api('PATCH','/cbd/preparateurs/'+encodeURIComponent(t.dataset.login),{peut_preparer_cbd:t.checked}); if(r.error){ toast('❌ '+r.error); t.checked=!t.checked; return; } toast(t.checked?'✅ Accès activé':'Accès retiré'); });
+}
+
+// ════════════════════════════════════════════════════════════
+// PARAMÈTRES
+// ════════════════════════════════════════════════════════════
+async function renderConfig(){
+  const body=$('content'); body.innerHTML='<div class="loading">Chargement…</div>';
+  const d=await api('GET','/cbd/config');
+  if(d.error){ body.innerHTML='<div class="card"><div class="empty">❌ '+esc(d.error)+'</div></div>'; return; }
+  const c=d, lab=c.priorite_labels||{};
+  body.innerHTML=`<div class="card"><h3>⚙️ Paramètres du module</h3>
+    <div class="row">
+      <div class="col"><label>Nom du module</label><input id="cf-nom" class="fld" value="${esc(c.module_nom||'')}" placeholder="Production"></div>
+      <div class="col"><label>Devise</label><input id="cf-dev" class="fld" value="${esc(c.devise||'EUR')}" placeholder="EUR"></div>
+      <div class="col"><label>Unité de poids</label><input id="cf-up" class="fld" value="${esc(c.unite_poids||'kg')}" placeholder="kg"></div>
+    </div>
+    <label class="chk"><input type="checkbox" id="cf-prix" ${c.prix_visible?'checked':''}> Afficher les prix de vente</label>
+    <h3 style="margin-top:18px;font-size:13px">Libellés de priorité</h3>
+    <div class="row">
+      <div class="col"><label>Urgent</label><input id="cf-lu" class="fld" value="${esc(lab.urgent||'🔴 Urgent')}"></div>
+      <div class="col"><label>À produire</label><input id="cf-la" class="fld" value="${esc(lab.a_produire||'🟠 À produire')}"></div>
+      <div class="col"><label>OK</label><input id="cf-lo" class="fld" value="${esc(lab.ok||'✅ OK')}"></div>
+    </div>
+    <button class="btn btn-block" id="cf-save" style="max-width:240px;margin-top:18px">💾 Enregistrer</button>
+    <div class="err" id="cf-err"></div></div>`;
+  $('cf-save').onclick=async ()=>{
+    const body2={ module_nom:$('cf-nom').value.trim()||null, devise:$('cf-dev').value.trim()||'EUR', unite_poids:$('cf-up').value.trim()||'kg', prix_visible:$('cf-prix').checked,
+      priorite_labels:{ urgent:$('cf-lu').value.trim(), a_produire:$('cf-la').value.trim(), ok:$('cf-lo').value.trim() } };
+    const b=$('cf-save'); b.textContent='…'; b.disabled=true; $('cf-err').textContent='';
+    const r=await api('PUT','/cbd/config',body2);
+    b.textContent='💾 Enregistrer'; b.disabled=false;
+    if(r.error){ $('cf-err').textContent='❌ '+r.error; return; }
+    const cfg=await api('GET','/cbd/config'); if(!cfg.error)S.config=cfg;
+    toast('✅ Paramètres enregistrés');
+  };
+}
+
+// ════════════════════════════════════════════════════════════
+// MOT DE PASSE
+// ════════════════════════════════════════════════════════════
+function formMotDePasse(){
+  const bg=document.createElement('div'); bg.className='modal-bg';
+  bg.innerHTML=`<div class="modal"><h3>🔑 Changer mon mot de passe</h3>
+    <label>Mot de passe actuel</label><input id="mp-o" class="fld" type="password" autocomplete="current-password">
+    <label>Nouveau mot de passe</label><input id="mp-n" class="fld" type="password" autocomplete="new-password" placeholder="6 caractères minimum">
+    <label>Confirmer</label><input id="mp-n2" class="fld" type="password" autocomplete="new-password">
+    <div class="err" id="mp-err"></div>
+    <div class="modal-actions"><button class="btn-ghost" id="mp-c">Annuler</button><button class="btn" id="mp-s">Enregistrer</button></div></div>`;
+  document.body.appendChild(bg);
+  const close=()=>bg.remove();
+  bg.querySelector('#mp-c').onclick=close; bg.onclick=e=>{ if(e.target===bg)close(); };
+  bg.querySelector('#mp-s').onclick=async ()=>{
+    const o=bg.querySelector('#mp-o').value,n=bg.querySelector('#mp-n').value,n2=bg.querySelector('#mp-n2').value,err=bg.querySelector('#mp-err');
+    if(!o||!n)return err.textContent='Tous les champs sont requis';
+    if(n.length<6)return err.textContent='Au moins 6 caractères';
+    if(n!==n2)return err.textContent='Les nouveaux mots de passe ne correspondent pas';
+    const s=bg.querySelector('#mp-s'); s.textContent='…'; s.disabled=true; err.textContent='';
+    const r=await api('POST','/auth/change-password',{ancien:o,nouveau:n});
+    if(r.error){ s.disabled=false; s.textContent='Enregistrer'; err.textContent='❌ '+r.error; return; }
+    close(); toast('✅ Mot de passe modifié');
+  };
+}
+</script>
+<script>
+(function(){
+  function showMaint(msg){
+    if(document.getElementById('maint-screen'))return;
+    var d=document.createElement('div'); d.id='maint-screen';
+    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#0F1724;color:#F0F4FF;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#8B9EC7">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#8B9EC7;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
+    document.body.appendChild(d);
+    document.getElementById('maint-admin').onclick=function(){ d.remove(); };
+  }
+  window.__maintShow=showMaint;
+  function chk(){ try{ fetch((API_BASE)+'/maintenance/'+(((new URLSearchParams(location.search).get('vue')||'').toLowerCase().slice(0,4)==='prep'?'cbd_preparateur':'cbd_admin')),{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){ if(j&&j.maintenance) showMaint(j.message); }).catch(function(){}); }catch(e){} }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',chk); else chk();
+})();
+</script>
+</body>
+</html>

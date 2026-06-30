@@ -239,9 +239,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .charge-colis button:active{background:rgba(255,255,255,.18)}
 .charge-colis span{min-width:48px;text-align:center;font-weight:700;font-size:17px;color:var(--gold);display:flex;flex-direction:column;line-height:1.15}
 .charge-colis span small{font-size:9px;font-weight:600;color:var(--text2)}
+/* MODE CLAIR (accessibilite haute lisibilite) */
+html[data-theme="light"]{
+  --dark:#EDF1F7; --surface:#FFFFFF; --surface2:#EBEFF5; --surface3:#DCE2EC;
+  --navy:#E3E8F2; --navy2:#D5DCEA;
+  --text:#0F172A; --text2:#475569; --text3:#64748B;
+  --border:rgba(15,23,42,0.14);
+}
+#theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#theme-btn:active{transform:scale(.94)}
+#test-banner{position:fixed;top:0;left:0;right:0;z-index:10002;background:#A855F7;color:#fff;font:600 13px/1.4 Arial,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 </style>
+<script>try{var _t=localStorage.getItem('ajcv_theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 </head>
 <body>
+<button id="theme-btn" title="Mode clair / sombre (accessibilite)" aria-label="Basculer le mode clair ou sombre">☀️</button>
+
 
 <!-- SPLASH -->
 <div id="splash">
@@ -283,7 +296,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div id="loginError" style="display:none;background:rgba(239,68,68,.15);border:1px solid var(--red);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;text-align:center"></div>
 
     <button id="btnLogin" class="btn-login" onclick="connexion()" disabled>Se connecter</button>
-    <div style="text-align:center;margin-top:14px"><a href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/reset.html" style="color:#FFB300;font-size:13px;text-decoration:none">Mot de passe oublié ?</a></div>
+    <div style="text-align:center;margin-top:14px"><a href="reset.html" style="color:#FFB300;font-size:13px;text-decoration:none">Mot de passe oublié ?</a></div>
 
     <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text3)">
       🔒 Session sécurisée · Expiration automatique 8h<br>
@@ -804,7 +817,7 @@ async function connexion() {
       const resp = await fetch(`${CFG.API_URL}/auth/login`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ login, mdp })
+        body: JSON.stringify({ login, mdp, app:'livreur' })
       });
       data = await resp.json();
     }
@@ -3007,7 +3020,7 @@ function installerApp() {
 }
 
 // ── Auto-mise à jour + Nouveautés ───────────────────────────
-const VERSION_URL = 'https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/version.json';
+const VERSION_URL = 'version.json';
 let _verInfo = null, _verEnAttente = null;
 function _vToast(m){ try{ showToast(m,'success'); }catch(_){} }
 function _vModalOuvert(){ return !!document.querySelector('.modal-bg.active, #sig-modal.active, #detail-view.active'); }
@@ -3080,5 +3093,25 @@ if ('serviceWorker' in navigator) {
     <div id="nouveautesCorps"></div>
   </div>
 </div>
+<script>
+(function(){function ap(t){document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('theme-btn');if(b)b.textContent=(t==='light'?'🌙':'☀️');}
+function tg(){var c=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';var n=c==='light'?'dark':'light';try{localStorage.setItem('ajcv_theme',n);}catch(_){}ap(n);}
+ap(document.documentElement.getAttribute('data-theme')||'dark');var b=document.getElementById('theme-btn');if(b)b.onclick=tg;})();
+</script>
+<script>
+(function(){
+  function showMaint(msg){
+    if(document.getElementById('maint-screen'))return;
+    var d=document.createElement('div'); d.id='maint-screen';
+    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#0F1724;color:#F0F4FF;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#8B9EC7">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#8B9EC7;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
+    document.body.appendChild(d);
+    document.getElementById('maint-admin').onclick=function(){ d.remove(); };
+  }
+  window.__maintShow=showMaint;
+  function chk(){ try{ fetch((CFG.API_URL)+'/maintenance/'+('livreur'),{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){ if(j&&j.maintenance) showMaint(j.message); }).catch(function(){}); }catch(e){} }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',chk); else chk();
+})();
+</script>
 </body>
 </html>

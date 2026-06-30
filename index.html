@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AJCV Logistique</title>
+<title>AJCV Logistique — TEST</title>
 <style>
   :root{--gold:#FFB300;--bg:#0F1724;--surface:#1A2332;--border:rgba(255,255,255,.1);--text:#F0F4FF;--text2:#8B9EC7}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+  #test-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:#A855F7;color:#fff;font:600 13px/1.4 Arial,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
   .logo{width:72px;height:72px;background:var(--gold);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:16px;box-shadow:0 4px 20px rgba(255,179,0,.3)}
   h1{font-size:22px;font-weight:700;color:var(--gold);margin-bottom:4px;text-align:center}
   p{font-size:13px;color:var(--text2);margin-bottom:36px;text-align:center}
@@ -16,21 +17,33 @@
   .app-btn:active{opacity:.85;transform:scale(.98)}
   .app-btn.livreur{border-left:4px solid #4CAF50}
   .app-btn.carte{border-left:4px solid #64B5F6}
-  .app-btn.commercial{border-left:4px solid var(--gold)}
   .app-btn.admin{border-left:4px solid #EF4444}
   .app-btn.preparateur{border-left:4px solid #F97316}
+  .app-btn.cbd{border-left:4px solid #22C55E}
   .app-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
   .icon-livreur{background:rgba(76,175,80,.15)}
   .icon-carte{background:rgba(100,181,246,.15)}
-  .icon-commercial{background:rgba(255,179,0,.15)}
   .icon-admin{background:rgba(239,68,68,.15)}
   .icon-preparateur{background:rgba(249,115,22,.15)}
+  .icon-cbd{background:rgba(34,197,94,.15)}
   .app-info h2{font-size:15px;font-weight:700;margin-bottom:3px}
   .app-info p{font-size:12px;color:var(--text2);margin:0}
-  .version{font-size:11px;color:var(--text2);margin-top:32px;opacity:.5}
+  .sep{width:100%;max-width:360px;display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin:6px 0}
+  .sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--border)}
+  .version{font-size:11px;color:var(--text2);margin-top:32px;opacity:.5;text-align:center}
+/* MODE CLAIR (accessibilite haute lisibilite) */
+html[data-theme="light"]{
+  --bg:#EDF1F7; --surface:#FFFFFF; --surface2:#EBEFF5; --surface3:#DCE2EC;
+  --text:#0F172A; --text2:#475569; --text3:#64748B;
+  --border:rgba(15,23,42,0.14);
+}
+#theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#theme-btn:active{transform:scale(.94)}
 </style>
+<script>try{var _t=localStorage.getItem('ajcv_theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 </head>
 <body>
+<button id="theme-btn" title="Mode clair / sombre (accessibilite)" aria-label="Basculer le mode clair ou sombre">☀️</button>
   <div class="logo">🚚</div>
   <h1>AJCV Logistique</h1>
   <p>La Réunion — 974</p>
@@ -43,19 +56,31 @@
       <div class="app-icon icon-preparateur">🧰</div>
       <div class="app-info"><h2>Appli Préparateur</h2><p>Préparation · Photos · Validation</p></div>
     </a>
-    <a class="app-btn carte" href="/carte">
+    <a class="app-btn carte" href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/carte_livraisons_AJCV_v4.html" target="_blank">
       <div class="app-icon icon-carte">🗺️</div>
       <div class="app-info"><h2>Carte Livraisons</h2><p>Suivi temps réel · Vue géographique</p></div>
     </a>
-    <a class="app-btn commercial" href="/commercial">
-      <div class="app-icon icon-commercial">📋</div>
-      <div class="app-info"><h2>Fiches Clients</h2><p>Horaires · Contraintes · Priorités</p></div>
-    </a>
     <a class="app-btn admin" href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/AJCV_Admin.html" target="_blank">
       <div class="app-icon icon-admin">⚙️</div>
-      <div class="app-info"><h2>Administration</h2><p>Livraisons · Clients · Utilisateurs</p></div>
+      <div class="app-info"><h2>Administration</h2><p>Livraisons · Clients · KPI</p></div>
+    </a>
+
+    <div class="sep">🌿 Production CBD</div>
+
+    <a class="app-btn cbd" href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/admin_production.html" target="_blank">
+      <div class="app-icon icon-cbd">🌿</div>
+      <div class="app-info"><h2>Admin Production CBD</h2><p>Stock · Ateliers · Production · Dashboard</p></div>
+    </a>
+    <a class="app-btn cbd" href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/admin_production.html?vue=preparateur" target="_blank">
+      <div class="app-icon icon-cbd">🌱</div>
+      <div class="app-info"><h2>Préparateur CBD</h2><p>Saisie production · Lecture stock</p></div>
     </a>
   </div>
-  <div class="version">AJCV Logistique La Réunion — v2.1 · Supabase</div>
+  <div class="version">AJCV Logistique La Réunion — TEST · Supabase</div>
+<script>
+(function(){function ap(t){document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('theme-btn');if(b)b.textContent=(t==='light'?'🌙':'☀️');}
+function tg(){var c=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';var n=c==='light'?'dark':'light';try{localStorage.setItem('ajcv_theme',n);}catch(_){}ap(n);}
+ap(document.documentElement.getAttribute('data-theme')||'dark');var b=document.getElementById('theme-btn');if(b)b.onclick=tg;})();
+</script>
 </body>
 </html>

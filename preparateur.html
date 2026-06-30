@@ -102,9 +102,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ptab.active .ptab-n{background:rgba(0,0,0,.22)}
 .btn-prendre{width:100%;background:var(--gold);color:var(--navy);border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;margin-top:2px}
 .btn-relacher{background:none;border:none;color:var(--text2);font-size:12.5px;cursor:pointer;padding:8px 6px 2px;text-decoration:underline;align-self:flex-start}
+/* MODE CLAIR (accessibilite haute lisibilite) */
+html[data-theme="light"]{
+  --dark:#EDF1F7; --surface:#FFFFFF; --surface2:#EBEFF5; --surface3:#DCE2EC;
+  --navy:#E3E8F2; --navy2:#D5DCEA;
+  --text:#0F172A; --text2:#475569; --text3:#64748B;
+  --border:rgba(15,23,42,0.14);
+}
+#theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#theme-btn:active{transform:scale(.94)}
+#test-banner{position:fixed;top:0;left:0;right:0;z-index:10002;background:#A855F7;color:#fff;font:600 13px/1.4 Arial,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 </style>
+<script>try{var _t=localStorage.getItem('ajcv_theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 </head>
 <body>
+<button id="theme-btn" title="Mode clair / sombre (accessibilite)" aria-label="Basculer le mode clair ou sombre">☀️</button>
+
 
 <!-- ══ LOGIN ══ -->
 <div id="login">
@@ -163,7 +176,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script>
 const CFG = { API_URL: 'https://ajcvbackend-production.up.railway.app' };
-const VERSION_URL = 'https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/version.json';
+const VERSION_URL = 'version.json';
 const state = { token:'', prenom:'', login:'', role:'', tokenExpiry:0, orders:[], photos:{}, search:'', _date:'', volet:'apreparer', boissonsRef:[], _boId:null };
 
 /* ─────────── TOAST ─────────── */
@@ -186,7 +199,7 @@ async function connexion(){
   if(!login||!mdp){ err.textContent='Identifiant et mot de passe requis'; err.style.display='block'; return; }
   btn.disabled=true; btn.textContent='Connexion…'; err.style.display='none';
   try{
-    const resp=await fetch(`${CFG.API_URL}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login,mdp})});
+    const resp=await fetch(`${CFG.API_URL}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login,mdp,app:'preparateur'})});
     const data=await resp.json();
     if(data.error){ err.textContent='❌ '+data.error; err.style.display='block'; btn.disabled=false; btn.textContent='Se connecter'; return; }
     const peutPreparer = data.peut_preparer===true || data.role==='Admin' || data.role==='Préparateur';
@@ -589,6 +602,26 @@ if('serviceWorker' in navigator){
   const sw=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>new Response('Hors ligne'))));`;
   try{ navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{}); }catch(_){}
 }
+</script>
+<script>
+(function(){function ap(t){document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('theme-btn');if(b)b.textContent=(t==='light'?'🌙':'☀️');}
+function tg(){var c=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';var n=c==='light'?'dark':'light';try{localStorage.setItem('ajcv_theme',n);}catch(_){}ap(n);}
+ap(document.documentElement.getAttribute('data-theme')||'dark');var b=document.getElementById('theme-btn');if(b)b.onclick=tg;})();
+</script>
+<script>
+(function(){
+  function showMaint(msg){
+    if(document.getElementById('maint-screen'))return;
+    var d=document.createElement('div'); d.id='maint-screen';
+    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#0F1724;color:#F0F4FF;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#8B9EC7">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#8B9EC7;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
+    document.body.appendChild(d);
+    document.getElementById('maint-admin').onclick=function(){ d.remove(); };
+  }
+  window.__maintShow=showMaint;
+  function chk(){ try{ fetch((CFG.API_URL)+'/maintenance/'+('preparateur'),{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){ if(j&&j.maintenance) showMaint(j.message); }).catch(function(){}); }catch(e){} }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',chk); else chk();
+})();
 </script>
 </body>
 </html>

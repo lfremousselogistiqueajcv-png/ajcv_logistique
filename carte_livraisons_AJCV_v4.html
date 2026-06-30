@@ -685,9 +685,11 @@ function filtrer() {
   const statut      = document.getElementById('filtre-statut').value;
   const dateDebut   = document.getElementById('filtre-date-debut').value;
   const dateFin     = document.getElementById('filtre-date-fin').value;
-  const dDebut      = dateDebut ? new Date(dateDebut) : null;
-  const dFin        = dateFin   ? new Date(dateFin)   : null;
-  if (dFin) dFin.setHours(23,59,59); // inclure toute la journée de fin
+  // Parse en heure LOCALE (comme parseDateFR) — évite le décalage UTC (Réunion = UTC+4)
+  const _pl = s => { if(!s) return null; const p=s.split('-'); return p.length===3 ? new Date(+p[0],+p[1]-1,+p[2]) : null; };
+  const dDebut      = _pl(dateDebut);
+  const dFin        = _pl(dateFin);
+  if (dFin) dFin.setHours(23,59,59,999); // inclure toute la journée de fin
 
   livraisonsFiltrees = toutesLivraisons.filter(l=>{
     if (l.commercial===true || l.commercial==='true') return false; // commercial → hors carte

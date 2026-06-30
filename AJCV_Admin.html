@@ -68,6 +68,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
 .kpi-v{font-size:28px;font-weight:700}
 .kpi-l{font-size:12px;color:var(--text2);margin-top:4px}
+.kpi-per{padding:7px 13px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer}
+.kpi-per.active{background:var(--gold);color:#1a1a1a;border-color:var(--gold)}
+.kpi-sec{font-weight:700;font-size:13px;margin:16px 0 8px;color:var(--text2);letter-spacing:.3px}
+.kpi-date{padding:6px 9px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px}
 /* AUTOCOMPLETE */
 .ac-wrap{position:relative}
 .ac-list{position:absolute;top:100%;left:0;right:0;background:var(--surface2);border:1px solid var(--gold);border-radius:0 0 8px 8px;max-height:240px;overflow-y:auto;z-index:999}
@@ -95,11 +99,22 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .addr-item{padding:10px 12px;cursor:pointer;font-size:13px;line-height:1.3;border-bottom:1px solid var(--border,#eee);color:var(--text,#222)}
 .addr-item:hover{background:var(--surface2,#f3f4f6)}
 .addr-item:last-child{border-bottom:none}
+/* MODE CLAIR (accessibilite haute lisibilite) */
+html[data-theme="light"]{
+  --bg:#EDF1F7; --surface:#FFFFFF; --surface2:#EBEFF5; --surface3:#DCE2EC;
+  --text:#0F172A; --text2:#475569; --text3:#64748B;
+  --border:rgba(15,23,42,0.14);
+}
+#theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#theme-btn:active{transform:scale(.94)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>try{var _t=localStorage.getItem('ajcv_theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 </head>
 <body>
+<button id="theme-btn" title="Mode clair / sombre (accessibilite)" aria-label="Basculer le mode clair ou sombre">☀️</button>
+
 
 <!-- LOGIN -->
 <div id="login">
@@ -117,7 +132,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div class="row-check"><input type="checkbox" id="remember"><label for="remember">Se souvenir de moi</label></div>
     <div class="err" id="loginErr"></div>
     <button class="btn btn-gold btn-full" onclick="connexion()">Se connecter</button>
-    <div style="text-align:center;margin-top:14px"><a href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/reset.html" style="color:#FFB300;font-size:13px;text-decoration:none">Mot de passe oublié ?</a></div>
+    <div style="text-align:center;margin-top:14px"><a href="reset.html" style="color:#FFB300;font-size:13px;text-decoration:none">Mot de passe oublié ?</a></div>
   </div>
 </div>
 
@@ -139,6 +154,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div class="nav-tab" data-tab="flotte" onclick="go('flotte')">🚐 Flotte</div>
       <div class="nav-tab" data-tab="kpi" onclick="go('kpi')">📊 KPI</div>
       <div class="nav-tab" data-tab="odoo" onclick="go('odoo')">🔄 Imports Odoo</div>
+      <div class="nav-tab" data-tab="maint" onclick="go('maint')">🔧 Maintenance</div>
       <div class="topbar-right">
         <button id="verBadge" class="btn btn-gray btn-sm" onclick="ouvrirNouveautes()" title="Nouveautés">v…</button>
         <span id="userInfo" style="font-size:12px;color:var(--gold)"></span>
@@ -311,7 +327,22 @@ tr:hover td{background:rgba(255,255,255,.02)}
 </div>
 
 <script>
-const API = 'https://ajcvbackend-production.up.railway.app';
+// ════════════════════════════════════════
+// ENVIRONNEMENT DE TEST — backend de test, données fictives.
+// ════════════════════════════════════════
+const API_BASE = 'https://ajcvbackend-production.up.railway.app';
+(function(){
+  var show = function(){
+    if (document.getElementById('ajcv-test-banner')) return;
+    var b = document.createElement('div');
+    b.id = 'ajcv-test-banner';
+    b.textContent = '🧪 ENVIRONNEMENT DE TEST · build 26/06-14 — données fictives, sans impact prod';
+    b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#7c3aed;color:#fff;font:600 13px/1.4 Arial,sans-serif;text-align:center;padding:6px 10px;display:block;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+    document.body.appendChild(b); document.body.style.paddingTop='32px';
+  };
+  /* banniere test desactivee en production */
+})();
+const API = API_BASE;
 const APP_VERSION = 'v3-clean-2026';
 let S = { token:'', login:'', prenom:'', role:'', tab:'livraisons' };
 let _clients = null;       // cache liste clients
@@ -350,7 +381,7 @@ async function connexion(){
   const err=document.getElementById('loginErr'); err.style.display='none';
   if(!login||!mdp){err.textContent='Remplissez tous les champs';err.style.display='block';return;}
   try{
-    const r=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login,mdp})});
+    const r=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login,mdp,app:'admin'})});
     const d=await r.json();
     if(d.error){err.textContent=d.error;err.style.display='block';return;}
     if(!d.token){err.textContent='Identifiants incorrects';err.style.display='block';return;}
@@ -390,6 +421,51 @@ function go(tab){
   else if(tab==='odoo') renderImportsOdoo();
   else if(tab==='zones') renderZones();
   else if(tab==='chargement') renderChargements();
+  else if(tab==='maint') renderMaintenance();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// MODE MAINTENANCE (pilotage par application)
+// ════════════════════════════════════════════════════════════════════════════
+const MAINT_APPS = {
+  livreur:'🚚 Livreur', preparateur:'🧰 Préparateur', admin:'🛠️ Admin (cette appli)',
+  carte:'🗺️ Carte livraisons', commercial:'📋 Formulaire commercial',
+  cbd_admin:'🌿 Admin Production CBD', cbd_preparateur:'🌿 Préparateur CBD'
+};
+async function renderMaintenance(){
+  const c=document.getElementById('content');
+  c.innerHTML=`<div class="card"><h3>🔧 Mode maintenance</h3>
+    <p class="muted" style="margin:12px 0 16px">Mets une application en maintenance : les utilisateurs (sauf Admin/Dépôt) voient une page « Application en maintenance » et ne peuvent plus se connecter. Toi, en tant qu'administrateur, tu gardes toujours l'accès.</p>
+    <div id="maint-list"><div class="loading"><div class="spin"></div></div></div></div>`;
+  const r=await api('GET','/admin/maintenance').catch(()=>({apps:[]}));
+  const byKey={}; (r.apps||[]).forEach(a=>byKey[a.app_key]=a);
+  const el=document.getElementById('maint-list');
+  el.innerHTML=Object.keys(MAINT_APPS).map(k=>{
+    const a=byKey[k]||{maintenance:false,message:''};
+    const on=!!a.maintenance;
+    return `<div class="card" style="margin-bottom:10px;border-left:4px solid ${on?'var(--red)':'var(--green)'}">
+      <div class="flex-between" style="align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <div><b>${MAINT_APPS[k]}</b> ${on?'<span class="pill pill-no">EN MAINTENANCE</span>':'<span class="pill pill-ok">En ligne</span>'}
+          ${a.updated_by?`<div class="muted" style="font-size:11px;margin-top:3px">Dernier changement : ${esc(a.updated_by)}${a.updated_at?' · '+String(a.updated_at).replace('T',' ').slice(0,16):''}</div>`:''}</div>
+        <button class="btn btn-sm ${on?'btn-green':'btn-red'}" data-k="${k}" data-act="toggle">${on?'✅ Remettre en ligne':'🔧 Mettre en maintenance'}</button>
+      </div>
+      <div style="margin-top:10px"><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Message affiché aux utilisateurs (optionnel)</label>
+        <input data-msg data-k="${k}" placeholder="Ex : Maintenance en cours, retour prévu vers 14h." value="${esc(a.message||'')}" style="width:100%"></div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('[data-act="toggle"]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.k, cur=byKey[k]||{maintenance:false};
+    const next=!cur.maintenance;
+    const msgEl=el.querySelector('input[data-msg][data-k="'+k+'"]');
+    const msg=msgEl?msgEl.value:'';
+    const txt=next?('METTRE EN MAINTENANCE « '+MAINT_APPS[k]+' » ?\n\nLes utilisateurs non-admins ne pourront plus se connecter.'):('REMETTRE EN LIGNE « '+MAINT_APPS[k]+' » ?');
+    if(!confirm(txt)) return;
+    b.disabled=true; b.textContent='⏳…';
+    api('PUT','/admin/maintenance/'+k,{maintenance:next,message:msg}).then(res=>{
+      if(res&&res.error){ toast('❌ '+res.error); b.disabled=false; return; }
+      toast(next?'🔧 Mise en maintenance':'✅ Remise en ligne'); renderMaintenance();
+    }).catch(()=>{ toast('❌ Erreur réseau'); b.disabled=false; });
+  });
 }
 
 function majDateCharge(v){ S._chargeDate=v; renderChargements(); }
@@ -1986,7 +2062,7 @@ async function renderDocs(){
       <p class="muted" style="margin:12px 0 14px">Tous les documents signés par les clients à la livraison. Cliquez pour voir et télécharger.</p>
       <div class="form-grid" style="margin-bottom:14px">
         <div><label>Date (vide = tous)</label><input type="date" id="doc-date" onchange="chargerDocs()"></div>
-        <div><label>Recherche</label><input id="doc-search" placeholder="Client ou signataire..." oninput="chargerDocs()"></div>
+        <div><label>Recherche</label><input id="doc-search" placeholder="Client, signataire ou N° BL…" oninput="filterDocs()"></div>
       </div>
       <span id="docs-top"></span><div id="docs-liste"></div>
     </div>`;
@@ -1994,14 +2070,18 @@ async function renderDocs(){
 }
 async function chargerDocs(){
   const date=document.getElementById('doc-date').value;
-  const search=document.getElementById('doc-search').value;
   const el=document.getElementById('docs-liste');
   el.innerHTML='<div class="loading"><div class="spin"></div></div>';
   let q='/admin/signatures?';
   if(date){const [y,m,d]=date.split('-');q+='date='+encodeURIComponent(d+'/'+m+'/'+y)+'&';}
-  if(search) q+='search='+encodeURIComponent(search);
   const r=await api('GET',q).catch(()=>({documents:[]}));
-  const docs=r.documents||[];
+  window._docsAll=r.documents||[];
+  filterDocs();
+}
+function filterDocs(){
+  const s=(document.getElementById('doc-search').value||'').toLowerCase().trim();
+  let docs=window._docsAll||[];
+  if(s) docs=docs.filter(d=>(d.client||'').toLowerCase().includes(s)||(d.signataire||'').toLowerCase().includes(s)||(d.bl||'').toLowerCase().includes(s));
   window._docs=docs; _pgData['docs']=docs; _pg['docs']=0;
   renderDocsTable();
 }
@@ -2011,9 +2091,10 @@ function renderDocsTable(){
   if(v.total===0){el.innerHTML='<div class="loading">Aucun document signé</div>';return;}
   el.innerHTML=`<div class="muted" style="margin-bottom:10px">${v.total} document(s)</div>
   <div class="table-wrap"><table>
-    <thead><tr><th>Date/Heure</th><th>Client</th><th>Signataire</th><th>Livreur</th><th>Colis</th><th>Zone</th><th></th></tr></thead>
+    <thead><tr><th>Date/Heure</th><th>N° BL</th><th>Client</th><th>Signataire</th><th>Livreur</th><th>Colis</th><th>Zone</th><th></th></tr></thead>
     <tbody>${v.rows.map((d,li)=>`<tr>
       <td class="muted" style="white-space:nowrap">${(d.date_heure||(d.created_at||'').replace('T',' ').slice(0,16))}</td>
+      <td><b>${esc(d.bl||'—')}</b></td>
       <td><b>${esc(d.client)}</b></td>
       <td>${esc(d.signataire||'—')}</td>
       <td>${esc(d.livreur||'—')}</td>
@@ -2269,18 +2350,88 @@ async function chargerFlotte(){
 // ════════════════════════════════════════════════════════════════════════════
 // ONGLET KPI
 // ════════════════════════════════════════════════════════════════════════════
+let _kpiPeriode=null;
+function _isoLocal(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtJour(s){ const p=String(s||'').split('-'); return p.length===3?p[2]+'/'+p[1]:s; }
+function majKpiBtns(){ document.querySelectorAll('.kpi-per').forEach(b=>b.classList.toggle('active', b.dataset.p===(_kpiPeriode&&_kpiPeriode.preset))); }
+function setKpiPeriode(preset){
+  const now=new Date(); let debut, fin=_isoLocal(now);
+  if(preset==='today') debut=_isoLocal(now);
+  else if(preset==='7j'){ const d=new Date(now); d.setDate(d.getDate()-6); debut=_isoLocal(d); }
+  else if(preset==='30j'){ const d=new Date(now); d.setDate(d.getDate()-29); debut=_isoLocal(d); }
+  else if(preset==='mois') debut=_isoLocal(new Date(now.getFullYear(),now.getMonth(),1));
+  _kpiPeriode={debut,fin,preset};
+  const di=document.getElementById('kpi-debut'), fi=document.getElementById('kpi-fin');
+  if(di) di.value=debut; if(fi) fi.value=fin;
+  majKpiBtns(); chargerKPI();
+}
+function chargerKPIPerso(){
+  const debut=document.getElementById('kpi-debut').value, fin=document.getElementById('kpi-fin').value;
+  if(!debut||!fin) return;
+  _kpiPeriode={debut,fin,preset:'perso'};
+  majKpiBtns(); chargerKPI();
+}
 async function renderKPI(){
-  const d=await api('GET','/kpi').catch(()=>null);
-  if(!d||d.error){document.getElementById('content').innerHTML='<div class="card"><div class="loading">❌ Erreur de chargement des KPI</div></div>';return;}
-  const g=d.global||{};
+  if(!_kpiPeriode){ const now=new Date(); const d=new Date(now); d.setDate(d.getDate()-29); _kpiPeriode={debut:_isoLocal(d),fin:_isoLocal(now),preset:'30j'}; }
   document.getElementById('content').innerHTML=`
+    <div class="card">
+      <h3 style="margin:0 0 10px">📊 Tableau de bord</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="kpi-per" data-p="today" onclick="setKpiPeriode('today')">Aujourd'hui</button>
+        <button class="kpi-per" data-p="7j" onclick="setKpiPeriode('7j')">7 jours</button>
+        <button class="kpi-per" data-p="30j" onclick="setKpiPeriode('30j')">30 jours</button>
+        <button class="kpi-per" data-p="mois" onclick="setKpiPeriode('mois')">Ce mois</button>
+        <span style="color:var(--text2);font-size:13px;margin-left:6px">Du</span>
+        <input type="date" id="kpi-debut" class="kpi-date" onchange="chargerKPIPerso()">
+        <span style="color:var(--text2);font-size:13px">au</span>
+        <input type="date" id="kpi-fin" class="kpi-date" onchange="chargerKPIPerso()">
+      </div>
+    </div>
+    <div id="kpi-results"><div class="card"><div class="loading">Chargement…</div></div></div>`;
+  document.getElementById('kpi-debut').value=_kpiPeriode.debut;
+  document.getElementById('kpi-fin').value=_kpiPeriode.fin;
+  majKpiBtns(); chargerKPI();
+}
+async function chargerKPI(){
+  const box=document.getElementById('kpi-results'); if(!box) return;
+  box.innerHTML='<div class="card"><div class="loading">Chargement…</div></div>';
+  const d=await api('GET','/kpi?debut='+_kpiPeriode.debut+'&fin='+_kpiPeriode.fin).catch(()=>null);
+  if(!d||d.error){ box.innerHTML='<div class="card"><div class="loading">❌ Erreur de chargement des KPI</div></div>'; return; }
+  const g=d.global||{}, pr=d.prep||{};
+  const jours=[...new Set([...Object.keys(d.parJour||{}),...Object.keys(pr.parJour||{})])].sort().reverse();
+  const ligneJour=jours.map(j=>{ const L=(d.parJour||{})[j]||{total:0,livres:0,nonlivres:0}; const P=(pr.parJour||{})[j]||0; return `<tr><td>${fmtJour(j)}</td><td><b style="color:var(--gold)">${P}</b></td><td>${L.total}</td><td style="color:var(--green)">${L.livres}</td><td style="color:var(--red)">${L.nonlivres}</td></tr>`; }).join('')||'<tr><td colspan="5" class="muted">—</td></tr>';
+  const lignePrep=(pr.parPreparateur||[]).map(p=>`<tr><td><b>${esc(p.nom)}</b></td><td>${p.nb}</td></tr>`).join('')||'<tr><td colspan="2" class="muted">—</td></tr>';
+  box.innerHTML=`
+    <div class="kpi-sec">📦 LIVRAISONS</div>
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-v" style="color:var(--gold)">${g.total||0}</div><div class="kpi-l">Livraisons totales</div></div>
+      <div class="kpi"><div class="kpi-v" style="color:var(--gold)">${g.total||0}</div><div class="kpi-l">Total livraisons</div></div>
       <div class="kpi"><div class="kpi-v" style="color:var(--green)">${g.livres||0}</div><div class="kpi-l">Livrées</div></div>
       <div class="kpi"><div class="kpi-v" style="color:var(--red)">${g.nonlivres||0}</div><div class="kpi-l">Non livrées</div></div>
+      <div class="kpi"><div class="kpi-v" style="color:#7b1fa2">${g.reportes||0}</div><div class="kpi-l">Reportées</div></div>
+      <div class="kpi"><div class="kpi-v" style="color:var(--text2)">${g.attente||0}</div><div class="kpi-l">En attente</div></div>
       <div class="kpi"><div class="kpi-v" style="color:var(--orange)">${g.tauxLivraison||0}%</div><div class="kpi-l">Taux de livraison</div></div>
-      <div class="kpi"><div class="kpi-v" style="color:var(--blue)">${g.totalColis||0}</div><div class="kpi-l">Colis</div></div>
-      <div class="kpi"><div class="kpi-v" style="color:var(--gold)">${g.nbSignatures||0}</div><div class="kpi-l">Signatures</div></div>
+    </div>
+    <div class="kpi-sec">🧰 PRÉPARATIONS <span style="font-weight:500;color:#8B9EC7">(à la date de préparation réelle)</span></div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-v" style="color:var(--gold)">${pr.total||0}</div><div class="kpi-l">BL préparés</div></div>
+    </div>
+    <div class="kpi-sec">🥤 PRODUITS</div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-v" style="color:var(--blue)">${g.totalColis||0}</div><div class="kpi-l">📦 Colis</div></div>
+      <div class="kpi"><div class="kpi-v">${g.totalBoissons||0}</div><div class="kpi-l">🥤 Boissons</div></div>
+      <div class="kpi"><div class="kpi-v">${g.totalCharbons||0}</div><div class="kpi-l">🔥 Charbons</div></div>
+      <div class="kpi"><div class="kpi-v">${g.totalPlv||0}</div><div class="kpi-l">🪧 PLV</div></div>
+      <div class="kpi"><div class="kpi-v">${g.totalTpe||0}</div><div class="kpi-l">💳 TPE</div></div>
+    </div>
+    <div class="card">
+      <h3>📅 Par jour</h3>
+      <div class="table-wrap"><table><thead><tr><th>Jour</th><th>🧰 Préparés</th><th>Livraisons</th><th>✅</th><th>❌</th></tr></thead>
+        <tbody>${ligneJour}</tbody></table></div>
+    </div>
+    <div class="card">
+      <h3>🚚 Par préparateur</h3>
+      <div class="table-wrap"><table><thead><tr><th>Préparateur</th><th>BL préparés</th></tr></thead>
+        <tbody>${lignePrep}</tbody></table></div>
     </div>
     <div class="card">
       <h3>📊 Par zone</h3>
@@ -2357,7 +2508,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 });
 
 // ── Auto-mise à jour + Nouveautés ───────────────────────────
-const VERSION_URL = 'https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/version.json';
+const VERSION_URL = 'version.json';
 let _verInfo = null, _verEnAttente = null;
 function _vToast(m){ try{ toast(m); }catch(_){} }
 function _vModalOuvert(){ return !!document.querySelector('.modal-bg.active'); }
@@ -2417,5 +2568,25 @@ document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) verifie
     <div id="nouveautesCorps"></div>
   </div>
 </div>
+<script>
+(function(){function ap(t){document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('theme-btn');if(b)b.textContent=(t==='light'?'🌙':'☀️');}
+function tg(){var c=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';var n=c==='light'?'dark':'light';try{localStorage.setItem('ajcv_theme',n);}catch(_){}ap(n);}
+ap(document.documentElement.getAttribute('data-theme')||'dark');var b=document.getElementById('theme-btn');if(b)b.onclick=tg;})();
+</script>
+<script>
+(function(){
+  function showMaint(msg){
+    if(document.getElementById('maint-screen'))return;
+    var d=document.createElement('div'); d.id='maint-screen';
+    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#0F1724;color:#F0F4FF;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#8B9EC7">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#8B9EC7;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
+    document.body.appendChild(d);
+    document.getElementById('maint-admin').onclick=function(){ d.remove(); };
+  }
+  window.__maintShow=showMaint;
+  function chk(){ try{ fetch((API)+'/maintenance/'+('admin'),{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){ if(j&&j.maintenance) showMaint(j.message); }).catch(function(){}); }catch(e){} }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',chk); else chk();
+})();
+</script>
 </body>
 </html>
