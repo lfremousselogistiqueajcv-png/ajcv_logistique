@@ -1,7 +1,40 @@
 {
-  "version": "2026.06.30.1",
+  "version": "2026.07.01.3",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.01.3",
+      "date": "01/07/2026",
+      "titre": "KPI : N° BL, avancement préparation & export Excel",
+      "notes": [
+        "🔎 KPI (détail par produit) : le numéro de BL s'affiche maintenant à côté du nom du client.",
+        "🧰 Préparation : le compteur indique la progression « préparées / total » (ex. 2 / 4) pour suivre l'avancement en un coup d'œil.",
+        "📥 KPI : bouton d'export Excel — télécharge tous les indicateurs (synthèse, par zone, par livreur, par jour, par préparateur)."
+      ]
+    },
+    {
+      "v": "2026.07.01.2",
+      "date": "01/07/2026",
+      "titre": "Visionneuse photos plein écran",
+      "notes": [
+        "📸 Les photos de préparation (et de chargement camion) s'ouvrent maintenant en plein écran, directement dans l'application, au lieu d'ouvrir un nouvel onglet.",
+        "◀ ▶ Navigation suivant / précédent entre les photos d'une même commande (flèches, glissement du doigt, ou touches ← →).",
+        "✕ Fermeture par la croix, par la touche Échap ou en cliquant à côté de la photo."
+      ]
+    },
+    {
+      "v": "2026.07.01.1",
+      "date": "01/07/2026",
+      "titre": "Correctifs livraison, Fiches Clients & KPI détaillés",
+      "notes": [
+        "🔧 Correctif majeur : une livraison signée reste « livrée » et ne repasse plus à « à livrer » après une resynchronisation. Le statut validé est préservé.",
+        "🕐 Correctif : les heures de livraison terminée s'affichent à l'heure de La Réunion (fini le décalage à l'affichage).",
+        "📊 KPI : un clic sur une carte produit ouvre le détail « quel client, combien, par référence » (drill-down par produit).",
+        "✏️ Fiche client : horaires de livraison, contrainte et priorité sont maintenant modifiables directement depuis l'admin.",
+        "📋 Nouveau — Fiches Clients : formulaire dédié pour créer et modifier des clients, accessible depuis le menu, avec thème clair / sombre.",
+        "Aucune donnée existante n'a été modifiée."
+      ]
+    },
     {
       "v": "2026.06.30.1",
       "date": "30/06/2026",

@@ -63,9 +63,14 @@ input:focus,select:focus{border-color:var(--gold)}
 .modal-bg.active{display:flex}
 .modal{background:var(--surface);border-radius:14px;padding:24px;width:100%;max-width:360px}
 .modal h3{font-size:16px;color:var(--gold);margin-bottom:16px}
+html[data-theme="light"]{--bg:#EDF1F7;--surface:#FFFFFF;--surface2:#EBEFF5;--text:#0F172A;--text2:#475569;--border:rgba(15,23,42,0.14)}
+#theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#theme-btn:active{transform:scale(.94)}
 </style>
+<script>try{var _t=localStorage.getItem('ajcv_theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 </head>
 <body>
+<button id="theme-btn" title="Mode clair / sombre" aria-label="Basculer le mode clair ou sombre">☀️</button>
 <div id="login">
   <div class="login-card">
     <div class="login-logo">📋</div>
@@ -460,5 +465,21 @@ window.addEventListener('DOMContentLoaded',()=>{
   }catch(_){}
 });
 </script>
+<script>
+(function(){
+  function showMaint(msg){
+    if(document.getElementById('maint-screen'))return;
+    var d=document.createElement('div'); d.id='maint-screen';
+    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#0F1724;color:#F0F4FF;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#8B9EC7">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#8B9EC7;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
+    document.body.appendChild(d);
+    document.getElementById('maint-admin').onclick=function(){ d.remove(); };
+  }
+  window.__maintShow=showMaint;
+  function chk(){ try{ fetch((API)+'/maintenance/'+('commercial'),{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){ if(j&&j.maintenance) showMaint(j.message); }).catch(function(){}); }catch(e){} }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',chk); else chk();
+})();
+</script>
+<script>(function(){function ap(t){document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('theme-btn');if(b)b.textContent=(t==='light'?'🌙':'☀️');}function tg(){var c=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';var n=c==='light'?'dark':'light';try{localStorage.setItem('ajcv_theme',n);}catch(_){}ap(n);}ap(document.documentElement.getAttribute('data-theme')||'dark');var b=document.getElementById('theme-btn');if(b)b.onclick=tg;})();</script>
 </body>
 </html>

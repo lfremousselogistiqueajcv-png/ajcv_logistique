@@ -107,6 +107,16 @@ html[data-theme="light"]{
 }
 #theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #theme-btn:active{transform:scale(.94)}
+/* VISIONNEUSE PHOTOS (lightbox plein ecran) */
+#lb-overlay{display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.93);align-items:center;justify-content:center}
+#lb-overlay.open{display:flex}
+#lb-img{max-width:92vw;max-height:86vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6);-webkit-user-select:none;user-select:none}
+#lb-close{position:fixed;top:14px;right:18px;color:#fff;font-size:30px;cursor:pointer;line-height:1;z-index:100001;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.14)}
+#lb-close:active{transform:scale(.9)}
+.lb-nav{position:fixed;top:50%;transform:translateY(-50%);color:#fff;font-size:46px;cursor:pointer;z-index:100001;width:52px;height:78px;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;background:rgba(255,255,255,.10);border-radius:10px}
+#lb-prev{left:12px}#lb-next{right:12px}
+.lb-nav:active{background:rgba(255,255,255,.24)}
+#lb-count{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;font:600 14px -apple-system,sans-serif;background:rgba(0,0,0,.5);padding:6px 14px;border-radius:20px}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -114,7 +124,6 @@ html[data-theme="light"]{
 </head>
 <body>
 <button id="theme-btn" title="Mode clair / sombre (accessibilite)" aria-label="Basculer le mode clair ou sombre">☀️</button>
-
 
 <!-- LOGIN -->
 <div id="login">
@@ -132,7 +141,7 @@ html[data-theme="light"]{
     <div class="row-check"><input type="checkbox" id="remember"><label for="remember">Se souvenir de moi</label></div>
     <div class="err" id="loginErr"></div>
     <button class="btn btn-gold btn-full" onclick="connexion()">Se connecter</button>
-    <div style="text-align:center;margin-top:14px"><a href="reset.html" style="color:#FFB300;font-size:13px;text-decoration:none">Mot de passe oublié ?</a></div>
+    <div style="text-align:center;margin-top:14px"><a href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/reset.html" style="color:#FFB300;font-size:13px;text-decoration:none">Mot de passe oublié ?</a></div>
   </div>
 </div>
 
@@ -235,6 +244,33 @@ html[data-theme="light"]{
       <div><label>Téléphone 1</label><input id="cli-tel1"></div>
       <div><label>Téléphone 2</label><input id="cli-tel2"></div>
       <div style="grid-column:1/-1"><label>Email</label><input id="cli-email" type="email"></div>
+      <div style="grid-column:1/-1"><label>🕐 Horaires d'ouverture</label><input id="cli-horaires" placeholder="Ex: 8h-12h / 14h-18h"></div>
+      <div style="grid-column:1/-1"><label>⚠️ Contrainte de livraison</label><select id="cli-contrainte">
+        <option value="LIBRE">LIBRE — aucune contrainte</option>
+        <optgroup label="⏰ Créneaux horaires">
+          <option value="MATIN">MATIN (avant 12h)</option>
+          <option value="APRES-MIDI">APRÈS-MIDI (après 14h)</option>
+          <option value="AVANT 9H">Avant 9h</option>
+          <option value="AVANT 10H">Avant 10h</option>
+          <option value="AVANT 11H">Avant 11h</option>
+          <option value="APRES 14H">Après 14h</option>
+          <option value="APRES 15H">Après 15h</option>
+          <option value="PAS LE MIDI">Pas entre 12h et 14h</option>
+        </optgroup>
+        <optgroup label="🚛 Accès &amp; matériel">
+          <option value="SUR RDV">Sur rendez-vous</option>
+          <option value="LIVRAISON ARRIERE">Livraison par l'arrière</option>
+          <option value="HAYON">Hayon obligatoire</option>
+          <option value="TRANSPALETTE">Transpalette nécessaire</option>
+          <option value="ACCES DIFFICILE">Accès camion difficile</option>
+          <option value="PETIT VEHICULE">Petit véhicule uniquement</option>
+        </optgroup>
+      </select></div>
+      <div style="grid-column:1/-1"><label>🚨 Priorité</label><select id="cli-priorite">
+        <option value="NORMALE">NORMALE</option>
+        <option value="PRIORITAIRE">PRIORITAIRE</option>
+        <option value="FLEXIBLE">FLEXIBLE</option>
+      </select></div>
     </div>
     <div style="font-size:12px;color:var(--text3);margin-top:8px">💡 Le GPS est calculé automatiquement depuis l'adresse à la création.</div>
     <div class="err" id="cliErr"></div>
@@ -327,22 +363,7 @@ html[data-theme="light"]{
 </div>
 
 <script>
-// ════════════════════════════════════════
-// ENVIRONNEMENT DE TEST — backend de test, données fictives.
-// ════════════════════════════════════════
-const API_BASE = 'https://ajcvbackend-production.up.railway.app';
-(function(){
-  var show = function(){
-    if (document.getElementById('ajcv-test-banner')) return;
-    var b = document.createElement('div');
-    b.id = 'ajcv-test-banner';
-    b.textContent = '';
-    b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#7c3aed;color:#fff;font:600 13px/1.4 Arial,sans-serif;text-align:center;padding:6px 10px;display:block;box-shadow:0 2px 8px rgba(0,0,0,.3)';
-    document.body.appendChild(b); document.body.style.paddingTop='32px';
-  };
-  /* banniere test desactivee en production */
-})();
-const API = API_BASE;
+const API = 'https://ajcvbackend-production.up.railway.app';
 const APP_VERSION = 'v3-clean-2026';
 let S = { token:'', login:'', prenom:'', role:'', tab:'livraisons' };
 let _clients = null;       // cache liste clients
@@ -487,7 +508,7 @@ async function renderChargements(){
   el.innerHTML=liste.map(c=>{
     const h=c.created_at?new Date(c.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
     let photos=c.photos; if(typeof photos==='string'){ try{ photos=JSON.parse(photos); }catch(_){ photos=[]; } } if(!Array.isArray(photos)) photos=[];
-    const ph=photos.map(u=>`<img src="${esc(String(u))}" onclick="window.open('${String(u).replace(/'/g,'%27')}','_blank')" style="width:88px;height:88px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer">`).join('');
+    const _encC=encodeURIComponent(JSON.stringify(photos));const ph=photos.map((u,i)=>`<img src="${esc(String(u))}" onclick="lbP('${_encC}',${i})" style="width:88px;height:88px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer">`).join('');
     return `<div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <div style="font-size:16px"><b>🚚 ${esc(c.livreur||'—')}</b> <span class="muted">${esc(c.date_chargement||'')}${h?' · '+h:''}</span></div>
@@ -743,7 +764,7 @@ function photosDe(l){
 }
 function voirPhotoPrep(url){
   if(!url){ toast('Pas de photo de préparation'); return; }
-  window.open(url,'_blank');
+  lightbox([url],0);
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -783,15 +804,16 @@ async function chargerPreps(force){
 function renderPrepList(){
   const el = document.getElementById('prepList');
   const preps = (_prepData||[]).filter(l => l.prepare===true || l.prepare==='true');
-  document.getElementById('prepCount').textContent = preps.length+' préparation'+(preps.length>1?'s':'');
+  document.getElementById('prepCount').textContent = preps.length+' / '+(_prepData||[]).length+' préparées';
   if(preps.length===0){ el.innerHTML='<p class="muted" style="padding:20px 0">Aucune préparation pour ce filtre.</p>'; return; }
   el.innerHTML = preps.map(l=>{
     const refaire = l.photo_a_refaire===true || l.photo_a_refaire==='true';
     const dp = l.date_preparation ? dtFR(l.date_preparation) : '';
     const hay = (String(l.client_nom||l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;');
     const phs = photosDe(l);
+    const _encP = encodeURIComponent(JSON.stringify(phs));
     const galerie = phs.length
-      ? `<div style="display:flex;flex-wrap:wrap;gap:4px;width:108px;flex-shrink:0">`+phs.map(u=>`<img src="${u}" onclick="voirPhotoPrep('${String(u).replace(/'/g,'%27')}')" style="width:50px;height:50px;object-fit:cover;border-radius:7px;border:1px solid #ddd;cursor:pointer" title="Agrandir">`).join('')+`</div>`
+      ? `<div style="display:flex;flex-wrap:wrap;gap:4px;width:108px;flex-shrink:0">`+phs.map((u,i)=>`<img src="${u}" onclick="lbP('${_encP}',${i})" style="width:50px;height:50px;object-fit:cover;border-radius:7px;border:1px solid #ddd;cursor:pointer" title="Agrandir">`).join('')+`</div>`
       : `<div style="width:64px;height:64px;border-radius:8px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;flex-shrink:0;font-size:24px" title="Préparée sans photo">🧰</div>`;
     const nomEsc = esc(String(l.client_nom||l.client||'')).replace(/'/g,"\\'");
     return `<div class="prep-card" data-search="${hay}" style="border:1px solid ${refaire?'#f59e0b':'#e5e7eb'};border-radius:12px;padding:12px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;background:${refaire?'#fffbeb':'#fff'};color:#1e293b">
@@ -871,7 +893,7 @@ function planRenderTable(){
       <tbody>${livs.map(l=>`<tr>
         <td><input type="checkbox" class="plan-cb" value="${l.id}"></td>
         <td>${esc(l.client_nom||'')}</td><td>${esc(l.ville||'')}</td>
-        <td style="text-align:center">${(l.prepare===true||l.prepare==='true')?`<span title="Préparée — voir la photo" onclick="voirPhotoPrep('${(l.photo_preparation||'').replace(/'/g,'%27')}')" style="color:#059669;cursor:pointer;font-weight:700">🧰✓</span>`:'<span style="color:#cbd5e1" title="Pas encore préparée">⬜</span>'}</td>
+        <td style="text-align:center">${(l.prepare===true||l.prepare==='true')?`<span title="Préparée — voir la photo" onclick="lbP('${encodeURIComponent(JSON.stringify(photosDe(l)))}')" style="color:#059669;cursor:pointer;font-weight:700">🧰✓</span>`:'<span style="color:#cbd5e1" title="Pas encore préparée">⬜</span>'}</td>
         <td>${parseInt(l.nb_colis)||1}</td>
         <td>${selectLivreurHTML(l)}</td>
         ${showProp?`<td style="font-weight:700;color:#7c3aed">${esc(propMap[l.id]||'—')}</td>`:''}
@@ -1108,7 +1130,7 @@ function renderLivTable(){
         <td>${statutPill(l.statut)}${(/livr/i.test(l.statut||'')&&l.date_heure_livraison)?`<div class="muted" style="font-size:11px;margin-top:2px">🕒 ${dtFR(l.date_heure_livraison)}</div>`:''}</td>
         <td>${(l.commercial===true||l.commercial==='true')?'<span style="color:#7c3aed;font-weight:700">👔 Commercial</span>':esc(l.livreur||'—')}</td>
         <td>${l.nb_colis||l.colis||1}</td>
-        <td>${(l.prepare===true||l.prepare==='true')&&l.photo_preparation?`<button class="btn btn-sm" style="background:#ecfdf5;color:#059669" title="Photo de préparation" onclick="voirPhotoPrep('${(l.photo_preparation||'').replace(/'/g,'%27')}')">📷</button> `:''}<button class="btn btn-sm" style="background:#e2e8f0;color:#475569" title="Modifier les quantités (colis, boissons, charbons, cadeaux)" onclick="ouvrirEditLiv('${l.id}')">✏️</button> <button class="btn btn-sm" style="background:#eef2ff;color:#4f46e5" title="Reporter à une autre date" onclick="reporterLivraison('${l.id}')">📅</button> <button class="btn btn-sm" style="background:${l.vendredi?'#f59e0b':'#eee'};color:${l.vendredi?'#fff':'#999'}" title="${l.vendredi?'Topée vendredi (cliquer pour retirer)':'Topez pour le vendredi (toute l\'île)'}" onclick="toggleVendredi('${l.id}',${l.vendredi?'true':'false'})">🏁</button> <button class="btn btn-sm" style="background:${l.commercial?'#7c3aed':'#eee'};color:${l.commercial?'#fff':'#999'}" title="${l.commercial?'Livrée par un commercial (cliquer pour remettre en livreur)':'Toper « commercial » (sortie du circuit livreurs)'}" onclick="toggleCommercial('${l.id}',${l.commercial?'true':'false'})">👔</button> <button class="btn btn-red btn-sm" onclick="suppLivraison('${l.id}','${esc(l.client_nom).replace(/'/g,"\\'")}')">🗑️</button></td>
+        <td>${(l.prepare===true||l.prepare==='true')&&l.photo_preparation?`<button class="btn btn-sm" style="background:#ecfdf5;color:#059669" title="Photo de préparation" onclick="lbP('${encodeURIComponent(JSON.stringify(photosDe(l)))}')">📷</button> `:''}<button class="btn btn-sm" style="background:#e2e8f0;color:#475569" title="Modifier les quantités (colis, boissons, charbons, cadeaux)" onclick="ouvrirEditLiv('${l.id}')">✏️</button> <button class="btn btn-sm" style="background:#eef2ff;color:#4f46e5" title="Reporter à une autre date" onclick="reporterLivraison('${l.id}')">📅</button> <button class="btn btn-sm" style="background:${l.vendredi?'#f59e0b':'#eee'};color:${l.vendredi?'#fff':'#999'}" title="${l.vendredi?'Topée vendredi (cliquer pour retirer)':'Topez pour le vendredi (toute l\'île)'}" onclick="toggleVendredi('${l.id}',${l.vendredi?'true':'false'})">🏁</button> <button class="btn btn-sm" style="background:${l.commercial?'#7c3aed':'#eee'};color:${l.commercial?'#fff':'#999'}" title="${l.commercial?'Livrée par un commercial (cliquer pour remettre en livreur)':'Toper « commercial » (sortie du circuit livreurs)'}" onclick="toggleCommercial('${l.id}',${l.commercial?'true':'false'})">👔</button> <button class="btn btn-red btn-sm" onclick="suppLivraison('${l.id}','${esc(l.client_nom).replace(/'/g,"\\'")}')">🗑️</button></td>
       </tr>`).join('')}</tbody>
     </table></div>
     ${pgBar('liv','renderLivTable')}`;
@@ -1364,7 +1386,7 @@ function renderImportLiv(){
     </div>`;
 }
 // Date Excel (objet Date) ou texte → JJ/MM/AAAA
-function dtFR(v){ try{ const d=new Date(v); if(isNaN(d)) return ''; return d.toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(_){ return ''; } }
+function dtFR(v){ try{ const d=new Date(v); if(isNaN(d)) return ''; return d.toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Indian/Reunion'}); }catch(_){ return ''; } }
 function toFR(v){
   if(v instanceof Date && !isNaN(v)) return String(v.getDate()).padStart(2,'0')+'/'+String(v.getMonth()+1).padStart(2,'0')+'/'+v.getFullYear();
   const s=String(v==null?'':v).trim();
@@ -1753,7 +1775,9 @@ function ajouterClient(){
   _editClientId=null;
   document.getElementById('cli-titre').textContent='➕ Ajouter un client';
   document.getElementById('cli-ok').textContent='✅ Créer le client';
-  ['cli-nom','cli-ville','cli-cp','cli-adresse','cli-tel1','cli-tel2','cli-email'].forEach(id=>document.getElementById(id).value='');
+  ['cli-nom','cli-ville','cli-cp','cli-adresse','cli-tel1','cli-tel2','cli-email','cli-horaires'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cli-contrainte').value='LIBRE';
+  document.getElementById('cli-priorite').value='NORMALE';
   document.getElementById('cliErr').textContent='';
   _cliGeo = null;
   const box=document.getElementById('cli-sug'); if(box){ box.style.display='none'; box.innerHTML=''; }
@@ -1773,6 +1797,9 @@ async function ouvrirEditClient(id){
   document.getElementById('cli-tel1').value=c.tel1||'';
   document.getElementById('cli-tel2').value=c.tel2||'';
   document.getElementById('cli-email').value=c.email||'';
+  document.getElementById('cli-horaires').value=c.horaires||'';
+  document.getElementById('cli-contrainte').value=c.contrainte||'LIBRE';
+  document.getElementById('cli-priorite').value=c.priorite||'NORMALE';
   document.getElementById('cliErr').textContent='';
   _cliGeo=null;
   const box=document.getElementById('cli-sug'); if(box){ box.style.display='none'; box.innerHTML=''; }
@@ -1791,7 +1818,10 @@ async function sauverEditClient(){
     adresse:document.getElementById('cli-adresse').value.trim(),
     tel1:document.getElementById('cli-tel1').value.trim(),
     tel2:document.getElementById('cli-tel2').value.trim(),
-    email:document.getElementById('cli-email').value.trim()
+    email:document.getElementById('cli-email').value.trim(),
+    horaires:document.getElementById('cli-horaires').value.trim(),
+    contrainte:document.getElementById('cli-contrainte').value,
+    priorite:document.getElementById('cli-priorite').value
   };
   const btn=document.getElementById('cli-ok'); if(btn){ btn.disabled=true; btn.textContent='⏳…'; }
   toast('⏳ Enregistrement + géocodage...');
@@ -1819,7 +1849,7 @@ async function creerClient(){
     tel1:document.getElementById('cli-tel1').value.trim(),
     tel2:document.getElementById('cli-tel2').value.trim(),
     email:document.getElementById('cli-email').value.trim(),
-    contrainte:'LIBRE', priorite:'NORMALE', actif:true,
+    horaires:document.getElementById('cli-horaires').value.trim(), contrainte:document.getElementById('cli-contrainte').value, priorite:document.getElementById('cli-priorite').value, actif:true,
     ...(_cliGeo ? { lat:_cliGeo.lat, lng:_cliGeo.lng } : {})
   };
   toast('⏳ Création + géocodage...');
@@ -2134,7 +2164,7 @@ async function voirDoc(i){
       </div>
       ${d.photo_preparation?`<div style="margin-top:16px;border-top:1px solid #ddd;padding-top:12px">
         <div style="font-size:12px;color:#666;margin-bottom:6px">📷 Photo de préparation :</div>
-        <img src="${d.photo_preparation}" style="max-width:100%;border:1px solid #ddd;border-radius:6px;cursor:pointer" title="Agrandir" onclick="window.open('${d.photo_preparation}','_blank')">
+        <img src="${d.photo_preparation}" style="max-width:100%;border:1px solid #ddd;border-radius:6px;cursor:pointer" title="Agrandir" onclick="lbP('${encodeURIComponent(JSON.stringify(photosDe(d)))}')">
       </div>`:''}
     </div>`;
   document.getElementById('docContent').innerHTML=html;
@@ -2385,6 +2415,7 @@ async function renderKPI(){
         <input type="date" id="kpi-debut" class="kpi-date" onchange="chargerKPIPerso()">
         <span style="color:var(--text2);font-size:13px">au</span>
         <input type="date" id="kpi-fin" class="kpi-date" onchange="chargerKPIPerso()">
+        <button class="btn btn-sm" onclick="exportKPIExcel()" style="margin-left:auto;background:#1D6F42;color:#fff" title="Exporter les KPI en Excel">📥 Export Excel</button>
       </div>
     </div>
     <div id="kpi-results"><div class="card"><div class="loading">Chargement…</div></div></div>`;
@@ -2397,7 +2428,9 @@ async function chargerKPI(){
   box.innerHTML='<div class="card"><div class="loading">Chargement…</div></div>';
   const d=await api('GET','/kpi?debut='+_kpiPeriode.debut+'&fin='+_kpiPeriode.fin).catch(()=>null);
   if(!d||d.error){ box.innerHTML='<div class="card"><div class="loading">❌ Erreur de chargement des KPI</div></div>'; return; }
+  window._kpiData=d;
   const g=d.global||{}, pr=d.prep||{};
+  window._kpiDetail = d.detailProduits || {boissons:[],charbons:[],plv:[],tpe:[]};
   const jours=[...new Set([...Object.keys(d.parJour||{}),...Object.keys(pr.parJour||{})])].sort().reverse();
   const ligneJour=jours.map(j=>{ const L=(d.parJour||{})[j]||{total:0,livres:0,nonlivres:0}; const P=(pr.parJour||{})[j]||0; return `<tr><td>${fmtJour(j)}</td><td><b style="color:var(--gold)">${P}</b></td><td>${L.total}</td><td style="color:var(--green)">${L.livres}</td><td style="color:var(--red)">${L.nonlivres}</td></tr>`; }).join('')||'<tr><td colspan="5" class="muted">—</td></tr>';
   const lignePrep=(pr.parPreparateur||[]).map(p=>`<tr><td><b>${esc(p.nom)}</b></td><td>${p.nb}</td></tr>`).join('')||'<tr><td colspan="2" class="muted">—</td></tr>';
@@ -2418,10 +2451,10 @@ async function chargerKPI(){
     <div class="kpi-sec">🥤 PRODUITS</div>
     <div class="kpi-grid">
       <div class="kpi"><div class="kpi-v" style="color:var(--blue)">${g.totalColis||0}</div><div class="kpi-l">📦 Colis</div></div>
-      <div class="kpi"><div class="kpi-v">${g.totalBoissons||0}</div><div class="kpi-l">🥤 Boissons</div></div>
-      <div class="kpi"><div class="kpi-v">${g.totalCharbons||0}</div><div class="kpi-l">🔥 Charbons</div></div>
-      <div class="kpi"><div class="kpi-v">${g.totalPlv||0}</div><div class="kpi-l">🪧 PLV</div></div>
-      <div class="kpi"><div class="kpi-v">${g.totalTpe||0}</div><div class="kpi-l">💳 TPE</div></div>
+      <div class="kpi" style="cursor:pointer" onclick="ouvrirDetailProduit('boissons')" title="Voir le détail par client"><div class="kpi-v">${g.totalBoissons||0}</div><div class="kpi-l">🥤 Boissons 🔎</div></div>
+      <div class="kpi" style="cursor:pointer" onclick="ouvrirDetailProduit('charbons')" title="Voir le détail par client"><div class="kpi-v">${g.totalCharbons||0}</div><div class="kpi-l">🔥 Charbons 🔎</div></div>
+      <div class="kpi" style="cursor:pointer" onclick="ouvrirDetailProduit('plv')" title="Voir le détail par client"><div class="kpi-v">${g.totalPlv||0}</div><div class="kpi-l">🪧 PLV 🔎</div></div>
+      <div class="kpi" style="cursor:pointer" onclick="ouvrirDetailProduit('tpe')" title="Voir le détail par client"><div class="kpi-v">${g.totalTpe||0}</div><div class="kpi-l">💳 TPE 🔎</div></div>
     </div>
     <div class="card">
       <h3>📅 Par jour</h3>
@@ -2448,6 +2481,79 @@ async function chargerKPI(){
       <div class="table-wrap"><table><thead><tr><th>Client</th><th>Ville</th><th>Échecs</th></tr></thead>
         <tbody>${(d.nonLivresRecurrents||[]).map(c=>`<tr><td>${esc(c.client)}</td><td>${esc(c.ville)}</td><td><span class="pill pill-no">${c.nb}</span></td></tr>`).join('')||'<tr><td colspan="3" class="muted">Aucun</td></tr>'}</tbody></table></div>
     </div>`;
+}
+
+const _kpiProdLabels = { boissons:{ic:'🥤',nom:'Boissons'}, charbons:{ic:'🔥',nom:'Charbons'}, plv:{ic:'🪧',nom:'PLV'}, tpe:{ic:'💳',nom:'TPE'} };
+function ouvrirDetailProduit(type){
+  const data = (window._kpiDetail && window._kpiDetail[type]) || [];
+  const meta = _kpiProdLabels[type] || {ic:'📦',nom:type};
+  // Récap agrégé par produit
+  const parProduit = {};
+  data.forEach(d => { Object.entries(d.produits||{}).forEach(([nom,q])=>{ parProduit[nom]=(parProduit[nom]||0)+(parseInt(q)||0); }); });
+  const totalGlobal = data.reduce((s,d)=>s+(d.total||0),0);
+  const recapRows = Object.entries(parProduit).sort((a,b)=>b[1]-a[1])
+    .map(([nom,q])=>`<tr><td>${esc(nom)}</td><td style="text-align:right;font-weight:700">${q}</td></tr>`).join('')
+    || '<tr><td colspan="2" class="muted">Détail non renseigné (quantités globales uniquement)</td></tr>';
+  // Détail par client / livraison (façon appli livreur)
+  const clientRows = data.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')))
+    .map(d => {
+      const prods = Object.entries(d.produits||{});
+      const chips = prods.length
+        ? prods.map(([nom,q])=>`<span style="display:inline-block;background:var(--surface2);border-radius:6px;padding:2px 8px;margin:2px;font-size:12px">${esc(nom)} × <b>${q}</b></span>`).join('')
+        : `<span class="muted" style="font-size:12px">${d.total} (sans détail produit)</span>`;
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="font-weight:700">${esc(d.client)}${d.bl?` <span style="color:var(--gold)">· BL ${esc(d.bl)}</span>`:''} ${d.ville?`<span class="muted" style="font-weight:400">· ${esc(d.ville)}</span>`:''}</div>
+        <div class="muted" style="font-size:11px;margin:2px 0 6px">${d.date?fmtJour(d.date):''}${d.livreur?` · ${esc(d.livreur)}`:''}</div>
+        <div>${chips}</div>
+      </div>`;
+    }).join('') || '<div class="muted" style="padding:16px;text-align:center">Aucune livraison avec ce produit sur la période</div>';
+  const old = document.getElementById('kpi-detail-modal'); if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = 'kpi-detail-modal';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:2147483500;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow:auto';
+  ov.innerHTML = `<div style="background:var(--surface);color:var(--text);border-radius:14px;max-width:640px;width:100%;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border)">
+      <h3 style="margin:0">${meta.ic} ${meta.nom} — ${totalGlobal} au total</h3>
+      <button onclick="document.getElementById('kpi-detail-modal').remove()" style="background:var(--surface2);border:none;color:var(--text);border-radius:8px;padding:6px 12px;font-size:16px;cursor:pointer">✕</button>
+    </div>
+    <div style="padding:16px 18px">
+      <div style="font-weight:700;margin-bottom:6px">Par produit</div>
+      <div class="table-wrap"><table><thead><tr><th>Produit</th><th style="text-align:right">Quantité</th></tr></thead><tbody>${recapRows}</tbody></table></div>
+      <div style="font-weight:700;margin:16px 0 4px">Par client (${data.length} livraison${data.length>1?'s':''})</div>
+      ${clientRows}
+    </div>
+  </div>`;
+  ov.addEventListener('click', e => { if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+
+function exportKPIExcel(){
+  const d=window._kpiData;
+  if(!d){ toast('Charge d\'abord les KPI'); return; }
+  if(typeof XLSX==='undefined'){ toast('Export Excel indisponible'); return; }
+  const g=d.global||{}, pr=d.prep||{};
+  const per=_kpiPeriode?(_kpiPeriode.debut+' au '+_kpiPeriode.fin):'';
+  const wb=XLSX.utils.book_new();
+  const synth=[['KPI AJCV — période',per],[],
+    ['LIVRAISONS',''],['Total',g.total||0],['Livrées',g.livres||0],['Non livrées',g.nonlivres||0],['Reportées',g.reportes||0],['En attente',g.attente||0],['Taux de livraison',(g.tauxLivraison||0)+'%'],[],
+    ['PRODUITS',''],['Colis',g.totalColis||0],['Boissons',g.totalBoissons||0],['Charbons',g.totalCharbons||0],['PLV',g.totalPlv||0],['TPE',g.totalTpe||0],[],
+    ['PRÉPARATIONS',''],['BL préparés',pr.total||0]];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(synth),'Synthèse');
+  const zone=[['Zone','Total','Livrées','Colis','Taux']];
+  (d.parZone||[]).forEach(z=>zone.push([zLabel(z.zone),z.total,z.livres,z.colis||0,(z.taux||0)+'%']));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(zone),'Par zone');
+  const liv=[['Livreur','Total','Livrées','Colis','Taux']];
+  (d.parLivreur||[]).forEach(l=>liv.push([l.livreur,l.total,l.livres,l.colis||0,(l.taux||0)+'%']));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(liv),'Par livreur');
+  const jours=[...new Set([...Object.keys(d.parJour||{}),...Object.keys(pr.parJour||{})])].sort().reverse();
+  const jr=[['Jour','Préparés','Livraisons','Livrées','Non livrées']];
+  jours.forEach(j=>{const L=(d.parJour||{})[j]||{};const P=(pr.parJour||{})[j]||0;jr.push([j,P,L.total||0,L.livres||0,L.nonlivres||0]);});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(jr),'Par jour');
+  const prep=[['Préparateur','BL préparés']];
+  (pr.parPreparateur||[]).forEach(p=>prep.push([p.nom,p.nb]));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(prep),'Par préparateur');
+  XLSX.writeFile(wb,'KPI_AJCV_'+(per.replace(/[^0-9]/g,'_')||'export')+'.xlsx');
+  toast('📥 Export Excel généré');
 }
 
 async function renderImportsOdoo(){
@@ -2508,7 +2614,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 });
 
 // ── Auto-mise à jour + Nouveautés ───────────────────────────
-const VERSION_URL = 'version.json';
+const VERSION_URL = 'https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/version.json';
 let _verInfo = null, _verEnAttente = null;
 function _vToast(m){ try{ toast(m); }catch(_){} }
 function _vModalOuvert(){ return !!document.querySelector('.modal-bg.active'); }
@@ -2569,11 +2675,6 @@ document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) verifie
   </div>
 </div>
 <script>
-(function(){function ap(t){document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('theme-btn');if(b)b.textContent=(t==='light'?'🌙':'☀️');}
-function tg(){var c=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';var n=c==='light'?'dark':'light';try{localStorage.setItem('ajcv_theme',n);}catch(_){}ap(n);}
-ap(document.documentElement.getAttribute('data-theme')||'dark');var b=document.getElementById('theme-btn');if(b)b.onclick=tg;})();
-</script>
-<script>
 (function(){
   function showMaint(msg){
     if(document.getElementById('maint-screen'))return;
@@ -2586,6 +2687,38 @@ ap(document.documentElement.getAttribute('data-theme')||'dark');var b=document.g
   window.__maintShow=showMaint;
   function chk(){ try{ fetch((API)+'/maintenance/'+('admin'),{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){ if(j&&j.maintenance) showMaint(j.message); }).catch(function(){}); }catch(e){} }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',chk); else chk();
+})();
+</script>
+<script>(function(){function ap(t){document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('theme-btn');if(b)b.textContent=(t==='light'?'🌙':'☀️');}function tg(){var c=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';var n=c==='light'?'dark':'light';try{localStorage.setItem('ajcv_theme',n);}catch(_){}ap(n);}ap(document.documentElement.getAttribute('data-theme')||'dark');var b=document.getElementById('theme-btn');if(b)b.onclick=tg;})();</script>
+<div id="lb-overlay" onclick="if(event.target===this)lbClose()">
+  <span id="lb-close" onclick="lbClose()" title="Fermer">✕</span>
+  <span id="lb-prev" class="lb-nav" onclick="lbNav(-1)" title="Précédente">‹</span>
+  <img id="lb-img" src="" alt="Photo">
+  <span id="lb-next" class="lb-nav" onclick="lbNav(1)" title="Suivante">›</span>
+  <div id="lb-count"></div>
+</div>
+<script>
+(function(){
+  var photos=[], idx=0;
+  function show(){
+    var o=document.getElementById('lb-overlay'); if(!o) return;
+    document.getElementById('lb-img').src=photos[idx]||'';
+    var multi=photos.length>1;
+    document.getElementById('lb-prev').style.display=multi?'flex':'none';
+    document.getElementById('lb-next').style.display=multi?'flex':'none';
+    var c=document.getElementById('lb-count'); c.style.display=multi?'block':'none'; c.textContent=(idx+1)+' / '+photos.length;
+  }
+  window.lightbox=function(arr,i){
+    if(!arr||!arr.length){ if(window.toast)toast('Pas de photo'); return; }
+    photos=arr; idx=i||0; show();
+    document.getElementById('lb-overlay').classList.add('open');
+  };
+  window.lbP=function(enc,i){ try{ window.lightbox(JSON.parse(decodeURIComponent(enc)), i||0); }catch(e){ if(window.toast)toast('Photo indisponible'); } };
+  window.lbNav=function(d){ if(!photos.length)return; idx=(idx+d+photos.length)%photos.length; show(); };
+  window.lbClose=function(){ var o=document.getElementById('lb-overlay'); if(o)o.classList.remove('open'); var im=document.getElementById('lb-img'); if(im)im.src=''; };
+  document.addEventListener('keydown',function(e){ var o=document.getElementById('lb-overlay'); if(!o||!o.classList.contains('open'))return; if(e.key==='Escape')window.lbClose(); else if(e.key==='ArrowLeft')window.lbNav(-1); else if(e.key==='ArrowRight')window.lbNav(1); });
+  var sx=0, ov=document.getElementById('lb-overlay');
+  if(ov){ ov.addEventListener('touchstart',function(e){ sx=e.touches[0].clientX; },{passive:true}); ov.addEventListener('touchend',function(e){ var dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>50)window.lbNav(dx<0?1:-1); },{passive:true}); }
 })();
 </script>
 </body>
