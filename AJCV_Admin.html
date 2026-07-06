@@ -505,16 +505,20 @@ async function renderChargements(){
   const liste=(data&&data.chargements)||[];
   const el=document.getElementById('chargeListe'); if(!el) return;
   if(!liste.length){ el.innerHTML='<div class="card"><p class="muted" style="margin:0">Aucun camion confirmé pour cette date.</p></div>'; return; }
+  window._chargeDetail={}; (liste||[]).forEach(cc=>{ window._chargeDetail[cc.id]=cc.detailProduits||{boissons:[],charbons:[],plv:[],tpe:[]}; });
   el.innerHTML=liste.map(c=>{
-    const h=c.created_at?new Date(c.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
+    const dtCharge=c.created_at?new Date(c.created_at):null;
+    const h=dtCharge?dtCharge.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
+    const dCharge=dtCharge?dtCharge.toLocaleDateString('fr-FR'):'';
     let photos=c.photos; if(typeof photos==='string'){ try{ photos=JSON.parse(photos); }catch(_){ photos=[]; } } if(!Array.isArray(photos)) photos=[];
     const _encC=encodeURIComponent(JSON.stringify(photos));const ph=photos.map((u,i)=>`<img src="${esc(String(u))}" onclick="lbP('${_encC}',${i})" style="width:88px;height:88px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer">`).join('');
     return `<div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-        <div style="font-size:16px"><b>🚚 ${esc(c.livreur||'—')}</b> <span class="muted">${esc(c.date_chargement||'')}${h?' · '+h:''}</span></div>
+        <div style="font-size:16px"><b>🚚 ${esc(c.livreur||'—')}</b>${c.plaque?` <span style="font-family:monospace;font-weight:700;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:1px 7px;font-size:14px">${esc(c.plaque)}</span>`:''} <span class="muted">${dCharge}${h?' · '+h:''}</span></div>
         <button class="btn btn-red btn-sm" onclick="resetCamion('${esc(String(c.id))}')">♻️ Permettre de recommencer</button>
       </div>
-      <div style="margin-top:10px;font-weight:700;font-size:15px">🥤 ${c.nb_boissons||0} &nbsp; 🔥 ${c.nb_charbons||0} &nbsp; 🪧 ${c.nb_plv||0} &nbsp; 💳 ${c.nb_tpe||0}</div>
+      <div style="margin-top:10px;font-weight:700;font-size:15px"><span style="cursor:pointer" onclick="ouvrirDetailCharge('${esc(String(c.id))}','boissons')" title="Détail par client">🥤 ${c.nb_boissons||0} 🔎</span> &nbsp; <span style="cursor:pointer" onclick="ouvrirDetailCharge('${esc(String(c.id))}','charbons')" title="Détail par client">🔥 ${c.nb_charbons||0} 🔎</span> &nbsp; <span style="cursor:pointer" onclick="ouvrirDetailCharge('${esc(String(c.id))}','plv')" title="Détail par client">🪧 ${c.nb_plv||0} 🔎</span> &nbsp; <span style="cursor:pointer" onclick="ouvrirDetailCharge('${esc(String(c.id))}','tpe')" title="Détail par client">💳 ${c.nb_tpe||0} 🔎</span></div>
+      ${(c.clients&&c.clients.length)?`<div style="margin-top:12px"><div style="font-weight:600;font-size:13px;color:var(--text2)">📋 ${c.clients.length} client${c.clients.length>1?'s':''}</div><div style="font-size:13px;margin-top:5px;line-height:1.8">${c.clients.map(cl=>`${esc(cl.client||'—')}${cl.ville?` <span class="muted">· ${esc(cl.ville)}</span>`:''}`).join(' &nbsp;•&nbsp; ')}</div></div>`:''}
       ${ph?`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">${ph}</div>`:'<p class="muted" style="margin-top:10px">Aucune photo.</p>'}
     </div>`;
   }).join('');
@@ -2484,6 +2488,10 @@ async function chargerKPI(){
 }
 
 const _kpiProdLabels = { boissons:{ic:'🥤',nom:'Boissons'}, charbons:{ic:'🔥',nom:'Charbons'}, plv:{ic:'🪧',nom:'PLV'}, tpe:{ic:'💳',nom:'TPE'} };
+function ouvrirDetailCharge(camId, type){
+  window._kpiDetail = (window._chargeDetail && window._chargeDetail[camId]) || {boissons:[],charbons:[],plv:[],tpe:[]};
+  ouvrirDetailProduit(type);
+}
 function ouvrirDetailProduit(type){
   const data = (window._kpiDetail && window._kpiDetail[type]) || [];
   const meta = _kpiProdLabels[type] || {ic:'📦',nom:type};

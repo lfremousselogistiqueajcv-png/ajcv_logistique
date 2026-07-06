@@ -1556,6 +1556,7 @@ async function validerTopCamion(){
     nb_tpe: parseInt(document.getElementById('tc-tpe').value)||0,
     photos: _camionPhotos,
     date: getDateISO(),
+    plaque: (state.plaque || ''),
   };
   try {
     const resp = await fetch(`${CFG.API_URL}/chargement/camion`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`}, body: JSON.stringify(body) });
