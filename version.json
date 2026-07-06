@@ -1,78 +1,17 @@
 {
-  "version": "2026.07.01.3",
+  "version": "2026.07.04.1",
   "app": "AJCV Logistique",
   "historique": [
     {
-      "v": "2026.07.01.3",
-      "date": "01/07/2026",
-      "titre": "KPI : N° BL, avancement préparation & export Excel",
+      "v": "2026.07.04.1",
+      "date": "04/07/2026",
+      "titre": "Chargement camion : plaque, clients et détail produits par camion",
       "notes": [
-        "🔎 KPI (détail par produit) : le numéro de BL s'affiche maintenant à côté du nom du client.",
-        "🧰 Préparation : le compteur indique la progression « préparées / total » (ex. 2 / 4) pour suivre l'avancement en un coup d'œil.",
-        "📥 KPI : bouton d'export Excel — télécharge tous les indicateurs (synthèse, par zone, par livreur, par jour, par préparateur)."
-      ]
-    },
-    {
-      "v": "2026.07.01.2",
-      "date": "01/07/2026",
-      "titre": "Visionneuse photos plein écran",
-      "notes": [
-        "📸 Les photos de préparation (et de chargement camion) s'ouvrent maintenant en plein écran, directement dans l'application, au lieu d'ouvrir un nouvel onglet.",
-        "◀ ▶ Navigation suivant / précédent entre les photos d'une même commande (flèches, glissement du doigt, ou touches ← →).",
-        "✕ Fermeture par la croix, par la touche Échap ou en cliquant à côté de la photo."
-      ]
-    },
-    {
-      "v": "2026.07.01.1",
-      "date": "01/07/2026",
-      "titre": "Correctifs livraison, Fiches Clients & KPI détaillés",
-      "notes": [
-        "🔧 Correctif majeur : une livraison signée reste « livrée » et ne repasse plus à « à livrer » après une resynchronisation. Le statut validé est préservé.",
-        "🕐 Correctif : les heures de livraison terminée s'affichent à l'heure de La Réunion (fini le décalage à l'affichage).",
-        "📊 KPI : un clic sur une carte produit ouvre le détail « quel client, combien, par référence » (drill-down par produit).",
-        "✏️ Fiche client : horaires de livraison, contrainte et priorité sont maintenant modifiables directement depuis l'admin.",
-        "📋 Nouveau — Fiches Clients : formulaire dédié pour créer et modifier des clients, accessible depuis le menu, avec thème clair / sombre.",
-        "Aucune donnée existante n'a été modifiée."
-      ]
-    },
-    {
-      "v": "2026.06.30.1",
-      "date": "30/06/2026",
-      "titre": "Mode maintenance, thème clair/sombre & module Production CBD",
-      "notes": [
-        "🌓 Thème clair / sombre : un bouton ☀️/🌙 en haut de chaque écran pour un meilleur confort de lecture (accessibilité). Ton choix est mémorisé d'une fois sur l'autre.",
-        "🔧 Admin : nouvel onglet Maintenance — mets une application en maintenance en un clic (avec un message). Les utilisateurs voient alors une page « Application en maintenance » ; les administrateurs gardent toujours l'accès.",
-        "🌿 Nouveau module Production CBD : console dédiée (production, ateliers, stock & ventes du jour, journal de production) avec une vue Préparateur simplifiée.",
-        "📄 Admin → Documents : colonne N° BL ajoutée et recherche par numéro de BLV.",
-        "📊 Admin → KPI : tableau de bord (livraisons, préparations, produits ; détail par jour, zone, livreur et préparateur).",
-        "Aucune donnée existante n'a été modifiée."
-      ]
-    },
-    {
-      "v": "2026.06.27.2",
-      "date": "27/06/2026",
-      "titre": "Zones configurables + Charbons / PLV / TPE par référence",
-      "notes": [
-        "Onglet Zones : tu peux maintenant ajouter ou corriger un code postal toi-même (avec son secteur → zone), sans intervention technique.",
-        "Création et modification d'une livraison : Charbons, PLV et TPE se saisissent par référence (CHARBON 1, CHARBON 2…), comme les Boissons.",
-        "Cohérence totale entre admin, préparateur et livreur sur les produits typés.",
-        "Aucune donnée existante modifiée."
-      ]
-    },
-    {
-      "v": "2026.06.27.1",
-      "date": "27/06/2026",
-      "titre": "Produits typés, chargement camion confirmé & traçabilité",
-      "notes": [
-        "📦 Charbons, PLV et TPE se gèrent comme les boissons : par type/référence à la préparation, au chargement et à la livraison. Saisie par menu détaillé pour éviter les erreurs.",
-        "🧰 Admin : onglet Produits avec 4 catégories (boissons, charbons, PLV, TPE) — créer, renommer ✏️ et supprimer 🗑️ chaque référence.",
-        "🚚 Livreur : confirmation du chargement camion (comptage 🥤🔥🪧💳 + photos). Chaque commande se coche individuellement au chargement.",
-        "🔒 Une fois confirmé, le camion est verrouillé. L'admin peut le rouvrir pour permettre de recommencer.",
-        "🚚 Admin : nouvel onglet Chargement — traçabilité de tous les camions confirmés par date, avec photos.",
-        "👆 Livreur : cliquer un total produit ouvre le détail « quel client, combien, par type ».",
-        "🧰 Préparation : le nom du préparateur et l'heure de préparation sont enregistrés et visibles (admin + préparateur).",
-        "🕒 Admin & carte : date et heure de livraison terminée visibles ; les livraisons « commercial » sont exclues de la carte et des KPI livreurs.",
-        "👓 Affichage des quantités clarifié partout : « DÉSIGNATION : quantité »."
+        "🚛 La plaque du camion (saisie par le livreur en début de tournée) s'affiche dans l'onglet Chargement, à côté du livreur.",
+        "📋 Chaque camion liste ses clients (nom · ville), d'après les livraisons affectées à ce livreur ce jour-là.",
+        "🔎 Les totaux 🥤🔥🪧💳 de chaque camion sont cliquables : ils ouvrent le détail par client, comme dans les KPI.",
+        "📅 Date de l'onglet Chargement corrigée : désormais la date réelle du chargement, plus celle de la livraison.",
+        "⚠️ Exécuter ajout_plaque_chargement.sql dans Supabase (colonne plaque)."
       ]
     },
     {
