@@ -431,8 +431,10 @@ async function validerPrep(id){
     tpe_detail: l?detailDe(l,'tpe_detail'):{} };
   const btn=document.getElementById('val-'+id);
   if(btn){ btn.disabled=true; btn.textContent='⏳…'; }
+  const ab=new AbortController(); const tmo=setTimeout(()=>ab.abort(),60000);
   try{
-    const resp=await fetch(`${CFG.API_URL}/livraisons/preparation`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token}`},body:JSON.stringify(body)});
+    const resp=await fetch(`${CFG.API_URL}/livraisons/preparation`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token}`},body:JSON.stringify(body),signal:ab.signal});
+    clearTimeout(tmo);
     if(resp.status===401){ sessionExpiree(); return; }
     const r=await resp.json().catch(()=>({}));
     if(resp.ok&&r.success){
@@ -449,7 +451,8 @@ async function validerPrep(id){
       if(btn){ btn.disabled=false; btn.textContent='Valider ✓'; }
     }
   }catch(e){
-    showToast('❌ Erreur réseau','error');
+    clearTimeout(tmo);
+    showToast(e&&e.name==='AbortError'?'❌ Réseau trop lent — réessaie, tes photos sont conservées':'❌ Erreur réseau','error');
     if(btn){ btn.disabled=false; btn.textContent='Valider ✓'; }
   }
 }
@@ -595,7 +598,7 @@ function fermerNouveautes(){ document.getElementById('nouveautesModal').style.di
 restoreSession();
 verifierVersion();
 setInterval(verifierVersion, 120000);
-document.addEventListener('visibilitychange', ()=>{ if(!document.hidden){ verifierVersion(); if(state.token) chargerPrep(true); } });
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden){ verifierVersion(); } });
 document.getElementById('mdpInput').addEventListener('keydown', e=>{ if(e.key==='Enter') connexion(); });
 
 if('serviceWorker' in navigator){

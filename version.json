@@ -1,13 +1,46 @@
 {
-  "version": "2026.07.04.2",
+  "version": "2026.07.04.6",
   "app": "AJCV Logistique",
   "historique": [
     {
-      "v": "2026.07.04.2",
+      "v": "2026.07.04.6",
       "date": "04/07/2026",
-      "titre": "Préparation : les photos ne disparaissent plus",
+      "titre": "Préparation : photos fluides (fin des 20 secondes perdues)",
       "notes": [
-        "📷 Correction : une photo prise pouvait devenir invisible après un retour de l'appareil photo ou l'ouverture d'un détail produit, obligeant à la reprendre. Les photos restent désormais affichées en continu."
+        "📷 L'appli ne recharge plus toute la liste au retour de l'appareil photo : la photo s'affiche immédiatement, plus de réactualisation entre les prises, plus de photo perdue pendant un rechargement.",
+        "⏱️ La validation a désormais un délai maximum (60 s) : si le réseau pend, message clair et les photos restent conservées pour réessayer.",
+        "🔄 La liste se rafraîchit toujours au lancement, après chaque validation et via le bouton actualiser."
+      ]
+    },
+    {
+      "v": "2026.07.04.5",
+      "date": "04/07/2026",
+      "titre": "Admin : toper « Livré » sur une livraison",
+      "notes": [
+        "✅ Nouveau bouton sur chaque ligne de l'onglet Livraisons : marquer une livraison « Livré » sans passer par l'appli livreur (avec confirmation).",
+        "↩️ Recliquer permet de remettre « À livrer » (efface la date de livraison).",
+        "🕒 La date et l'heure de livraison sont posées au moment du top (statistiques cohérentes)."
+      ]
+    },
+    {
+      "v": "2026.07.04.4",
+      "date": "04/07/2026",
+      "titre": "[TEST] Production CBD : ateliers, dashboard, traçabilité et rentabilité",
+      "notes": [
+        "🏭 3 ateliers de production (Perçage & étiquetage → Pesée & mise en pochon → Lots de 5 agrafés), gérables dans l'onglet Ateliers.",
+        "📊 Tableau de bord activé : cellules par poste (produit du jour, en-cours, cadence, statut), goulot (TOC), priorités de réassort, charge par poste, vrac par lot.",
+        "🔍 Traçabilité : chaque production porte l'atelier et l'opérateur (figé automatiquement).",
+        "💰 Paramètres de rentabilité : prix d'achat du vrac par réception, coût du pochon neuf par produit, taux horaire par préparateur + valeurs par défaut dans Paramètres.",
+        "📈 Performance : carte Rentabilité du jour (CA, matière au prix du lot, pochons neufs, main-d'œuvre, marge et marge/pochon) — visible responsable uniquement.",
+        "⚠️ Module en TEST uniquement. SQL : cbd_phaseA_ateliers_rentabilite.sql (Supabase test)."
+      ]
+    },
+    {
+      "v": "2026.07.04.3",
+      "date": "04/07/2026",
+      "titre": "Préparation : retour à la version stable",
+      "notes": [
+        "↩️ Retour à la version stable de l'application de préparation, suite à un problème détecté sur la dernière mise à jour. Correction propre à venir."
       ]
     },
     {
