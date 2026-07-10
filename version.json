@@ -1,7 +1,28 @@
 {
-  "version": "2026.07.04.6",
+  "version": "2026.07.04.8",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.8",
+      "date": "04/07/2026",
+      "titre": "Récaps produits, étiquettes colis et verrouillage chargement",
+      "notes": [
+        "🚚 Plan de tournée (admin) : récap par livreur — livraisons, colis, totaux 🥤🔥🪧💳 cliquables avec détail par client et référence.",
+        "📋 Appli livreur : le récap produits affiche le total par référence (ex. DESPERADOS : 20) en tête, puis le détail par client — accessible depuis le Chargement et les Livraisons.",
+        "🔒 Une fois le camion confirmé, impossible de décocher une livraison chargée (le dépôt garde la main via « Permettre de recommencer »).",
+        "🧹 Le basculement « toute l'île » est retiré : chaque livreur voit sa tournée affectée.",
+        "🏷️ Préparation : à la validation, les étiquettes colis s'ouvrent automatiquement (client, adresse, ☎ téléphone, N° BL, COLIS 1/N, récap produits) — impression Wi-Fi Zebra, format 100×150 mm, bouton Réimprimer sur les commandes préparées."
+      ]
+    },
+    {
+      "v": "2026.07.04.7",
+      "date": "04/07/2026",
+      "titre": "Plan de tournée : récap produits par livreur",
+      "notes": [
+        "🚚 La charge par livreur affiche désormais, pour chaque tournée : livraisons, colis, et totaux 🥤 boissons · 🔥 charbons · 🪧 PLV · 💳 TPE.",
+        "🔎 Chaque total est cliquable : détail par client et par référence (même vue que les KPI) — le picking exact de chaque camion."
+      ]
+    },
     {
       "v": "2026.07.04.6",
       "date": "04/07/2026",

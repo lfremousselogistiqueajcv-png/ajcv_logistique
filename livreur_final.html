@@ -312,7 +312,7 @@ html[data-theme="light"]{
       <div class="header-avatar" id="hAvatar">?</div>
       <div>
         <div class="header-name" id="hName">Livreur</div>
-        <div class="header-zone" id="hZone" onclick="toggleTouteIle()" style="cursor:pointer" title="Basculer Ma zone / Toute l'île">Zone —</div>
+        <div class="header-zone" id="hZone" title="Basculer Ma zone / Toute l'île">Zone —</div>
       </div>
     </div>
     <div class="header-right">
@@ -911,11 +911,11 @@ function majLabelZone() {
   const el = document.getElementById('hZone');
   if (!el) return;
   if (state.touteIle) {
-    el.textContent = '🏝️ Toute l\'île ⇄';
+    el.textContent = '🏝️ Toute l\'île';
     el.style.color = '#ffd54f';
     el.style.fontWeight = '700';
   } else if (state.modeAffecte) {
-    el.textContent = '📋 Mes livraisons ⇄';
+    el.textContent = '📋 Mes livraisons';
     el.style.color = '#81d4fa';
     el.style.fontWeight = '700';
   } else {
@@ -923,7 +923,7 @@ function majLabelZone() {
               state.zone === '🔵 Zone 2 — Livreur 2' ? 'Nord-Est' :
               state.zone === '🟠 Zone 3 — Livreur 3' ? 'Ouest' :
               state.zone || state.role || '';
-    el.textContent = (z ? z + ' (repli)' : 'Aucune affectation') + ' ⇄';
+    el.textContent = (z ? z + ' (repli)' : 'Aucune affectation') + '';
     el.style.color = '';
     el.style.fontWeight = '';
   }
@@ -1445,6 +1445,7 @@ async function toggleCharge(id) {
   const l = trouverLiv(id); if (!l) return;
   const set = chargeSet();
   const ok = !(l.charge === true || set.has(String(id)));
+  if (!ok && camionConfirme()) { showToast('🔒 Camion confirmé — impossible de décocher. Contacte le dépôt si besoin.',''); return; }
   if (ok) set.add(String(id)); else set.delete(String(id));
   chargeSave(set);
   l.charge = ok;
@@ -1521,6 +1522,10 @@ function ouvrirRecapProduit(cat){
   const cfg=RECAP_CFG[cat]||RECAP_CFG.BOISSON;
   const livs=state.livraisons.filter(l=>l.statut!=='✅ Livré');
   let total=0;
+  const agg={};
+  livs.forEach(l=>{ const d=detailDe(l,cfg.detail); Object.entries(d).forEach(([t,q])=>{ agg[t]=(agg[t]||0)+(parseInt(q)||0); }); });
+  const aggRows=Object.entries(agg).sort((a,b)=>b[1]-a[1]).map(([t,q])=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border)"><span>${t}</span><b>${q}</b></div>`).join('');
+  const aggHTML=aggRows?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:6px 12px;margin-bottom:12px"><div style="font-weight:700;margin:6px 0">📋 Total par produit</div>${aggRows}</div><div style="font-weight:700;margin:4px 0 2px">Par client</div>`:'';
   const rows=livs.map(l=>{
     const d=detailDe(l,cfg.detail);
     const n=cfg.nb(l)||0;
@@ -1530,7 +1535,7 @@ function ouvrirRecapProduit(cat){
     return `<div style="padding:10px 0;border-bottom:1px solid var(--border)"><div style="font-weight:600">${(l.client||'—')}</div><div style="font-size:12px;color:var(--text2)">${(l.ville||'')} · BL ${(l.bl||'—')}</div><div style="margin-top:3px;font-weight:600;color:var(--gold)">${types}</div></div>`;
   }).filter(Boolean).join('');
   const t=document.getElementById('recapTitre'); if(t) t.textContent=`${cfg.ic} ${cfg.label} · total ${total}`;
-  document.getElementById('recapBox').innerHTML=rows||`<div style="padding:14px 0;color:var(--text2)">Aucun ${cfg.label.toLowerCase()} sur cette tournée.</div>`;
+  document.getElementById('recapBox').innerHTML=(aggHTML+rows)||`<div style="padding:14px 0;color:var(--text2)">Aucun ${cfg.label.toLowerCase()} sur cette tournée.</div>`;
   document.getElementById('recapModal').style.display='flex';
 }
 function fermerRecap(){ document.getElementById('recapModal').style.display='none'; }
@@ -1615,6 +1620,16 @@ function renderLivraisons(showDone) {
     <div class="kpi-tile"><div class="kpi-val r">${nl}</div><div class="kpi-lbl">Non livrés</div></div>
     <div class="kpi-tile"><div class="kpi-val o">${att}</div><div class="kpi-lbl">En attente</div></div>
   </div>`;
+
+  if (!showDone && livs.length) {
+    const _tb=livs.reduce((s,l)=>s+boissonsDe(l),0), _tc=livs.reduce((s,l)=>s+charbonsDe(l),0), _tp=livs.reduce((s,l)=>s+plvDe(l),0), _tt=livs.reduce((s,l)=>s+tpeDe(l),0);
+    html += `<div style="display:flex;gap:8px;margin:2px 0 10px;flex-wrap:wrap">
+      <button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:800;font-size:14px;cursor:pointer" onclick="ouvrirRecapProduit('BOISSON')">🥤 ${_tb}</button>
+      <button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:800;font-size:14px;cursor:pointer" onclick="ouvrirRecapProduit('CHARBON')">🔥 ${_tc}</button>
+      <button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:800;font-size:14px;cursor:pointer" onclick="ouvrirRecapProduit('PLV')">🪧 ${_tp}</button>
+      <button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:800;font-size:14px;cursor:pointer" onclick="ouvrirRecapProduit('TPE')">💳 ${_tt}</button>
+    </div>`;
+  }
 
   if (!showDone) {
     // Bannière optimisation

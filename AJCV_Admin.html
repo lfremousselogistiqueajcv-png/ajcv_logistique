@@ -861,13 +861,35 @@ async function refairePhotoPrep(id){
 }
 function planRenderCharge(){
   const el=document.getElementById('planCharge'); if(!el) return;
-  const par={}; _plan.livs.forEach(l=>{ const k=(l.livreur||'').trim()||'— non affecté'; if(!par[k])par[k]={n:0,c:0}; par[k].n++; par[k].c+=(parseInt(l.nb_colis)||1); });
-  const chips=Object.entries(par).map(([k,v])=>{
+  const pd=(v)=>{ if(!v)return{}; if(typeof v==='string'){ try{ return JSON.parse(v)||{}; }catch(_){ return {}; } } return v; };
+  const par={}; window._planDetail={};
+  _plan.livs.forEach(l=>{
+    const k=(l.livreur||'').trim()||'— non affecté';
+    if(!par[k])par[k]={n:0,colis:0,b:0,c:0,p:0,t:0};
+    par[k].n++; par[k].colis+=parseInt(l.nb_colis)||0;
+    par[k].b+=parseInt(l.nb_boissons)||0; par[k].c+=parseInt(l.nb_charbons)||0;
+    par[k].p+=parseInt(l.nb_plv)||0; par[k].t+=parseInt(l.nb_tpe)||0;
+    if(!window._planDetail[k])window._planDetail[k]={boissons:[],charbons:[],plv:[],tpe:[]};
+    [['boissons','boissons_detail','nb_boissons'],['charbons','charbons_detail','nb_charbons'],['plv','plv_detail','nb_plv'],['tpe','tpe_detail','nb_tpe']].forEach(([ty,ch,nb])=>{
+      const tot=parseInt(l[nb])||0;
+      if(tot>0) window._planDetail[k][ty].push({client:l.client_nom||l.client||'',bl:l.bl||'',ville:l.ville||'',date:l.date_livraison,livreur:k,total:tot,produits:pd(l[ch])});
+    });
+  });
+  const cartes=Object.entries(par).map(([k,v])=>{
     const c=k.startsWith('—')?null:couleurLivreur(k);
     const bg=c?c.bg:'#f1f5f9', fg=c?c.fg:'#64748b', bd=c?c.bd:'#e2e8f0';
-    return `<span style="background:${bg};color:${fg};border:1px solid ${bd};padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600">${esc(k)} : ${v.n} liv. · ${v.c} colis</span>`;
-  }).join(' ');
-  el.innerHTML=`<div style="font-weight:600;margin-bottom:6px">Charge par livreur — ${_plan.livs.length} livraison(s) à affecter/livrer</div><div style="display:flex;gap:8px;flex-wrap:wrap">${chips||'<span class="muted">Aucune livraison ce jour</span>'}</div>`;
+    const kEsc=esc(k).replace(/'/g,'&#39;');
+    const item=(ty,ico,val)=>`<span style="cursor:pointer;white-space:nowrap" title="Détail par client" onclick="ouvrirDetailPlan('${kEsc}','${ty}')">${ico} <b>${val}</b> 🔎</span>`;
+    return `<div style="background:${bg};color:${fg};border:1px solid ${bd};border-radius:12px;padding:9px 13px;font-size:13px;display:inline-block;margin:3px 6px 3px 0">
+      <div style="font-weight:800">${esc(k)} <span style="font-weight:600;opacity:.8">· ${v.n} liv. · 📦 ${v.colis}</span></div>
+      <div style="margin-top:4px;display:flex;gap:12px;font-weight:700">${item('boissons','🥤',v.b)} ${item('charbons','🔥',v.c)} ${item('plv','🪧',v.p)} ${item('tpe','💳',v.t)}</div>
+    </div>`;
+  }).join('');
+  el.innerHTML=`<div style="font-weight:600;margin-bottom:6px">Charge par livreur — ${_plan.livs.length} livraison(s) à affecter/livrer</div><div>${cartes||'<span class="muted">Aucune livraison.</span>'}</div>`;
+}
+function ouvrirDetailPlan(liv,type){
+  window._kpiDetail=(window._planDetail&&window._planDetail[liv])||{boissons:[],charbons:[],plv:[],tpe:[]};
+  ouvrirDetailProduit(type);
 }
 function planRenderTable(){
   const el=document.getElementById('planTable'); if(!el) return;
