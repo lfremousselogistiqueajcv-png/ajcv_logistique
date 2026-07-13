@@ -468,8 +468,8 @@ async function validerPrep(id){
         l.tpe_detail=body.tpe_detail; l.nb_tpe=Object.values(body.tpe_detail||{}).reduce((a,c)=>a+(parseInt(c)||0),0); }
       delete state.photos[id];
       showToast('✅ Préparation validée','success');
-      imprimerEtiquettes(id);
       renderPrep();
+      try{ imprimerEtiquettes(id); }catch(_){ }
     } else {
       showToast('❌ '+((r&&r.error)||"Échec de l'envoi"),'error');
       if(btn){ btn.disabled=false; btn.textContent='Valider ✓'; }

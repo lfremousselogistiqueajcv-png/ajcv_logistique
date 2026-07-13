@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.10",
+  "version": "2026.07.04.11",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.11",
+      "date": "04/07/2026",
+      "titre": "Préparation : fiabilisation de l'enchaînement des validations",
+      "notes": [
+        "🛡️ L'ouverture des étiquettes ne peut plus interrompre le flux : la liste se rafraîchit d'abord, l'aperçu s'ouvre ensuite, isolé."
+      ]
+    },
     {
       "v": "2026.07.04.10",
       "date": "04/07/2026",
