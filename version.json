@@ -1,7 +1,23 @@
 {
-  "version": "2026.07.04.8",
+  "version": "2026.07.04.10",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.10",
+      "date": "04/07/2026",
+      "titre": "Étiquettes : format Zebra ZD220T (100×150 mm)",
+      "notes": [
+        "🏷️ Gabarit étiquettes au format 100×150 mm pour la Zebra ZD220T (étiquettes thermiques directes, sans ruban)."
+      ]
+    },
+    {
+      "v": "2026.07.04.9",
+      "date": "04/07/2026",
+      "titre": "Étiquettes : format Brother QL-810Wc (62×100 mm)",
+      "notes": [
+        "🏷️ Gabarit étiquettes adapté à la Brother QL-810Wc : 62×100 mm (rouleaux DK-1202)."
+      ]
+    },
     {
       "v": "2026.07.04.8",
       "date": "04/07/2026",
