@@ -1,7 +1,17 @@
 {
-  "version": "2026.07.04.11",
+  "version": "2026.07.04.12",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.12",
+      "date": "04/07/2026",
+      "titre": "Préparation : les photos survivent aux rechargements",
+      "notes": [
+        "💾 Chaque photo prise est immédiatement sauvegardée sur le téléphone et restaurée automatiquement si la page recharge (Android ferme parfois l'appli pendant que l'appareil photo est ouvert, pour libérer de la mémoire).",
+        "✅ Résultat : plus aucune photo perdue — même si l'écran se recharge, les photos déjà prises réapparaissent et la préparation continue.",
+        "🧹 La sauvegarde se vide à chaque validation et chaque nouveau jour."
+      ]
+    },
     {
       "v": "2026.07.04.11",
       "date": "04/07/2026",
