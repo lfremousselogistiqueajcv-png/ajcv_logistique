@@ -1,7 +1,25 @@
 {
-  "version": "2026.07.04.12",
+  "version": "2026.07.04.14",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.14",
+      "date": "04/07/2026",
+      "titre": "Étiquettes automatiques sur l'imprimante du dépôt",
+      "notes": [
+        "🖨️ À la validation d'une préparation, les étiquettes colis s'impriment automatiquement sur la Zebra du dépôt (serveur d'impression Raspberry Pi) — plus aucune manipulation.",
+        "🏷️ Le bouton « Réimprimer les étiquettes » renvoie le jeu complet sur l'imprimante.",
+        "✨ Étiquettes en ZPL natif 101,6×101,6 : client, adresse, téléphone, N° BL, COLIS 1/N, récap produits, date."
+      ]
+    },
+    {
+      "v": "2026.07.04.13",
+      "date": "04/07/2026",
+      "titre": "Étiquettes : format 101,6 × 101,6 mm (rouleaux Zebra en stock)",
+      "notes": [
+        "🏷️ Gabarit calé sur les étiquettes réelles : 101,6 × 101,6 mm (4\"×4\", mandrin 25 mm), thermique direct."
+      ]
+    },
     {
       "v": "2026.07.04.12",
       "date": "04/07/2026",

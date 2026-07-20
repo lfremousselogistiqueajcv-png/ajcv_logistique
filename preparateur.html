@@ -120,19 +120,21 @@ html[data-theme="light"]{
 .etiq-bar button{flex:1;padding:13px;border-radius:12px;border:none;font-weight:800;font-size:15px;cursor:pointer}
 .etiq-print{background:#059669;color:#fff}
 .etiq-close{background:#e5e7eb;color:#111}
-.etiq{background:#fff;color:#000;width:100mm;min-height:150mm;margin:0 auto 14px;padding:6mm;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column;border-radius:4px}
-.etiq-head{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;border-bottom:2px solid #000;padding-bottom:3mm;margin-bottom:3mm}
-.etiq-client{font-size:22px;font-weight:900;line-height:1.1;margin-bottom:2mm}
-.etiq-adr{font-size:14px;line-height:1.35;margin-bottom:4mm}
-.etiq-colis{font-size:30px;font-weight:900;text-align:center;border:3px solid #000;border-radius:6px;padding:3mm;margin-bottom:4mm;letter-spacing:1px}
-.etiq-prods{font-size:13px;line-height:1.55;flex:1}
-.etiq-foot{font-size:11px;text-align:right;border-top:1px solid #000;padding-top:2mm;margin-top:3mm}
+.etiq{background:#fff;color:#000;width:101.6mm;min-height:101.6mm;margin:0 auto 14px;padding:4mm;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column;border-radius:4px}
+.etiq-head{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;border-bottom:2px solid #000;padding-bottom:1.8mm;margin-bottom:2mm}
+.etiq-client{font-size:18px;font-weight:900;line-height:1.1;margin-bottom:1.5mm}
+.etiq-adr{font-size:12px;line-height:1.3;margin-bottom:2.5mm}
+.etiq-colis{font-size:24px;font-weight:900;text-align:center;border:3px solid #000;border-radius:6px;padding:2mm;margin-bottom:2.5mm;letter-spacing:1px}
+.etiq-prods{font-size:11.5px;line-height:1.45;flex:1}
+.etiq-foot{font-size:9.5px;text-align:right;border-top:1px solid #000;padding-top:1.5mm;margin-top:2mm}
 @media print{
   body.printing-etiq > *:not(#etiqOverlay){display:none!important}
   body.printing-etiq #etiqOverlay{display:block!important;position:static;background:none;padding:0;overflow:visible}
   body.printing-etiq .etiq-bar{display:none!important}
-  body.printing-etiq .etiq{margin:0;border-radius:0;page-break-after:always;width:auto;min-height:auto}
-  @page{size:100mm 150mm;margin:0}
+  body.printing-etiq{margin:0!important;padding:0!important}
+  body.printing-etiq #etiqOverlay{margin:0!important}
+  body.printing-etiq .etiq{margin:0!important;border-radius:0;page-break-after:always;width:101.6mm;max-width:100%;min-height:94mm}
+  @page{size:101.6mm 101.6mm;margin:0}
 }
 </style>
 <script>try{var _t=localStorage.getItem('ajcv_theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
@@ -378,7 +380,7 @@ function carteCommande(l, volet){
     inner+=`<span class="c-badge b-done">✅ Préparé</span></div><div class="c-qte">${qteTxt}</div>${l.date_preparation?`<div class="c-sub" style="margin-top:4px;color:#059669">🕒 préparée le ${heurePrep(l.date_preparation)}${l.prepare_par?` par ${esc(l.prepare_par)}`:''}</div>`:''}`;
     const _ph=photosDe(l);
     if(_ph.length) inner+=`<div class="thumbs-wrap">`+_ph.map(u=>`<img class="thumb-g" src="${u}" onclick="agrandir('${u.replace(/'/g,'%27')}')" alt="photo">`).join('')+`</div>`;
-    inner+=`<button class="btn-photo" style="margin-top:8px" onclick="imprimerEtiquettes('${l.id}')">🏷️ Réimprimer les étiquettes</button>`;
+    inner+=`<button class="btn-photo" style="margin-top:8px" onclick="envoyerEtiquettes('${l.id}')">🏷️ Réimprimer les étiquettes</button>`;
     return `<div class="card done" data-search="${search}">${inner}</div>`;
   }
   if(volet==='apreparer'){
@@ -486,7 +488,7 @@ async function validerPrep(id){
       delete state.photos[id]; persisterPhotos();
       showToast('✅ Préparation validée','success');
       renderPrep();
-      try{ imprimerEtiquettes(id); }catch(_){ }
+      envoyerEtiquettes(id);
     } else {
       showToast('❌ '+((r&&r.error)||"Échec de l'envoi"),'error');
       if(btn){ btn.disabled=false; btn.textContent='Valider ✓'; }
@@ -656,6 +658,14 @@ function etiqProduits(l){
   push('💳','tpe_detail','nb_tpe','TPE');
   const cad=parseInt(l.nb_cadeaux)||0; if(cad) out.push('🎁 Cadeaux × '+cad);
   return out;
+}
+async function envoyerEtiquettes(id){
+  try{
+    const resp=await fetch(`${CFG.API_URL}/print/etiquettes`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token}`},body:JSON.stringify({id})});
+    const r=await resp.json().catch(()=>null);
+    if(r&&r.success) showToast('🖨️ '+(r.colis||1)+' étiquette(s) envoyée(s) à l\'imprimante','success');
+    else showToast('❌ Étiquettes : '+((r&&r.error)||'erreur'),'error');
+  }catch(_){ showToast('❌ Étiquettes : réseau — réessaie via 🏷️','error'); }
 }
 function imprimerEtiquettes(id){
   const l=(state.orders||[]).find(x=>String(x.id)===String(id));
