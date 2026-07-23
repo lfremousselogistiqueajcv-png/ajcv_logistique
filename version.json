@@ -1,7 +1,17 @@
 {
-  "version": "2026.07.04.14",
+  "version": "2026.07.04.15",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.15",
+      "date": "04/07/2026",
+      "titre": "Préparation : modifier une préparation validée",
+      "notes": [
+        "✏️ Sur chaque commande préparée : modifier le nombre de colis et/ou ajouter des photos, puis 💾 Enregistrer.",
+        "📷 Les nouvelles photos s'ajoutent aux existantes (rien n'est écrasé).",
+        "🏷️ Si le nombre de colis change, un rappel invite à réimprimer les étiquettes."
+      ]
+    },
     {
       "v": "2026.07.04.14",
       "date": "04/07/2026",
