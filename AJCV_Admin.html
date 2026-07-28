@@ -885,7 +885,50 @@ function planRenderCharge(){
       <div style="margin-top:4px;display:flex;gap:12px;font-weight:700">${item('boissons','🥤',v.b)} ${item('charbons','🔥',v.c)} ${item('plv','🪧',v.p)} ${item('tpe','💳',v.t)}</div>
     </div>`;
   }).join('');
-  el.innerHTML=`<div style="font-weight:600;margin-bottom:6px">Charge par livreur — ${_plan.livs.length} livraison(s) à affecter/livrer</div><div>${cartes||'<span class="muted">Aucune livraison.</span>'}</div>`;
+  el.innerHTML=`<div style="font-weight:600;margin-bottom:6px">Charge par livreur — ${_plan.livs.length} livraison(s) à affecter/livrer <button onclick="ouvrirRotation()" style="margin-left:10px;padding:5px 12px;border-radius:9px;border:1px solid #ddd;background:#f8fafc;cursor:pointer;font-weight:700;font-size:12px">🔄 Rotation zones</button></div><div>${cartes||'<span class="muted">Aucune livraison.</span>'}</div>`;
+}
+function ouvrirRotation(){
+  let bg=document.getElementById('rotModal');
+  if(bg) bg.remove();
+  bg=document.createElement('div'); bg.id='rotModal';
+  bg.style.cssText='position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:14px';
+  bg.innerHTML=`<div style="background:#fff;border-radius:14px;max-width:720px;width:100%;max-height:85vh;overflow:auto;padding:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🔄 Rotation des zones</h3><button onclick="document.getElementById('rotModal').remove()" style="border:none;background:#eee;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:700">✕</button></div>
+    <div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap">
+      <button class="rot-p" data-p="semaine" style="padding:8px 14px;border-radius:9px;border:1px solid #ddd;background:#f8fafc;cursor:pointer;font-weight:700">Cette semaine</button>
+      <button class="rot-p" data-p="mois" style="padding:8px 14px;border-radius:9px;border:1px solid #ddd;background:#f8fafc;cursor:pointer;font-weight:700">Ce mois</button>
+      <button class="rot-p" data-p="annee" style="padding:8px 14px;border-radius:9px;border:1px solid #ddd;background:#f8fafc;cursor:pointer;font-weight:700">Cette année</button>
+    </div>
+    <div id="rotBody" class="muted">Choisis une période.</div></div>`;
+  bg.onmousedown=e=>{ if(e.target===bg)bg.remove(); };
+  document.body.appendChild(bg);
+  bg.querySelectorAll('.rot-p').forEach(b=>b.onclick=()=>chargerRotation(b.dataset.p));
+  chargerRotation('mois');
+}
+async function chargerRotation(periode){
+  const body=document.getElementById('rotBody'); if(!body) return;
+  body.innerHTML='Chargement…';
+  const now=new Date(); let debut;
+  if(periode==='semaine'){ const d=new Date(now); const j=(d.getDay()+6)%7; d.setDate(d.getDate()-j); debut=d.toISOString().split('T')[0]; }
+  else if(periode==='mois'){ debut=now.toISOString().slice(0,8)+'01'; }
+  else { debut=now.getFullYear()+'-01-01'; }
+  const fin=now.toISOString().split('T')[0];
+  try{
+    const d=await api('GET', `/livraisons/rotation?debut=${debut}&fin=${fin}`);
+    if(d.error){ body.innerHTML='❌ '+esc(d.error); return; }
+    if(!d.livreurs||!d.livreurs.length){ body.innerHTML='Aucune tournée sur la période.'; return; }
+    const maxParZone={}; d.zones.forEach(z=>{ maxParZone[z]=Math.max(...d.livreurs.map(l=>l.zones[z]||0)); });
+    body.innerHTML=`<div class="muted" style="margin-bottom:8px">Du ${debut} au ${fin} — <b>jours de tournée</b> par zone (le plus haut de chaque zone en gras).</div>
+      <table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr>
+        <th style="text-align:left;padding:7px;border-bottom:2px solid #e2e8f0">Livreur</th>
+        ${d.zones.map(z=>{const lb=zLabel(z);return `<th style="padding:7px;border-bottom:2px solid #e2e8f0">${lb!=='—'?lb:esc(z)}</th>`;}).join('')}
+        <th style="padding:7px;border-bottom:2px solid #e2e8f0">Total</th></tr></thead><tbody>
+        ${d.livreurs.map(l=>`<tr><td style="padding:7px;border-bottom:1px solid #f1f5f9;font-weight:700">${esc(l.livreur)}</td>
+          ${d.zones.map(z=>{const n=l.zones[z]||0; const top=n>0&&n===maxParZone[z]; return `<td style="text-align:center;padding:7px;border-bottom:1px solid #f1f5f9;${top?'font-weight:800;background:#fef3c7':''}">${n||'·'}</td>`;}).join('')}
+          <td style="text-align:center;padding:7px;border-bottom:1px solid #f1f5f9"><b>${l.total}</b></td></tr>`).join('')}
+      </tbody></table>
+      <div class="muted" style="margin-top:8px;font-size:12px">💡 Une case surlignée = ce livreur est celui qui a le plus couvert cette zone — candidat à la rotation.</div>`;
+  }catch(_){ body.innerHTML='❌ Erreur réseau'; }
 }
 function ouvrirDetailPlan(liv,type){
   window._kpiDetail=(window._planDetail&&window._planDetail[liv])||{boissons:[],charbons:[],plv:[],tpe:[]};
@@ -2443,7 +2486,7 @@ async function renderKPI(){
   if(!_kpiPeriode){ const now=new Date(); const d=new Date(now); d.setDate(d.getDate()-29); _kpiPeriode={debut:_isoLocal(d),fin:_isoLocal(now),preset:'30j'}; }
   document.getElementById('content').innerHTML=`
     <div class="card">
-      <h3 style="margin:0 0 10px">📊 Tableau de bord</h3>
+      <h3 style="margin:0 0 10px">📊 Tableau de bord <button onclick="ouvrirRotation()" style="margin-left:10px;padding:5px 12px;border-radius:9px;border:1px solid #ddd;background:#f8fafc;cursor:pointer;font-weight:700;font-size:12px;vertical-align:middle">🔄 Rotation zones</button></h3>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button class="kpi-per" data-p="today" onclick="setKpiPeriode('today')">Aujourd'hui</button>
         <button class="kpi-per" data-p="7j" onclick="setKpiPeriode('7j')">7 jours</button>
@@ -2511,8 +2554,8 @@ async function chargerKPI(){
     </div>
     <div class="card">
       <h3>🚚 Par livreur</h3>
-      <div class="table-wrap"><table><thead><tr><th>Livreur</th><th>Total</th><th>Livrées</th><th>📦 Colis</th><th>Taux</th></tr></thead>
-        <tbody>${(d.parLivreur||[]).map(l=>`<tr><td><b>${esc(l.livreur)}</b></td><td>${l.total}</td><td>${l.livres}</td><td><b>${l.colis||0}</b></td><td>${l.taux||0}%</td></tr>`).join('')||'<tr><td colspan="5" class="muted">—</td></tr>'}</tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>Livreur</th><th>Total</th><th>🟢 Sud</th><th>🔵 N-E</th><th>🟠 Ouest</th><th>Livrées</th><th>📦 Colis</th><th>Taux</th></tr></thead>
+        <tbody>${(d.parLivreur||[]).map(l=>`<tr><td><b>${esc(l.livreur)}</b></td><td>${l.total}</td><td>${l.z1||0}</td><td>${l.z2||0}</td><td>${l.z3||0}</td><td>${l.livres}</td><td><b>${l.colis||0}</b></td><td>${l.taux||0}%</td></tr>`).join('')||'<tr><td colspan="5" class="muted">—</td></tr>'}</tbody></table></div>
     </div>
     <div class="card">
       <h3>⚠️ Clients souvent non livrés</h3>

@@ -1,7 +1,18 @@
 {
-  "version": "2026.07.04.15",
+  "version": "2026.07.04.16",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.16",
+      "date": "04/07/2026",
+      "titre": "Plan de tournée : rotation des zones",
+      "notes": [
+        "🔄 Nouveau bouton « Rotation zones » : jours de tournée par livreur et par zone, sur la semaine, le mois ou l'année.",
+        "💡 Le livreur qui a le plus couvert chaque zone est surligné — pour organiser une rotation équitable.",
+        "📊 Le bouton Rotation zones est aussi accessible depuis le Tableau de bord (KPI).",
+        "🚚 Le tableau « Par livreur » du KPI ventile désormais les livraisons par zone (Sud / Nord-Est / Ouest)."
+      ]
+    },
     {
       "v": "2026.07.04.15",
       "date": "04/07/2026",
