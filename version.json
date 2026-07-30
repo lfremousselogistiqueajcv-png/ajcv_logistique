@@ -1,7 +1,25 @@
 {
-  "version": "2026.07.04.16",
+  "version": "2026.07.04.18",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.18",
+      "date": "29/07/2026",
+      "titre": "Carte des livraisons : chargement par période",
+      "notes": [
+        "🗺️ La carte charge désormais uniquement la période affichée (fini la limite des 1000 livraisons qui masquait les récentes).",
+        "📅 Changer une date recharge automatiquement ; par défaut : aujourd'hui.",
+        "ℹ️ Nécessite le déploiement du backend (index.js)."
+      ]
+    },
+    {
+      "v": "2026.07.04.17",
+      "date": "28/07/2026",
+      "titre": "🌿 Module Production CBD — mise en production",
+      "notes": [
+        "🚀 Le module complet passe en production : réceptions + documents (factures, analyses labo) + badges de conformité, numéros de lot automatiques, garde-fous métier, traçabilité certificat → pack, ventes journalières → stock théorique → priorités, écran préparateur « À produire », dashboard avec couverture en jours, exports CSV."
+      ]
+    },
     {
       "v": "2026.07.04.16",
       "date": "04/07/2026",

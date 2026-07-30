@@ -175,9 +175,9 @@ body { font-family: Arial, sans-serif; background:#f0f2f5; color:#222; }
 
 <div class="filtres">
   <label style="font-size:12px;color:#555;font-weight:600">📅 Du</label>
-  <input type="date" id="filtre-date-debut" onchange="filtrer()" style="padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px">
+  <input type="date" id="filtre-date-debut" onchange="chargerDonnees()" style="padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px">
   <label style="font-size:12px;color:#555;font-weight:600">au</label>
-  <input type="date" id="filtre-date-fin" onchange="filtrer()" style="padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px">
+  <input type="date" id="filtre-date-fin" onchange="chargerDonnees()" style="padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px">
   <button onclick="resetDates()" style="padding:5px 10px;border:none;border-radius:6px;font-size:12px;cursor:pointer;background:#eee;color:#555">✕</button>
   <select id="filtre-jour" onchange="filtrer()">
     <option value="">Tous les jours</option>
@@ -609,8 +609,14 @@ function chargerDonnees() {
 
   // Charger les données fraîches en arrière-plan
   const z = encodeURIComponent(session.zone||'');
-  const _deb = (document.getElementById('filtre-date-debut')||{}).value||'';
-  const _fin = (document.getElementById('filtre-date-fin')||{}).value||'';
+  let _deb = (document.getElementById('filtre-date-debut')||{}).value||'';
+  let _fin = (document.getElementById('filtre-date-fin')||{}).value||'';
+  if (!_deb && !_fin) {
+    const _auj = new Date().toISOString().split('T')[0];
+    _deb = _auj; _fin = _auj;
+    const eD = document.getElementById('filtre-date-debut'), eF = document.getElementById('filtre-date-fin');
+    if (eD) eD.value = _auj; if (eF) eF.value = _auj;
+  }
   fetch(`${API_URL}/livraisons?zone=${z}&debut=${_deb}&fin=${_fin}`, {
     headers: {'Authorization': 'Bearer ' + session.token}
   })
@@ -664,7 +670,7 @@ function parseDateFR(str) {
 function resetDates() {
   document.getElementById('filtre-date-debut').value = '';
   document.getElementById('filtre-date-fin').value   = '';
-  filtrer();
+  chargerDonnees();
 }
 
 function toggleZone(btn){ btn.classList.toggle('active'); filtrer(); }
