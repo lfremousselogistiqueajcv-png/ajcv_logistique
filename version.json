@@ -1,7 +1,26 @@
 {
-  "version": "2026.07.04.19",
+  "version": "2026.07.04.21",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.21",
+      "date": "02/08/2026",
+      "titre": "Préparateur : photos sécurisées dès la prise",
+      "notes": [
+        "📷 Chaque photo part au serveur immédiatement après la prise — même si le téléphone ferme l'onglet (Samsung A17 et autres petits modèles), les photos déjà prises sont en sécurité, plus rien à refaire.",
+        "✓ Le compteur affiche l'état : « 2✓/3 photos » = 2 déjà en sécurité au serveur.",
+        "ℹ️ Redéploiement du backend (index.js) nécessaire."
+      ]
+    },
+    {
+      "v": "2026.07.04.20",
+      "date": "02/08/2026",
+      "titre": "Préparateur : photos fiabilisées sur petits téléphones",
+      "notes": [
+        "📷 Le bouton photo ouvre désormais le choix Appareil photo / Galerie au lieu de forcer la caméra dans l'onglet — sur les téléphones à faible mémoire (Samsung A17), passer par la Galerie évite les pertes de photos.",
+        "💡 Consigne équipe : prendre les photos avec l'application Caméra du téléphone, puis 📷 → Galerie → sélectionner les photos (plusieurs à la fois possible)."
+      ]
+    },
     {
       "v": "2026.07.04.19",
       "date": "29/07/2026",
