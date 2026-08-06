@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.22",
+  "version": "2026.07.04.23",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.23",
+      "date": "06/08/2026",
+      "titre": "Bouton retour au menu AJCV",
+      "notes": [
+        "🏠 Un bouton flottant en bas à droite de chaque application ramène au menu d'accueil AJCV, sans se déconnecter."
+      ]
+    },
     {
       "v": "2026.07.04.22",
       "date": "06/08/2026",
