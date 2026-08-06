@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AJCV — Logistique & Production</title>
+<style>
+  :root{
+    --bg1:#0B1120; --bg2:#101B33; --card:rgba(255,255,255,.045);
+    --border:rgba(255,255,255,.09); --txt:#EDF2FB; --mut:#93A5C9;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;min-height:100vh;color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:
+      radial-gradient(1100px 500px at 85% -10%, rgba(59,130,246,.16), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(16,185,129,.13), transparent 60%),
+      linear-gradient(160deg, var(--bg1), var(--bg2));
+    display:flex;align-items:center;justify-content:center;padding:34px 18px;
+  }
+  .wrap{max-width:880px;width:100%}
+  header{text-align:center;margin-bottom:34px;animation:pop .5s ease both}
+  .logo{
+    width:64px;height:64px;margin:0 auto 14px;border-radius:18px;display:flex;align-items:center;justify-content:center;
+    font-size:32px;background:linear-gradient(135deg,#3B82F6 0%,#10B981 100%);
+    box-shadow:0 10px 30px rgba(59,130,246,.35);
+  }
+  h1{font-size:26px;margin:0;letter-spacing:.3px}
+  h1 b{background:linear-gradient(90deg,#7CB2FF,#4ADE80);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--mut);font-size:13.5px;margin-top:6px}
+  .sect{color:var(--mut);font-size:11.5px;letter-spacing:2.2px;text-transform:uppercase;margin:26px 4px 12px;font-weight:700}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:14px}
+  a.tile{
+    position:relative;display:block;padding:20px 18px 18px;border-radius:16px;text-decoration:none;color:var(--txt);
+    background:var(--card);border:1px solid var(--border);backdrop-filter:blur(8px);
+    transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    animation:pop .5s ease both;overflow:hidden;
+  }
+  a.tile::before{
+    content:'';position:absolute;inset:0 0 auto 0;height:3px;border-radius:16px 16px 0 0;
+    background:var(--acc,linear-gradient(90deg,#3B82F6,#60A5FA));opacity:.85;
+  }
+  a.tile:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.22);box-shadow:0 14px 34px rgba(0,0,0,.35)}
+  .ico{
+    width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+    font-size:24px;margin-bottom:12px;background:rgba(255,255,255,.06);border:1px solid var(--border);
+  }
+  .nom{font-weight:700;font-size:15.5px}
+  .desc{color:var(--mut);font-size:12.5px;margin-top:4px;line-height:1.45}
+  .t-admin{--acc:linear-gradient(90deg,#3B82F6,#60A5FA)}
+  .t-livreur{--acc:linear-gradient(90deg,#F59E0B,#FBBF24)}
+  .t-prep{--acc:linear-gradient(90deg,#8B5CF6,#A78BFA)}
+  .t-carte{--acc:linear-gradient(90deg,#06B6D4,#22D3EE)}
+  .t-cbd{--acc:linear-gradient(90deg,#10B981,#34D399)}
+  .t-cbdp{--acc:linear-gradient(90deg,#84CC16,#A3E635)}
+  .t-com{--acc:linear-gradient(90deg,#EC4899,#F472B6)}
+  footer{text-align:center;color:var(--mut);font-size:12px;margin-top:34px;opacity:.8}
+  @keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .grid a:nth-child(2){animation-delay:.05s}.grid a:nth-child(3){animation-delay:.1s}.grid a:nth-child(4){animation-delay:.15s}
+  @media(max-width:460px){ .grid{grid-template-columns:1fr 1fr} a.tile{padding:16px 14px} .ico{width:40px;height:40px;font-size:21px} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">🚚</div>
+      <h1>AJCV — <b>Logistique &amp; Production</b></h1>
+      <div class="sub">Saint-Denis · La Réunion — <span id="jour"></span></div>
+    </header>
+
+    <div class="sect">Logistique</div>
+    <div class="grid">
+      <a class="tile t-admin" href="AJCV_Admin.html"><div class="ico">🗂️</div><div class="nom">Administration</div><div class="desc">Livraisons · Plan de tournée · KPI · Rotation des zones</div></a>
+      <a class="tile t-livreur" href="livreur_final.html"><div class="ico">🚚</div><div class="nom">Livreur</div><div class="desc">Tournées, livraisons &amp; encaissements</div></a>
+      <a class="tile t-prep" href="preparateur.html"><div class="ico">📦</div><div class="nom">Préparateur</div><div class="desc">Préparations, colis &amp; photos sécurisées</div></a>
+      <a class="tile t-carte" href="carte_livraisons_AJCV_v4.html"><div class="ico">🗺️</div><div class="nom">Carte</div><div class="desc">Les livraisons du jour sur la carte</div></a>
+    </div>
+
+    <div class="sect">Production CBD</div>
+    <div class="grid">
+      <a class="tile t-cbd" href="admin_production.html"><div class="ico">🌿</div><div class="nom">Console Production</div><div class="desc">Ventes · Stock · Traçabilité · Pointages · Dashboard</div></a>
+      <a class="tile t-cbdp" href="preparateur_cbd.html"><div class="ico">🎯</div><div class="nom">Préparateur CBD</div><div class="desc">À produire · Saisie · Pointage du temps</div></a>
+    </div>
+
+    <div class="sect">Outils</div>
+    <div class="grid">
+      <a class="tile t-com" href="AJCV_Formulaire_Commercial.html"><div class="ico">🧾</div><div class="nom">Commercial</div><div class="desc">Formulaire de prise de commande</div></a>
+    </div>
+
+    <footer>AJCV SARL — plateforme interne</footer>
+  </div>
+<script>
+  const d=new Date();
+  document.getElementById('jour').textContent=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+</script>
+</body>
+</html>
