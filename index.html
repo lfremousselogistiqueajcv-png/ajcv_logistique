@@ -1,92 +1,375 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AJCV Logistique</title>
-<style>
-  :root{--gold:#FFB300;--bg:#0F1724;--surface:#1A2332;--border:rgba(255,255,255,.1);--text:#F0F4FF;--text2:#8B9EC7}
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
-  #test-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:#A855F7;color:#fff;font:600 13px/1.4 Arial,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
-  .logo{width:72px;height:72px;background:var(--gold);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:16px;box-shadow:0 4px 20px rgba(255,179,0,.3)}
-  h1{font-size:22px;font-weight:700;color:var(--gold);margin-bottom:4px;text-align:center}
-  p{font-size:13px;color:var(--text2);margin-bottom:36px;text-align:center}
-  .apps{display:flex;flex-direction:column;gap:14px;width:100%;max-width:360px}
-  .app-btn{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 22px;display:flex;align-items:center;gap:16px;text-decoration:none;color:var(--text);transition:all .2s}
-  .app-btn:active{opacity:.85;transform:scale(.98)}
-  .app-btn.livreur{border-left:4px solid #4CAF50}
-  .app-btn.carte{border-left:4px solid #64B5F6}
-  .app-btn.admin{border-left:4px solid #EF4444}
-  .app-btn.preparateur{border-left:4px solid #F97316}
-  .app-btn.cbd{border-left:4px solid #22C55E}
-  .app-btn.commercial{border-left:4px solid var(--gold)}
-  .app-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
-  .icon-livreur{background:rgba(76,175,80,.15)}
-  .icon-carte{background:rgba(100,181,246,.15)}
-  .icon-admin{background:rgba(239,68,68,.15)}
-  .icon-preparateur{background:rgba(249,115,22,.15)}
-  .icon-cbd{background:rgba(34,197,94,.15)}
-  .icon-commercial{background:rgba(255,179,0,.15)}
-  .app-info h2{font-size:15px;font-weight:700;margin-bottom:3px}
-  .app-info p{font-size:12px;color:var(--text2);margin:0}
-  .sep{width:100%;max-width:360px;display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin:6px 0}
-  .sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--border)}
-  .version{font-size:11px;color:var(--text2);margin-top:32px;opacity:.5;text-align:center}
-/* MODE CLAIR (accessibilite haute lisibilite) */
-html[data-theme="light"]{
-  --bg:#EDF1F7; --surface:#FFFFFF; --surface2:#EBEFF5; --surface3:#DCE2EC;
-  --text:#0F172A; --text2:#475569; --text3:#64748B;
-  --border:rgba(15,23,42,0.14);
-}
-#theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}
-#theme-btn:active{transform:scale(.94)}
-</style>
-<script>try{var _t=localStorage.getItem('ajcv_theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="AJCV — saisie de caisse : espèces, chèques, règlements. Journal verrouillé.">
+<meta name="theme-color" content="#13203A">
+<title>AJCV · Caisse</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caisse">
+<link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-<button id="theme-btn" title="Mode clair / sombre (accessibilite)" aria-label="Basculer le mode clair ou sombre">☀️</button>
-  <div class="logo">🚚</div>
-  <h1>AJCV Logistique</h1>
-  <p>La Réunion — 974</p>
-  <div class="apps">
-    <a class="app-btn livreur" href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/livreur_final.html" target="_blank">
-      <div class="app-icon icon-livreur">📦</div>
-      <div class="app-info"><h2>Appli Livreur</h2><p>Tournées · Livraisons · Signatures</p></div>
-    </a>
-    <a class="app-btn preparateur" href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/preparateur.html" target="_blank">
-      <div class="app-icon icon-preparateur">🧰</div>
-      <div class="app-info"><h2>Appli Préparateur</h2><p>Préparation · Photos · Validation</p></div>
-    </a>
-    <a class="app-btn carte" href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/carte_livraisons_AJCV_v4.html" target="_blank">
-      <div class="app-icon icon-carte">🗺️</div>
-      <div class="app-info"><h2>Carte Livraisons</h2><p>Suivi temps réel · Vue géographique</p></div>
-    </a>
-    <a class="app-btn commercial" href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/AJCV_Formulaire_Commercial.html" target="_blank">
-      <div class="app-icon icon-commercial">📋</div>
-      <div class="app-info"><h2>Fiches Clients</h2><p>Création · Modification clients</p></div>
-    </a>
-    <a class="app-btn admin" href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/AJCV_Admin.html" target="_blank">
-      <div class="app-icon icon-admin">⚙️</div>
-      <div class="app-info"><h2>Administration</h2><p>Livraisons · Clients · KPI</p></div>
-    </a>
 
-    <div class="sep">🌿 Production CBD</div>
-
-    <a class="app-btn cbd" href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/admin_production.html" target="_blank">
-      <div class="app-icon icon-cbd">🌿</div>
-      <div class="app-info"><h2>Admin Production CBD</h2><p>Stock · Ateliers · Production · Dashboard</p></div>
-    </a>
-    <a class="app-btn cbd" href="https://lfremousselogistiqueajcv-png.github.io/ajcv_logistique/admin_production.html?vue=preparateur" target="_blank">
-      <div class="app-icon icon-cbd">🌱</div>
-      <div class="app-info"><h2>Préparateur CBD</h2><p>Saisie production · Lecture stock</p></div>
-    </a>
+<!-- ÉCRAN DE CONNEXION (mode Supabase) -->
+<div class="login-overlay" id="login" hidden>
+  <div class="login-card">
+    <div class="brand"><span class="dot"></span><div>AJCV<small>Caisse</small></div></div>
+    <h1>Connexion</h1>
+    <div class="inp"><label for="lg-email">E-mail</label><input id="lg-email" type="email" autocomplete="username" placeholder="prenom@ajcv.re"></div>
+    <div class="inp"><label for="lg-pwd">Mot de passe</label><input id="lg-pwd" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <div class="err" id="lg-err"></div>
+    <div class="ok-msg" id="lg-info"></div>
+    <button class="save" id="lg-btn">Se connecter</button>
+    <button type="button" class="linklike" id="lg-forgot">Mot de passe oublié ?</button>
   </div>
-  <div class="version">AJCV Logistique La Réunion · 974</div>
-<script>
-(function(){function ap(t){document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('theme-btn');if(b)b.textContent=(t==='light'?'🌙':'☀️');}
-function tg(){var c=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';var n=c==='light'?'dark':'light';try{localStorage.setItem('ajcv_theme',n);}catch(_){}ap(n);}
-ap(document.documentElement.getAttribute('data-theme')||'dark');var b=document.getElementById('theme-btn');if(b)b.onclick=tg;})();
-</script>
+</div>
+
+<!-- DÉFINIR / CHANGER LE MOT DE PASSE (récupération + paramètres compte) -->
+<div class="login-overlay" id="setpwd" hidden>
+  <div class="login-card">
+    <div class="brand"><span class="dot"></span><div>AJCV<small>Caisse</small></div></div>
+    <h1 id="sp-title">Nouveau mot de passe</h1>
+    <div class="inp"><label for="sp-pwd">Nouveau mot de passe</label><input id="sp-pwd" type="password" autocomplete="new-password" placeholder="••••••••"></div>
+    <div class="inp"><label for="sp-pwd2">Confirmer</label><input id="sp-pwd2" type="password" autocomplete="new-password" placeholder="••••••••"></div>
+    <div class="err" id="sp-err"></div>
+    <div class="ok-msg" id="sp-info"></div>
+    <button class="save" id="sp-btn">Enregistrer le mot de passe</button>
+    <button type="button" class="linklike" id="sp-cancel" hidden>Annuler</button>
+  </div>
+</div>
+
+<div class="wrap" id="appwrap">
+
+  <header class="appbar">
+    <div class="brand"><span class="dot"></span><div>AJCV<small>Caisse · saisie</small></div></div>
+    <div class="appbar-right">
+      <div class="clock"><b id="ck-time">--:--</b><span id="ck-date">—</span></div>
+      <div class="userbox" id="userbox" hidden>
+        <span class="who"><b id="ub-name">—</b><span id="ub-role" class="role">—</span></span>
+        <button class="signout" id="account">Mot de passe</button>
+        <button class="signout" id="signout">Déconnexion</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="banner" id="banner"></div>
+  <div class="cloture-alert" id="clotureAlert" hidden></div>
+
+  <section class="dash">
+    <div class="solde">
+      <span class="lbl">Solde caisse espèces · aujourd'hui</span>
+      <span class="val" id="solde">0,00 €</span>
+    </div>
+    <div class="field-mini">
+      <label for="fond">Fond de caisse du jour</label>
+      <input id="fond" inputmode="decimal" placeholder="0,00" autocomplete="off">
+      <div class="fond-expected" id="fond-expected" hidden></div>
+      <div class="fond-foot">
+        <button type="button" id="fond-lock">Enregistrer le fond</button>
+        <span class="fond-state" id="fond-state" hidden>🔒 validé · verrouillé</span>
+      </div>
+    </div>
+    <div class="field-mini">
+      <label for="oper">Opérateur (caissier)</label>
+      <input id="oper" placeholder="Nom du caissier" autocomplete="off">
+    </div>
+    <div class="stats">
+      <div class="stat in"><div class="n" id="st-in">0,00 €</div><div class="t">Encaissé (jour)</div></div>
+      <div class="stat out"><div class="n" id="st-out">0,00 €</div><div class="t">Sorties (jour)</div></div>
+      <div class="stat"><div class="n" id="st-nb">0</div><div class="t">Opérations</div></div>
+    </div>
+    <div class="dash-actions">
+      <button type="button" id="btn-depot">Mise en caisse</button>
+      <button type="button" id="btn-remise">Remise compta</button>
+      <button type="button" id="btn-check">Vérifier la caisse</button>
+      <button type="button" id="btn-suivi" hidden>Suivi des caisses</button>
+      <button type="button" id="btn-hist" hidden>Historique &amp; factures</button>
+      <button type="button" id="btn-param" hidden>Paramètres</button>
+      <button type="button" id="btn-reset" hidden>Réinitialiser (tout effacer)</button>
+    </div>
+  </section>
+
+  <div class="grid">
+
+    <!-- SAISIE -->
+    <section class="card">
+      <div class="card-h"><h2>Nouvelle opération</h2><span class="hint">Date et heure automatiques</span></div>
+      <div class="lock-note" id="lockNote" hidden>⚠ Valide d'abord le fond de caisse du jour (bouton « Enregistrer le fond ») pour pouvoir saisir des opérations.</div>
+
+      <div class="lbl-row">Type de document</div>
+      <div class="seg" id="seg-type">
+        <button type="button" class="facture" data-type="facture" aria-pressed="false"><span class="ico">+</span>Facture vente</button>
+        <button type="button" class="achat"   data-type="achat"   aria-pressed="false"><span class="ico">−</span>Facture achat</button>
+        <button type="button" class="sortie"  data-type="sortie"  aria-pressed="false"><span class="ico">−</span>Sortie de caisse</button>
+        <button type="button" class="retour"  data-type="retour"  aria-pressed="false"><span class="ico">+</span>Retour d'argent</button>
+      </div>
+
+      <div class="lbl-row">Montant</div>
+      <div class="amount">
+        <input id="montant" inputmode="decimal" placeholder="0,00" autocomplete="off" aria-label="Montant en euros">
+        <span class="cur">€</span>
+      </div>
+
+      <div class="lbl-row">Mode de règlement</div>
+      <div class="chips" id="seg-mode">
+        <button type="button" data-mode="Espèces" aria-pressed="false">Espèces</button>
+        <button type="button" data-mode="Chèque" aria-pressed="false">Chèque</button>
+        <button type="button" data-mode="CB" aria-pressed="false">CB</button>
+      </div>
+
+      <div class="lbl-row">Détails</div>
+      <div class="two">
+        <div class="inp"><label for="ndoc">N° document</label><input id="ndoc" autocomplete="off" placeholder="ex. FA-1042"></div>
+        <div class="inp"><label for="nom">Nom</label><input id="nom" autocomplete="off" placeholder="Nom"></div>
+      </div>
+      <div class="two" style="margin-top:10px">
+        <div class="inp"><label for="prenom">Prénom <span style="color:var(--muted)">(facultatif)</span></label><input id="prenom" autocomplete="off" placeholder="Prénom"></div>
+        <div class="inp"></div>
+      </div>
+
+      <div id="chequeBlock" class="two" style="margin-top:10px">
+        <div class="inp"><label for="nchq">N° chèque</label><input id="nchq" inputmode="numeric" autocomplete="off" placeholder="N° du chèque"></div>
+        <div class="inp"><label for="banque">Banque <span style="color:var(--muted)">(facultatif)</span></label><input id="banque" autocomplete="off" placeholder="Banque"></div>
+      </div>
+
+      <div class="lbl-row">Photos (factures / justificatifs) <span style="color:var(--muted)">(facultatif — plusieurs possibles)</span></div>
+      <div class="photo-pick">
+        <input id="photo-cam" class="photo-input" type="file" accept="image/*" capture="environment">
+        <input id="photo-file" class="photo-input" type="file" accept="image/*" multiple>
+        <label class="photo-btn" for="photo-cam">📷 Prendre une photo</label>
+        <label class="photo-btn" for="photo-file">🖼️ Depuis la galerie</label>
+        <div class="photo-strip" id="photo-strip" hidden></div>
+      </div>
+
+      <div class="err" id="err"></div>
+      <button class="save" id="save">Enregistrer l'opération</button>
+      <div class="captured">Sera horodaté : <b id="cap">—</b></div>
+    </section>
+
+    <!-- JOURNAL -->
+    <aside class="card">
+      <div class="card-h">
+        <h2>Journal</h2>
+        <div class="toggle" id="scope" hidden>
+          <button type="button" data-scope="day" aria-pressed="true">Aujourd'hui</button>
+          <button type="button" data-scope="all" aria-pressed="false">Tout</button>
+        </div>
+      </div>
+      <div class="filters" id="filters" hidden>
+        <button type="button" data-filter="all" aria-pressed="true">Tout</button>
+        <button type="button" data-filter="facture" aria-pressed="false">Ventes</button>
+        <button type="button" data-filter="achat" aria-pressed="false">Achats</button>
+        <button type="button" data-filter="sortie" aria-pressed="false">Sorties</button>
+        <button type="button" data-filter="remise" aria-pressed="false">Remises</button>
+        <button type="button" data-filter="retour" aria-pressed="false">Retours</button>
+      </div>
+      <div class="tools">
+        <button type="button" id="exp-xlsx">Exporter .xlsx</button>
+        <button type="button" id="exp-copy">Copier pour Excel</button>
+      </div>
+      <div class="hint" style="margin:2px 0 4px">Lignes verrouillées : pour corriger une erreur, utilise « Corriger » (contre-passation).</div>
+      <div class="list" id="list"></div>
+    </aside>
+
+  </div>
+
+  <!-- CLÔTURE DU JOUR -->
+  <section class="card cloture" id="clotureCard">
+    <div class="card-h"><h2>Clôture du jour</h2><span class="hint" id="cl-date">—</span></div>
+    <div id="cl-form">
+      <div class="cl-grid">
+        <div class="cl-line"><span>Fond de caisse</span><b id="cl-fond">0,00 €</b></div>
+        <div class="cl-line"><span>Encaissements espèces</span><b id="cl-in">0,00 €</b></div>
+        <div class="cl-line"><span>Sorties espèces</span><b id="cl-out">0,00 €</b></div>
+        <div class="cl-line theo"><span>Théorique espèces</span><b id="cl-theo">0,00 €</b></div>
+        <div class="cl-line"><span>Théorique chèques</span><b id="cl-theo-chq">0,00 €</b></div>
+      </div>
+
+      <div class="lbl-row">Comptage espèces — pièces &amp; billets</div>
+      <div class="denom" id="cl-denom"></div>
+      <div class="cl-count">
+        <div class="inp"><label for="cl-reel">Total espèces compté</label><input id="cl-reel" inputmode="decimal" placeholder="0,00" autocomplete="off"></div>
+        <div class="cl-ecart" id="cl-ecartBox"><span>Écart espèces</span><b id="cl-ecart">—</b></div>
+      </div>
+
+      <div class="lbl-row" style="margin-top:14px">Comptage chèques — saisis chaque chèque</div>
+      <div class="chq-rows" id="cl-chq-rows"></div>
+      <button type="button" class="chq-add" id="cl-chq-add">+ Ajouter un chèque</button>
+      <div class="cl-count" style="margin-top:10px">
+        <div class="cl-line"><span>Total compté (<b id="cl-chq-nb">0</b> chèque(s))</span><b id="cl-chq-total">0,00 €</b></div>
+        <div class="cl-ecart" id="cl-ecartBox-chq"><span>Écart chèques</span><b id="cl-ecart-chq">—</b></div>
+      </div>
+
+      <button class="save cl-btn" id="cl-save">Clôturer la journée</button>
+    </div>
+    <div id="cl-done" class="cl-done" hidden></div>
+  </section>
+
+  <footer class="build">AJCV Caisse · v3.0</footer>
+
+</div>
+
+<!-- MODALE MISE EN CAISSE -->
+<div class="modal-overlay" id="depotModal" hidden>
+  <div class="modal-card">
+    <div class="modal-h"><h2>Mise en caisse</h2><button type="button" class="modal-x" id="dp-close" aria-label="Fermer">✕</button></div>
+    <p class="dp-note">Monnaie / espèces remises par la comptabilité pour approvisionner la caisse.</p>
+    <div class="dp-cur"><span>Espèces en caisse</span><b id="dp-th">0,00 €</b></div>
+    <label class="dp-lbl" for="dp-amount">Montant reçu</label>
+    <input id="dp-amount" inputmode="decimal" placeholder="0,00" autocomplete="off">
+    <label class="dp-lbl" for="dp-note">Note (facultatif)</label>
+    <input id="dp-note" placeholder="ex. appoint monnaie" autocomplete="off">
+    <div class="err" id="dp-err"></div>
+    <button type="button" class="save" id="dp-save">Enregistrer la mise en caisse</button>
+  </div>
+</div>
+
+<!-- MODALE REMISE COMPTA -->
+<div class="modal-overlay" id="remiseModal" hidden>
+  <div class="modal-card">
+    <div class="modal-h"><h2>Remise compta</h2><button type="button" class="modal-x" id="rm-close" aria-label="Fermer">✕</button></div>
+    <p class="hint">Ce que tu remets à la comptabilité. La caisse est décrémentée d'autant.</p>
+
+    <div class="lbl-row">Espèces</div>
+    <div class="cl-line"><span>En caisse</span><b id="rm-th-esp">0,00 €</b></div>
+    <div class="inp" style="margin-top:8px"><label for="rm-esp">Espèces remises</label><input id="rm-esp" inputmode="decimal" placeholder="0,00" autocomplete="off"></div>
+    <div class="rm-warn" id="rm-esp-warn" hidden></div>
+
+    <div class="lbl-row" style="margin-top:14px">Chèques en caisse — coche ceux que tu remets</div>
+    <div class="cl-line"><span>Total en caisse</span><b id="rm-th-chq">0,00 €</b></div>
+    <div class="rm-chq-list" id="rm-chq-list"></div>
+    <div class="cl-line theo"><span>Total chèques remis</span><b id="rm-chq-sum">0,00 € · 0 chèque</b></div>
+
+    <div class="err" id="rm-err"></div>
+    <button class="save" id="rm-save">Valider la remise</button>
+  </div>
+</div>
+
+<!-- MODALE VÉRIFIER LA CAISSE (comptage à blanc) -->
+<div class="modal-overlay" id="checkModal" hidden>
+  <div class="modal-card">
+    <div class="modal-h"><h2>Vérifier la caisse</h2><button type="button" class="modal-x" id="ck-close" aria-label="Fermer">✕</button></div>
+    <p class="hint">Comptage à blanc — rien n'est enregistré.</p>
+    <div class="lbl-row">Espèces — pièces &amp; billets</div>
+    <div class="denom" id="ck-denom"></div>
+    <div class="cl-line theo"><span>Total compté espèces</span><b id="ck-cash-total">0,00 €</b></div>
+    <div class="cl-line"><span>Théorique espèces</span><b id="ck-cash-theo">0,00 €</b></div>
+    <div class="cl-ecart" id="ck-cash-ecartBox"><span>Écart espèces</span><b id="ck-cash-ecart">—</b></div>
+    <div class="lbl-row" style="margin-top:14px">Chèques — saisis chaque chèque</div>
+    <div class="chq-rows" id="ck-chq-rows"></div>
+    <button type="button" class="chq-add" id="ck-chq-add">+ Ajouter un chèque</button>
+    <div class="cl-line" style="margin-top:8px"><span>Total compté (<b id="ck-chq-nb">0</b>)</span><b id="ck-chq-total">0,00 €</b></div>
+    <div class="cl-line"><span>Théorique chèques</span><b id="ck-chq-theo">0,00 €</b></div>
+    <div class="cl-ecart" id="ck-chq-ecartBox"><span>Écart chèques</span><b id="ck-chq-ecart">—</b></div>
+    <button type="button" class="save" id="ck-done">Fermer</button>
+  </div>
+</div>
+
+<!-- VISIONNEUSE PHOTO -->
+<div class="modal-overlay" id="photoModal" hidden>
+  <div class="modal-card photo-modal">
+    <div class="modal-h"><h2>Photos / factures</h2><button type="button" class="modal-x" id="ph-close" aria-label="Fermer">✕</button></div>
+    <div class="photo-view" id="ph-view"></div>
+  </div>
+</div>
+
+<!-- SUIVI DES CAISSES (admin) -->
+<div class="modal-overlay" id="suiviModal" hidden>
+  <div class="modal-card suivi-card">
+    <div class="modal-h"><h2>Suivi des caisses</h2><button type="button" class="modal-x" id="sv-close" aria-label="Fermer">✕</button></div>
+    <p class="suivi-note">Un jour par ligne. Les écarts non nuls (ouverture ou clôture) sont signalés en rouge.</p>
+    <div class="suivi-scroll"><table class="suivi-table" id="suivi-table"><tbody id="suivi-body"></tbody></table></div>
+  </div>
+</div>
+
+<!-- HISTORIQUE & FACTURES (admin) -->
+<div class="modal-overlay" id="histModal" hidden>
+  <div class="modal-card hist-card">
+    <div class="modal-h"><h2>Historique &amp; factures</h2><button type="button" class="modal-x" id="hi-close" aria-label="Fermer">✕</button></div>
+    <div class="hi-filters">
+      <div class="hi-dates">
+        <label>Du <input type="date" id="hi-from"></label>
+        <label>Au <input type="date" id="hi-to"></label>
+      </div>
+      <div class="hi-row2">
+        <select id="hi-type">
+          <option value="all">Tous les types</option>
+          <option value="facture">Facture vente</option>
+          <option value="achat">Facture achat</option>
+          <option value="sortie">Sortie de caisse</option>
+          <option value="retour">Retour d'argent</option>
+          <option value="depot">Mise en caisse</option>
+          <option value="remise">Remise compta</option>
+          <option value="contre">Contre-passation</option>
+        </select>
+        <label class="hi-chk"><input type="checkbox" id="hi-photo"> Avec facture (photo)</label>
+      </div>
+    </div>
+    <div class="hi-sum" id="hi-sum"></div>
+    <div class="hi-list" id="hi-list"></div>
+  </div>
+</div>
+
+<!-- CLÔTURE D'UNE JOURNÉE PASSÉE -->
+<div class="modal-overlay" id="retroModal" hidden>
+  <div class="modal-card">
+    <div class="modal-h"><h2>Clôturer une journée passée</h2><button type="button" class="modal-x" id="rt-close" aria-label="Fermer">✕</button></div>
+    <p class="dp-note">Journée : <b id="rt-date"></b>. Elle n'a pas été clôturée sur le moment, donc les espèces ont été reportées sur les jours suivants. Tu peux valider au théorique, ou saisir le comptage réel si tu l'as noté.</p>
+    <div class="dp-cur"><span>Théorique espèces</span><b id="rt-th-esp">0,00 €</b></div>
+    <label class="dp-lbl" for="rt-esp">Comptage espèces</label>
+    <input id="rt-esp" inputmode="decimal" autocomplete="off">
+    <div class="cl-ecart" id="rt-ecartBox-esp"><span>Écart espèces</span><b id="rt-ecart-esp">—</b></div>
+    <div class="dp-cur" style="margin-top:14px"><span>Théorique chèques</span><b id="rt-th-chq">0,00 €</b></div>
+    <label class="dp-lbl" for="rt-chq">Comptage chèques</label>
+    <input id="rt-chq" inputmode="decimal" autocomplete="off">
+    <label class="dp-lbl" for="rt-nb">Nombre de chèques</label>
+    <input id="rt-nb" inputmode="numeric" autocomplete="off">
+    <div class="cl-ecart" id="rt-ecartBox-chq"><span>Écart chèques</span><b id="rt-ecart-chq">—</b></div>
+    <div class="err" id="rt-err"></div>
+    <button type="button" class="save" id="rt-save">Clôturer cette journée</button>
+  </div>
+</div>
+
+<!-- PARAMÈTRES — GESTION DES UTILISATEURS (admin) -->
+<div class="modal-overlay" id="paramModal" hidden>
+  <div class="modal-card param-card">
+    <div class="modal-h"><h2>Paramètres — utilisateurs</h2><button type="button" class="modal-x" id="pm-close" aria-label="Fermer">✕</button></div>
+    <div class="pm-msg" id="pm-msg" hidden></div>
+    <div class="pm-list" id="pm-list"><div class="pm-loading">Chargement…</div></div>
+    <div class="pm-create">
+      <div class="pm-create-t">Créer un utilisateur</div>
+      <input id="pm-email" type="email" inputmode="email" placeholder="Email" autocomplete="off">
+      <input id="pm-name" placeholder="Nom affiché" autocomplete="off">
+      <div class="pm-row2">
+        <select id="pm-role"><option value="caissier">Caissier</option><option value="admin">Admin</option></select>
+        <div class="pm-pwd-wrap"><input id="pm-pwd" placeholder="Mot de passe temporaire" autocomplete="off"><button type="button" id="pm-gen" class="pm-gen">Générer</button></div>
+      </div>
+      <button type="button" class="save" id="pm-create">Créer le compte</button>
+    </div>
+  </div>
+</div>
+
+<!-- RAPPORT DE CAISSE (Z) -->
+<div class="modal-overlay" id="zModal" hidden>
+  <div class="modal-card z-card">
+    <div class="modal-h"><h2>Rapport de caisse (Z)</h2><button type="button" class="modal-x" id="z-close" aria-label="Fermer">✕</button></div>
+    <div class="z-body" id="z-body"></div>
+    <button type="button" class="save" id="z-print-btn">Imprimer / PDF</button>
+  </div>
+</div>
+
+<!-- zone imprimée (cachée à l'écran) -->
+<div id="zPrint" class="z-print"></div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
