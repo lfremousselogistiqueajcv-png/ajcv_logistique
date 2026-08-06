@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.18",
+  "version": "2026.07.04.19",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.19",
+      "date": "29/07/2026",
+      "titre": "🌿 Production CBD en service (traçabilité, ventes, pointage)",
+      "notes": [
+        "🚀 Le module complet est en production : réceptions + documents + badges de conformité, lots automatiques, garde-fous, traçabilité certificat → pack, ventes journalières → stock théorique → priorités préparateur, dashboard avec couverture, exports CSV.",
+        "⏱️ Pointage de production : début / pause (avec motif) / reprise / clôture — chronologie horodatée et temps effectif à la minute."
+      ]
+    },
     {
       "v": "2026.07.04.18",
       "date": "29/07/2026",
