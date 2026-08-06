@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.21",
+  "version": "2026.07.04.22",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.22",
+      "date": "06/08/2026",
+      "titre": "Préparateur : retour de la prise de photo directe",
+      "notes": [
+        "📷 Le bouton photo rouvre directement l'appareil photo (le passage par la galerie est supprimé).",
+        "🔒 Sans risque désormais : chaque photo part au serveur dès la prise — même si le téléphone ferme l'onglet, rien n'est perdu."
+      ]
+    },
     {
       "v": "2026.07.04.21",
       "date": "02/08/2026",

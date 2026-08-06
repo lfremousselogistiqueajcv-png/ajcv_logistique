@@ -384,7 +384,7 @@ function carteCommande(l, volet){
     inner+=`<div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
       <span style="font-weight:700">📦 Colis</span>
       <input type="number" min="1" id="mod-colis-${l.id}" value="${colisDe(l)}" style="width:72px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:15px">
-      <label class="btn-photo" style="margin:0">📷 Ajouter<input type="file" accept="image/*" multiple hidden onchange="modifPhotos('${l.id}',this)"></label>
+      <label class="btn-photo" style="margin:0">📷 Ajouter<input type="file" accept="image/*" capture="environment" multiple hidden onchange="modifPhotos('${l.id}',this)"></label>
       <button class="btn-photo" style="margin:0" onclick="enregistrerModif('${l.id}')">💾 Enregistrer</button>
     </div>
     <div id="mod-th-${l.id}" class="thumbs-wrap"></div>`;
@@ -404,7 +404,7 @@ function carteCommande(l, volet){
       <label>🎁 Cadeaux<input type="number" min="0" inputmode="numeric" id="qin-${l.id}-nb_cadeaux" value="${cadeauxDe(l)}" onchange="majQte('${l.id}','nb_cadeaux',this.value)"></label>
     </div>
     ${PREP_PRODS.map(p=>{const dt=detailTxt(detailDe(l,p.detail));return `<button class="btn-bo" onclick="ouvrirProdPrep('${l.id}','${p.cat}')">${p.ic} ${p.label} — <span>${dt||'aucun'}</span> ✏️</button>`;}).join('')}
-    <input type="file" accept="image/*" id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
+    <input type="file" accept="image/*" capture="environment" id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
     <div id="thumbs-${l.id}" class="thumbs-wrap"></div>
     <div class="c-actions">
       <button class="btn-photo" onclick="document.getElementById('file-${l.id}').click()">📷 Prendre une photo</button>
