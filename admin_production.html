@@ -571,8 +571,8 @@ function formSaisie(){
   if(!R.ateliers.length){ f.innerHTML='<div class="empty">Aucun atelier actif → onglet 🏭 Ateliers.</div>'; return; }
   if(!R.produits.length){ f.innerHTML='<div class="empty">Aucun produit → 🗂️ Référentiel.</div>'; return; }
   const oa=R.ateliers.map(a=>`<option value="${a.id}" data-vrac="${a.consomme_vrac?1:0}" data-unite="${esc(a.unite||'')}">${esc(a.nom)}${a.unite?' ('+esc(a.unite)+')':''}</option>`).join('');
-  const op=R.produits.map(p=>`<option value="${p.id}">${esc(p.code||'')} — ${esc(p.designation||'')}</option>`).join('');
-  const orc='<option value="">— aucune —</option>'+R.receptions.filter(r=>(r.stock_vrac_restant==null||r.stock_vrac_restant>0)).map(r=>`<option value="${r.id}">${esc(r.lot_vrac||'')}${r.stock_vrac_restant!=null?' · reste '+r.stock_vrac_restant+' kg':''}</option>`).join('');
+  const op=R.produits.map(p=>`<option value="${p.id}" data-var="${p.variete_id||''}">${esc(p.code||'')} — ${esc(p.designation||'')}</option>`).join('');
+  const orc='<option value="">— aucune —</option>'+R.receptions.filter(r=>(r.stock_vrac_restant==null||r.stock_vrac_restant>0)).slice().sort((a,b)=>String(a.date_reception||'').localeCompare(String(b.date_reception||''))).map(r=>`<option value="${r.id}" data-var="${r.variete_id||''}">${esc(r.lot_vrac||'')}${r.variete_nom?' · '+esc(r.variete_nom):''}${r.stock_vrac_restant!=null?' · reste '+r.stock_vrac_restant+' kg':''}</option>`).join('');
   f.innerHTML=`
     <div class="row">
       <div class="col"><label>Atelier</label><select id="sa-at" class="fld">${oa}</select></div>
@@ -600,9 +600,23 @@ function formSaisie(){
     sel.innerHTML=lots.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('')||'<option value="" disabled>Aucun lot de pochons pour ce produit</option>';
   };
   const maj=()=>{ const s=$('sa-at').selectedOptions[0]; const vr=s&&s.dataset.vrac==='1'; $('sa-vz').style.display=vr?'flex':'none'; $('sa-sz').style.display=vr?'none':'block'; if(!vr)majSources(); $('sa-u').textContent=(s&&s.dataset.unite)||'unité'; };
-  $('sa-p').onchange=()=>{ const s=$('sa-at').selectedOptions[0]; if(s&&s.dataset.vrac!=='1') majSources(); };
+  // Lot vrac proposé automatiquement : même variété que le produit, le plus ancien d'abord (FIFO)
+  const majLotVrac=()=>{
+    const sel=$('sa-rc'); if(!sel) return;
+    const po=$('sa-p').selectedOptions[0]; const v=po?(po.dataset.var||''):'';
+    let premier=null;
+    Array.from(sel.options).forEach(o=>{
+      if(!o.value){ o.hidden=false; return; }
+      const ok=!v || (o.dataset.var||'')===v;
+      o.hidden=!ok;
+      if(ok && !premier) premier=o;
+    });
+    if(v){ sel.value = premier ? premier.value : ''; }
+  };
+  $('sa-p').onchange=()=>{ const s=$('sa-at').selectedOptions[0]; if(s&&s.dataset.vrac!=='1') majSources(); else majLotVrac(); };
+  majLotVrac();
   $('sa-at').onchange=maj; maj();
-  if(S._presel){ const el=$('sa-p'); if(el && [...el.options].some(o=>o.value===S._presel)) el.value=S._presel; delete S._presel; const sel=$('sa-at').selectedOptions[0]; if(sel&&sel.dataset.vrac!=='1'&&typeof majSources==='function') majSources(); }
+  if(S._presel){ const el=$('sa-p'); if(el && [...el.options].some(o=>o.value===S._presel)) el.value=S._presel; delete S._presel; const sel=$('sa-at').selectedOptions[0]; if(sel&&sel.dataset.vrac!=='1'&&typeof majSources==='function') majSources(); else if(typeof majLotVrac==='function') majLotVrac(); }
   $('sa-go').onclick=submitProd;
 }
 async function submitProd(){

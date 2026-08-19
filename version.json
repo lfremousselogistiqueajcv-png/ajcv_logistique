@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.23",
+  "version": "2026.07.04.24",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.24",
+      "date": "06/08/2026",
+      "titre": "Production CBD : lot vrac proposé automatiquement",
+      "notes": [
+        "🌾 À la pesée, le lot vrac est proposé automatiquement : même variété que le produit choisi, le plus ancien d'abord (FIFO). La liste ne montre que les lots compatibles, avec la variété et le restant.",
+        "➕ Fonctionne aussi depuis « À produire » (produit pré-sélectionné → lot vrac pré-sélectionné)."
+      ]
+    },
     {
       "v": "2026.07.04.23",
       "date": "06/08/2026",
