@@ -1356,10 +1356,62 @@ function choisirClientLiv(i){
   else if(n==='3') document.getElementById('fl-zone').value='🟠 Zone 3 — Livreur 3';
   document.getElementById('fl-ac').style.display='none';
 }
+// ── Visionneuse photos plein écran (fleches / swipe / fermer) ──
+let _vp={urls:[],i:0};
+function voirPhotos(urls,i){
+  _vp={urls:urls,i:i||0};
+  let bg=document.getElementById('visPh');if(bg)bg.remove();
+  bg=document.createElement('div');bg.id='visPh';
+  bg.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.93);display:flex;align-items:center;justify-content:center';
+  bg.innerHTML=`
+    <img id="visImg" style="max-width:94vw;max-height:88vh;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.6)">
+    <button onclick="fermerVis()" style="position:fixed;top:14px;right:14px;width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:20px;cursor:pointer">✕</button>
+    <button id="visPrev" onclick="navVis(-1)" style="position:fixed;left:10px;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:22px;cursor:pointer">‹</button>
+    <button id="visNext" onclick="navVis(1)" style="position:fixed;right:10px;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:22px;cursor:pointer">›</button>
+    <div id="visCpt" style="position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;font-size:13px;background:rgba(255,255,255,.12);padding:4px 12px;border-radius:99px"></div>`;
+  bg.onmousedown=e=>{if(e.target===bg)fermerVis()};
+  let tx=null;
+  bg.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+  bg.addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>45)navVis(dx<0?1:-1);tx=null},{passive:true});
+  document.addEventListener('keydown',visClavier);
+  document.body.appendChild(bg);
+  majVis();
+}
+function visClavier(e){if(e.key==='Escape')fermerVis();if(e.key==='ArrowLeft')navVis(-1);if(e.key==='ArrowRight')navVis(1)}
+function navVis(d){const n=_vp.urls.length;if(!n)return;_vp.i=(_vp.i+d+n)%n;majVis()}
+function majVis(){
+  const img=document.getElementById('visImg');if(!img)return;
+  img.src=_vp.urls[_vp.i];
+  document.getElementById('visCpt').textContent=(_vp.i+1)+' / '+_vp.urls.length;
+  const un=_vp.urls.length<2;
+  document.getElementById('visPrev').style.display=un?'none':'';
+  document.getElementById('visNext').style.display=un?'none':'';
+}
+function fermerVis(){const b=document.getElementById('visPh');if(b)b.remove();document.removeEventListener('keydown',visClavier)}
+async function verifRetoursDefectueux(num){
+  try{
+    const d=await api('GET','/retours/par-facture?num='+encodeURIComponent(num));
+    if(!d.fiches||!d.fiches.length) return;
+    let bg=document.getElementById('retDefModal'); if(bg) bg.remove();
+    bg=document.createElement('div'); bg.id='retDefModal';
+    bg.style.cssText='position:fixed;inset:0;z-index:9995;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:14px';
+    const MO={fuite:'Fuite',ne_s_allume_pas:"Ne s'allume pas",gout:'Goût',dlc:'DLC',casse:'Casse',autre:'Autre'};
+    bg.innerHTML=`<div style="background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:85vh;overflow:auto;padding:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0;color:#B91C1C">⚠️ Défectueux déclarés sur ce numéro</h3><button onclick="document.getElementById('retDefModal').remove()" style="border:none;background:#eee;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:700">✕</button></div>
+      <div class="muted" style="margin:8px 0 12px">${d.fiches.length} produit(s) à remplacer — pense à les joindre à la préparation.</div>
+      ${d.fiches.map(f=>`<div style="border:1px solid #FECACA;background:#FEF2F2;border-radius:10px;padding:10px;margin-bottom:10px">
+        <b>${esc(f.numero)}</b> · ${f.article?esc(f.article.ref_odoo)+' — '+esc(f.article.libelle):'—'} · <b>x${f.qte}</b> · ${MO[f.motif]||f.motif} <span class="muted">(${esc(f.client_nom)})</span>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${(f.photos||[]).map((u,ix)=>`<img src="${u}" onclick='voirPhotos(${JSON.stringify(f.photos).replace(/'/g,"&#39;")},${ix})' style="width:74px;height:74px;object-fit:cover;border-radius:8px;border:1px solid #FCA5A5;cursor:pointer">`).join('')||'<span class="muted">Pas de photo</span>'}</div>
+      </div>`).join('')}</div>`;
+    bg.onmousedown=e=>{ if(e.target===bg)bg.remove(); };
+    document.body.appendChild(bg);
+  }catch(_){}
+}
 async function verifierBL(){
   const bl=document.getElementById('fl-bl').value.trim();
   const warn=document.getElementById('fl-bl-warn');
   if(!bl){ warn.textContent=''; return; }
+  verifRetoursDefectueux(bl);
   const r=await api('GET','/livraisons/check-bl?bl='+encodeURIComponent(bl)).catch(()=>({exists:false}));
   if(r.exists){
     warn.innerHTML='⚠️ Ce N° BL existe déjà'+(r.client?' ('+r.client+')':'')+' — doublon !';

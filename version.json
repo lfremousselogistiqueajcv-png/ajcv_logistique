@@ -1,7 +1,18 @@
 {
-  "version": "2026.07.04.25",
+  "version": "2026.07.04.26",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.26",
+      "date": "26/08/2026",
+      "titre": "↩️ Module Retours client — mise en production",
+      "notes": [
+        "🚀 Nouveau module complet : déclaration des produits défectueux par les commerciaux (multi-articles, photos sécurisées, numéros RET), réception au dépôt par quantités (2/3, cumulable), refus motivé, cycle Déclaré → Reçu → Remplacé → Livré entièrement tracé.",
+        "⚠️ À la saisie d'une livraison, si le numéro correspond à une facture de remplacement : alerte immédiate avec le détail et les photos des défectueux à joindre.",
+        "📊 Reporting filtrable (article, client, commercial, facture) avec quantités reçues, coûts et export CSV.",
+        "🖼️ Visionneuse photos plein écran (navigation au doigt)."
+      ]
+    },
     {
       "v": "2026.07.04.25",
       "date": "06/08/2026",
