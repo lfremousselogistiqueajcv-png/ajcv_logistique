@@ -1,7 +1,27 @@
 {
-  "version": "2026.07.04.26",
+  "version": "2026.07.04.28",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.28",
+      "date": "31/08/2026",
+      "titre": "Préparateur : prise de photo instantanée (Samsung A17)",
+      "notes": [
+        "⚡ La photo est traitée par le moteur natif du téléphone : fini l'écran figé plusieurs secondes après la prise sur les petits modèles (Samsung A17).",
+        "⏳ Un sablier s'affiche immédiatement pour chaque photo en cours de traitement, remplacé par la vignette puis le ✓ vert.",
+        "📤 Chaque photo part au serveur pendant que la suivante se traite (plus rapide en rafale)."
+      ]
+    },
+    {
+      "v": "2026.07.04.27",
+      "date": "26/08/2026",
+      "titre": "Livreur : avis de passage par email (client absent)",
+      "notes": [
+        "📩 Quand une livraison passe en « ❌ Non livré », l'appli propose d'envoyer un avis de passage au client par email : heure de passage, n° BLV, colis repartis au dépôt, demande de reprogrammation.",
+        "🕒 L'envoi est tracé sur la livraison (date/heure de l'avis).",
+        "☎️ Si le client n'a pas d'email, l'appli affiche son téléphone pour le prévenir autrement."
+      ]
+    },
     {
       "v": "2026.07.04.26",
       "date": "26/08/2026",

@@ -201,7 +201,7 @@ html[data-theme="light"]{
 <script>
 const CFG = { API_URL: 'https://ajcvbackend-production.up.railway.app' };
 const VERSION_URL = 'version.json';
-const state = { token:'', prenom:'', login:'', role:'', tokenExpiry:0, orders:[], photos:{}, sync:{}, _upQ:{}, search:'', _date:'', volet:'apreparer', boissonsRef:[], _boId:null };
+const state = { token:'', prenom:'', login:'', role:'', tokenExpiry:0, orders:[], photos:{}, sync:{}, _upQ:{}, _pending:{}, search:'', _date:'', volet:'apreparer', boissonsRef:[], _boId:null };
 // ── Persistance des photos (survit au rechargement Android pendant la prise) ──
 const _PHK='ajcvprep_photos_v1';
 function persisterPhotos(){
@@ -423,7 +423,32 @@ function filtrer(q){
 }
 
 /* ─────────── PHOTO ─────────── */
-function compresserPhoto(file, maxDim, quality){
+async function compresserPhoto(file, maxDim, quality){
+  // v .28 : décodage + redimensionnement NATIFS (createImageBitmap) — hors thread UI, rapide sur A17.
+  if(typeof createImageBitmap!=='function') return compresserPhotoLegacy(file,maxDim,quality);
+  let bmp=null, petit=null;
+  try{
+    bmp=await createImageBitmap(file);
+    let w=bmp.width,h=bmp.height;
+    if(w>h&&w>maxDim){ h=Math.round(h*maxDim/w); w=maxDim; }
+    else if(h>=w&&h>maxDim){ w=Math.round(w*maxDim/h); h=maxDim; }
+    petit=bmp;
+    if(w!==bmp.width||h!==bmp.height){
+      try{ petit=await createImageBitmap(bmp,{resizeWidth:w,resizeHeight:h,resizeQuality:'high'}); }
+      catch(_){ petit=bmp; } // navigateur sans options de resize : on dessinera à l'échelle
+    }
+    const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+    cv.getContext('2d').drawImage(petit,0,0,w,h);
+    const out=cv.toDataURL('image/jpeg',quality);
+    if(petit!==bmp&&petit.close) petit.close();
+    if(bmp.close) bmp.close(); // libère la RAM immédiatement (anti-crash A17)
+    return out;
+  }catch(e){
+    try{ if(petit&&petit!==bmp&&petit.close) petit.close(); if(bmp&&bmp.close) bmp.close(); }catch(_){}
+    return compresserPhotoLegacy(file,maxDim,quality); // filet de sécurité : ancien chemin
+  }
+}
+function compresserPhotoLegacy(file, maxDim, quality){
   return new Promise((resolve,reject)=>{
     const fr=new FileReader();
     fr.onload=()=>{
@@ -442,15 +467,20 @@ function compresserPhoto(file, maxDim, quality){
   });
 }
 async function photoChoisie(id,input){
-  const files=input.files; if(!files||!files.length) return;
+  const files=Array.from(input.files||[]); input.value='';
+  if(!files.length) return;
   if(!Array.isArray(state.photos[id])) state.photos[id]=[];
+  state._pending[id]=(state._pending[id]||0)+files.length;
+  renderThumbs(id); // ⏳ affiché immédiatement, avant tout traitement
   for(const f of files){
-    try{ const b64=await compresserPhoto(f,1000,0.62); state.photos[id].push(b64); persisterPhotos(); }
-    catch(e){ showToast('❌ Une photo illisible','error'); }
+    try{
+      const b64=await compresserPhoto(f,1000,0.62);
+      state.photos[id].push(b64); persisterPhotos();
+      lancerUploadImmediat(id); // la photo part au serveur pendant que la suivante se compresse
+    }catch(e){ showToast('❌ Une photo illisible','error'); }
+    state._pending[id]=Math.max(0,(state._pending[id]||0)-1);
+    renderThumbs(id);
   }
-  input.value='';
-  renderThumbs(id);
-  lancerUploadImmediat(id);
 }
 // Sécurisation : chaque photo part au serveur dès la prise (file séquentielle par livraison).
 function lancerUploadImmediat(id){
@@ -475,6 +505,7 @@ function renderThumbs(id){
     if(i<syncN || b==='SYNC') return `<div class="thumb-item" style="display:flex;align-items:center;justify-content:center;background:#DCFCE7;border:1px solid #86EFAC;color:#15803D;font-size:22px" title="Photo en sécurité au serveur">✓</div>`;
     return `<div class="thumb-item"><img src="${b}" onclick="agrandir('${b.replace(/'/g,'%27')}')" alt=""><button class="thumb-x" onclick="supprimerPhoto('${id}',${i})">×</button></div>`;
   }).join('')
+    +Array.from({length:(state._pending&&state._pending[id])||0}).map(()=>`<div class="thumb-item" style="display:flex;align-items:center;justify-content:center;background:#FEF9C3;border:1px solid #FDE68A;font-size:20px" title="Photo en cours de traitement">⏳</div>`).join('')
     +(arr.length?`<span class="thumb-count">${syncN}\u2713/${arr.length} photo${arr.length>1?'s':''}</span>`:'');
 }
 function supprimerPhoto(id,i){
