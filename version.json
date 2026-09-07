@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.29",
+  "version": "2026.07.04.30",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.30",
+      "date": "07/09/2026",
+      "titre": "Retours : référentiel des commerciaux + date en réception",
+      "notes": [
+        "🧑‍💼 Liste des commerciaux paramétrable (panneau admin) : à la déclaration, on choisit QUI a récupéré le produit — affiché partout (réception, reporting, dossier fournisseur) à la place du compte de saisie.",
+        "📅 Colonne date dans la Réception dépôt."
+      ]
+    },
     {
       "v": "2026.07.04.29",
       "date": "26/08/2026",
