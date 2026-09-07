@@ -390,9 +390,40 @@ async function ouvrirDetail(id){
       ${adm?`<select class="fld" id="cor-st" style="max-width:150px;padding:7px">${Object.entries(STATUTS).map(([k,v])=>`<option value="${k}" ${f.statut===k?'selected':''}>${v[0]}</option>`).join('')}</select>
       <input class="fld" id="cor-qr" type="number" min="0" max="${f.qte}" value="${parseInt(f.qte_recue)||0}" style="max-width:90px;padding:7px" title="Quantité reçue">
       <span class="muted">/${f.qte} reçu</span>
-      <button class="btn" style="padding:7px 14px;font-size:13px" onclick="corrigerFiche('${f.id}','${esc(f.numero)}')">💾 Corriger</button>`:''}
+      <button class="btn" style="padding:7px 14px;font-size:13px" onclick="corrigerFiche('${f.id}','${esc(f.numero)}')">💾 Corriger</button>
+      <button class="btn" style="padding:7px 14px;font-size:13px;background:#1E293B" onclick="modifierFiche('${f.id}')">✏️ Modifier la fiche</button>`:''}
     </div>`;
   }
+}
+async function modifierFiche(id){
+  const d=await api('GET','/retours/'+id+'/detail');
+  if(d.error){toast('❌ '+d.error);return}
+  const f=d.fiche;
+  const zone=document.getElementById('det-outils');if(!zone)return;
+  const cms=Array.from(($('rc-commercial')||{options:[]}).options).map(o=>o.value).filter(Boolean);
+  zone.innerHTML=`<div style="border:1px solid var(--acc);border-radius:10px;padding:12px;margin-bottom:12px">
+    <b>✏️ Modification de ${esc(f.numero)}</b>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+      <input class="fld" id="md-client" value="${esc(f.client_nom)}" placeholder="Client" list="rc-clients">
+      <select class="fld" id="md-com">${'<option value="">— Commercial —</option>'+cms.map(n=>`<option ${f.commercial_nom===n?'selected':''}>${esc(n)}</option>`).join('')}</select>
+      <input class="fld" id="md-qte" type="number" min="1" value="${f.qte}" placeholder="Qté">
+      <select class="fld" id="md-motif">${Object.entries(MOTIFS).map(([k,v])=>`<option value="${k}" ${f.motif===k?'selected':''}>${v}</option>`).join('')}</select>
+      <input class="fld" id="md-fo" value="${esc(f.facture_origine||'')}" placeholder="Facture d'origine">
+      <input class="fld" id="md-fr" value="${esc(f.facture_remplacement||'')}" placeholder="Facture de remplacement">
+      <input class="fld" id="md-dp" type="date" value="${f.date_livraison_prevue||''}">
+      <input class="fld" id="md-comm" value="${esc(f.commentaire||'')}" placeholder="Commentaire">
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn" onclick="enregistrerModif('${f.id}','${esc(f.numero)}')">💾 Enregistrer</button>
+      <button class="btn" style="background:#1E293B" onclick="document.getElementById('retDet').remove();ouvrirDetail('${f.id}')">Annuler</button>
+    </div></div>`;
+}
+async function enregistrerModif(id,num){
+  const g=x=>document.getElementById(x).value;
+  const r=await api('PATCH','/retours/'+id+'/modifier',{client_nom:g('md-client'),commercial_nom:g('md-com'),qte:parseInt(g('md-qte')),motif:g('md-motif'),facture_origine:g('md-fo'),facture_remplacement:g('md-fr'),date_livraison_prevue:g('md-dp'),commentaire:g('md-comm')});
+  if(r.error){toast('❌ '+r.error);return}
+  toast(r.rien?'Aucun changement':'💾 '+num+' modifié');
+  document.getElementById('retDet').remove();chargerMes();chargerReception();chargerReporting();ouvrirDetail(id);
 }
 async function corrigerFiche(id,num){
   const r=await api('PATCH','/retours/'+id+'/corriger',{statut:document.getElementById('cor-st').value,qte_recue:parseInt(document.getElementById('cor-qr').value)});

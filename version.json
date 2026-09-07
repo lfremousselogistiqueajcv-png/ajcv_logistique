@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.30",
+  "version": "2026.07.04.31",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.31",
+      "date": "07/09/2026",
+      "titre": "Retours : modification complète d'une fiche",
+      "notes": [
+        "✏️ Depuis le détail d'une fiche (admin) : modifier client, commercial, quantité, motif, factures, date prévue, commentaire — chaque changement tracé dans l'historique (avant → après).",
+        "📷 Rappel : l'ajout de photos sur une fiche existante est disponible dans le même écran."
+      ]
+    },
     {
       "v": "2026.07.04.30",
       "date": "07/09/2026",
