@@ -68,7 +68,8 @@
           <option value="">Tous statuts</option><option value="declare">Déclaré</option><option value="recu_depot">Reçu dépôt</option>
           <option value="remplace">Remplacé</option><option value="livre">Livré</option><option value="refuse">Refusé</option>
         </select>
-        <input class="fld" id="rp-q" placeholder="Filtrer article / client / commercial / facture / n° RET…" style="flex:1;min-width:180px" oninput="renderReporting()">
+        <select class="fld" id="rp-art" style="max-width:240px" onchange="renderReporting()"><option value="">Tous les produits</option></select>
+        <input class="fld" id="rp-q" placeholder="Filtrer client / commercial / facture / n° RET…" style="flex:1;min-width:180px" oninput="renderReporting()">
         <button class="btn" style="background:#1E293B" onclick="exportReporting()">⬇️ CSV</button>
       </div>
       <div id="rp-synthese"></div>
@@ -244,11 +245,18 @@ async function chargerReporting(){
   if($('rp-st').value)p.set('statut',$('rp-st').value);
   const d=await api('GET','/retours/reporting?'+p.toString());
   if(d.error){$('rp-synthese').innerHTML='<span class="muted">❌ '+esc(d.error)+'</span>';return}
-  _rp=d.fiches||[];renderReporting();
+  _rp=d.fiches||[];
+  const sel=$('rp-art');const cur=sel.value;
+  const arts=[...new Map(_rp.map(f=>[f.ref,f.article])).entries()].sort((a,b)=>String(a[1]).localeCompare(String(b[1])));
+  sel.innerHTML='<option value="">Tous les produits</option>'+arts.map(([r,l])=>`<option value="${esc(r)}">${esc(r)} — ${esc(l)}</option>`).join('');
+  sel.value=cur&&arts.some(([r])=>r===cur)?cur:'';
+  renderReporting();
 }
 function _rpFiltre(){
   const q=($('rp-q').value||'').toLowerCase();
-  return q?_rp.filter(f=>[f.article,f.ref,f.client,f.commercial,f.numero,f.facture_origine,f.facture_remplacement].join(' ').toLowerCase().includes(q)):_rp;
+  const art=$('rp-art')?$('rp-art').value:'';
+  let L=art?_rp.filter(f=>f.ref===art):_rp;
+  return q?L.filter(f=>[f.article,f.ref,f.client,f.commercial,f.numero,f.facture_origine,f.facture_remplacement].join(' ').toLowerCase().includes(q)):L;
 }
 function renderReporting(){
   const F=_rpFiltre();
@@ -256,16 +264,36 @@ function renderReporting(){
   F.forEach(f=>{const k=f.ref||f.article;agg[k]=agg[k]||{ref:f.ref,article:f.article,fiches:0,qte:0,cout:0};
     agg[k].recu=(agg[k].recu||0)+(f.qte_recue||0);agg[k].fiches++;agg[k].qte+=f.qte;qT+=f.qte;if(f.cout!=null){agg[k].cout+=f.cout;cT+=f.cout}});
   const A=Object.values(agg).sort((a,b)=>b.qte-a.qte);
-  $('rp-synthese').innerHTML=A.length?`<div class="muted" style="margin-bottom:6px"><b style="color:var(--txt)">${F.length}</b> fiche(s) · <b style="color:var(--txt)">${qT}</b> produit(s) défectueux · coût gestes : <b style="color:var(--txt)">${cT.toFixed(2)} €</b></div>
+  const parStatut={},parMotif={};let dRec=[],retard=0;
+  F.forEach(f=>{parStatut[f.statut]=(parStatut[f.statut]||0)+1;parMotif[f.motif]=(parMotif[f.motif]||0)+f.qte;
+    if(f.recu_le)dRec.push((new Date(f.recu_le)-new Date(f.date))/86400000);
+    if(f.date_livraison_prevue&&f.statut!=='livre'&&f.statut!=='refuse'&&new Date(f.date_livraison_prevue)<new Date())retard++});
+  const dMoy=dRec.length?(dRec.reduce((a,b)=>a+b,0)/dRec.length):null;
+  const tuile=(v,l,c)=>`<div style="flex:1;min-width:105px;background:#0D1526;border:1px solid var(--bd);border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:${c||'var(--txt)'}">${v}</div><div class="muted" style="font-size:11px">${l}</div></div>`;
+  $('rp-synthese').innerHTML=A.length?`
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+    ${tuile(F.length,'Fiches')}${tuile(qT,'Produits déf.','#F87171')}${tuile(cT.toFixed(0)+' €','Coût gestes','#FBBF24')}
+    ${tuile(dMoy!=null?dMoy.toFixed(1)+' j':'—','Délai moy. réception')}${tuile(retard,'En retard',retard?'#F87171':'#4ADE80')}
+    ${tuile((parStatut.refuse||0),'Refusées')}
+  </div>
+  <div class="muted" style="margin-bottom:6px">Par motif : ${Object.entries(parMotif).sort((a,b)=>b[1]-a[1]).map(([m,q])=>(MOTIFS[m]||m)+' <b style="color:var(--txt)">'+q+'</b>').join(' · ')||'—'}
+   <button class="btn" style="padding:5px 12px;font-size:12px;margin-left:10px;background:#166534" onclick="dossierFournisseur()">📦 Dossier fournisseur (photos)</button></div>
     <table><thead><tr><th>Réf.</th><th>Article</th><th>Fiches</th><th>Qté déf.</th><th>Reçu dépôt</th><th>Coût</th></tr></thead><tbody>
     ${A.map(a=>`<tr><td><b>${esc(a.ref)}</b></td><td>${esc(a.article)}</td><td>${a.fiches}</td><td><b>${a.qte}</b></td><td>${a.recu||0}/${a.qte}${(a.recu||0)<a.qte?' <span class="pill err">incomplet</span>':' <span class="pill ok">✓</span>'}</td><td>${a.cout?a.cout.toFixed(2)+' €':'—'}</td></tr>`).join('')}</tbody></table>`:'<span class="muted">Aucune fiche sur la période.</span>';
   $('rp-detail').innerHTML=F.length?`<details><summary class="muted" style="cursor:pointer">Détail des ${F.length} fiches</summary>
-    <table style="margin-top:8px"><thead><tr><th>N°</th><th>Date</th><th>Commercial</th><th>Client</th><th>Article</th><th>Qté</th><th>Reçu</th><th>Motif</th><th>Fact. orig.</th><th>Fact. rempl.</th><th>Statut</th></tr></thead><tbody>
-    ${F.map(f=>`<tr><td>${esc(f.numero)}</td><td>${new Date(f.date).toLocaleDateString('fr-FR')}</td><td>${esc(f.commercial)}</td><td>${esc(f.client)}</td><td>${esc(f.ref)} <span class="muted">${esc(f.article)}</span></td><td>${f.qte}</td><td>${f.qte_recue||0}/${f.qte}</td><td>${MOTIFS[f.motif]||f.motif}</td><td>${esc(f.facture_origine||'—')}</td><td><b>${esc(f.facture_remplacement||'—')}</b></td><td>${(STATUTS[f.statut]||[f.statut])[0]}</td></tr>`).join('')}</tbody></table></details>`:'';
+    <table style="margin-top:8px"><thead><tr><th>N°</th><th>Date</th><th>Commercial</th><th>Client</th><th>Article</th><th>Qté</th><th>Reçu</th><th>Reçu le</th><th>Motif</th><th>Fact. orig.</th><th>Fact. rempl.</th><th>Livr. prévue</th><th>Statut</th></tr></thead><tbody>
+    ${F.map(f=>`<tr><td>${esc(f.numero)}</td><td>${new Date(f.date).toLocaleDateString('fr-FR')}</td><td>${esc(f.commercial)}</td><td>${esc(f.client)}</td><td>${esc(f.ref)} <span class="muted">${esc(f.article)}</span></td><td>${f.qte}</td><td>${f.qte_recue||0}/${f.qte}</td><td>${f.recu_le?new Date(f.recu_le).toLocaleDateString('fr-FR'):'—'}</td><td>${MOTIFS[f.motif]||f.motif}</td><td>${esc(f.facture_origine||'—')}</td><td><b>${esc(f.facture_remplacement||'—')}</b></td><td>${f.date_livraison_prevue?new Date(f.date_livraison_prevue).toLocaleDateString('fr-FR'):'—'}</td><td>${(STATUTS[f.statut]||[f.statut])[0]}</td></tr>`).join('')}</tbody></table></details>`:'';
+}
+function dossierFournisseur(){
+  const F=_rpFiltre();
+  if(!F.length){toast('Rien dans la sélection');return}
+  if(F.length>40){toast('Affine tes filtres : 40 fiches max par dossier (là : '+F.length+')');return}
+  toast('📦 Génération du dossier ('+F.length+' fiches)…');
+  window.open(API+'/retours/dossier?ids='+F.map(f=>f.id).join(',')+'&t='+encodeURIComponent(S.token),'_blank');
 }
 function exportReporting(){
   const F=_rpFiltre();if(!F.length){toast('Rien à exporter');return}
-  const cols=['numero','date','commercial','client','ref','article','qte','qte_recue','motif','statut','facture_origine','facture_remplacement','cout'];
+  const cols=['numero','date','recu_le','date_livraison_prevue','date_livraison_reelle','commercial','client','ref','article','qte','qte_recue','motif','statut','facture_origine','facture_remplacement','cout'];
   const cell=v=>{if(v==null)return'';const s=String(v).replace(/"/g,'""');return /[;"\n]/.test(s)?'"'+s+'"':s};
   const csv='\ufeff'+cols.join(';')+'\n'+F.map(f=>cols.map(c=>cell(f[c])).join(';')).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
@@ -316,11 +344,41 @@ async function ouvrirDetail(id){
     <div style="margin:10px 0">${d.article?'<b>'+esc(d.article.ref_odoo)+'</b> — '+esc(d.article.libelle):'—'} · x${f.qte} · ${MOTIFS[f.motif]||f.motif}<br>
       <span class="muted">Client : ${esc(f.client_nom)} · Commercial : ${esc(f.commercial)}${f.facture_origine?' · Fact. origine : '+esc(f.facture_origine):''}${f.facture_remplacement?' · Fact. rempl. : <b>'+esc(f.facture_remplacement)+'</b>':''}${f.date_livraison_prevue?' · Livraison prévue : '+esc(f.date_livraison_prevue):''}</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${(d.photos||[]).map((p,ix)=>`<img src="${p.url}" onclick='voirPhotos(${JSON.stringify((d.photos||[]).map(x=>x.url)).replace(/'/g,"&#39;")},${ix})' style="width:92px;height:92px;object-fit:cover;border-radius:10px;border:1px solid var(--bd);cursor:pointer">`).join('')||'<span class="muted">Aucune photo.</span>'}</div>
+    <div id="det-outils"></div>
     <h3 style="font-size:14px">🕐 Historique</h3>
     ${(d.historique||[]).map(h=>`<div class="muted" style="padding:4px 0;border-bottom:1px solid var(--bd)">${new Date(h.created_at).toLocaleString('fr-FR')} · <b style="color:var(--txt)">${(STATUTS[h.nouveau_statut]||[h.nouveau_statut])[0]}</b> par ${esc(h.user_login)}${h.commentaire?' — '+esc(h.commentaire):''}</div>`).join('')||'<span class="muted">—</span>'}
   </div>`;
   bg.onmousedown=e=>{if(e.target===bg)bg.remove()};
   document.body.appendChild(bg);
+  const adm=['Admin','Depot'].includes(S.role);
+  const zone=document.getElementById('det-outils');
+  if(zone){
+    zone.innerHTML=`<div style="border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <label class="lbl-file" style="padding:7px 12px;font-size:13px">📷 Ajouter une photo<input type="file" accept="image/*" capture="environment" onchange="ajouterPhotoFiche('${f.id}',this)"></label>
+      ${adm?`<select class="fld" id="cor-st" style="max-width:150px;padding:7px">${Object.entries(STATUTS).map(([k,v])=>`<option value="${k}" ${f.statut===k?'selected':''}>${v[0]}</option>`).join('')}</select>
+      <input class="fld" id="cor-qr" type="number" min="0" max="${f.qte}" value="${parseInt(f.qte_recue)||0}" style="max-width:90px;padding:7px" title="Quantité reçue">
+      <span class="muted">/${f.qte} reçu</span>
+      <button class="btn" style="padding:7px 14px;font-size:13px" onclick="corrigerFiche('${f.id}','${esc(f.numero)}')">💾 Corriger</button>`:''}
+    </div>`;
+  }
+}
+async function corrigerFiche(id,num){
+  const r=await api('PATCH','/retours/'+id+'/corriger',{statut:document.getElementById('cor-st').value,qte_recue:parseInt(document.getElementById('cor-qr').value)});
+  if(r.error){toast('❌ '+r.error);return}
+  toast('💾 '+num+' corrigé');document.getElementById('retDet').remove();
+  chargerMes();chargerReception();chargerReporting();ouvrirDetail(id);
+}
+async function ajouterPhotoFiche(id,input){
+  const file=input.files&&input.files[0];input.value='';if(!file)return;
+  toast('⏳ Envoi de la photo…');
+  try{
+    const b64=await compresser(file,1600,0.8);
+    const up=await api('POST','/retours/photo',{photo:b64});
+    if(up.error){toast('❌ '+up.error);return}
+    const r=await api('POST','/retours/'+id+'/photos',{photos:[up.path]});
+    if(r.error){toast('❌ '+r.error);return}
+    toast('📷 Photo ajoutée');document.getElementById('retDet').remove();ouvrirDetail(id);
+  }catch(e){toast('❌ Photo illisible ou réseau')}
 }
 async function saisirFacture(id,num){
   const fac=prompt('N° de facture de remplacement pour '+num+' :');if(fac===null||!fac.trim())return;
