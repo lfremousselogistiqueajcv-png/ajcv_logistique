@@ -1,7 +1,24 @@
 {
-  "version": "2026.07.04.31",
+  "version": "2026.07.04.33",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.33",
+      "date": "07/09/2026",
+      "titre": "Étiquettes : BL agrandi + indications en gras",
+      "notes": [
+        "🏷️ Le numéro de BL est nettement plus gros (lecture de loin dans le dépôt).",
+        "📝 Les Indications saisies à l'ajout de la livraison s'impriment en GRAS sur chaque étiquette, sous le cadre COLIS (2 lignes max) — les consignes voyagent avec le colis."
+      ]
+    },
+    {
+      "v": "2026.07.04.32",
+      "date": "07/09/2026",
+      "titre": "CBD : pointage par créneaux",
+      "notes": [
+        "⏱️ Un préparateur peut clôturer son créneau CBD et en redémarrer un autre le même jour (matin production, après-midi préparation de commandes, retour en production…). Les heures et pauses du jour s'additionnent sur l'ensemble des créneaux."
+      ]
+    },
     {
       "v": "2026.07.04.31",
       "date": "07/09/2026",
