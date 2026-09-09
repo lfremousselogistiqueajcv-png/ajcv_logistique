@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.33",
+  "version": "2026.07.04.34",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.34",
+      "date": "11/09/2026",
+      "titre": "Préparateur : photos — traitement natif basse mémoire",
+      "notes": [
+        "📷 La photo est désormais décodée directement en taille réduite par le téléphone (accélération matérielle) : ~20× moins de mémoire au moment de la prise — fini le « Mémoire insuffisante » d'Android, même avec une grosse journée chargée.",
+        "⏳ Un message « Traitement de la photo… » s'affiche immédiatement après la prise."
+      ]
+    },
     {
       "v": "2026.07.04.33",
       "date": "07/09/2026",
