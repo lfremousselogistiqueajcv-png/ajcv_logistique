@@ -81,6 +81,17 @@
       <div class="muted" style="margin-bottom:10px">Import CSV (séparateur ; ou ,) — colonnes : ref_odoo · libelle · code_barre · categorie · prix_achat. Import en mise à jour : une référence existante est actualisée, jamais doublée.</div>
       <label class="lbl-file">📥 Importer un CSV<input type="file" id="csv-file" accept=".csv,text/csv" onchange="importerCSV(this)"></label>
       <span id="imp-res" class="muted" style="margin-left:10px"></span>
+      <div style="border-top:1px solid var(--bd);margin-top:12px;padding-top:12px">
+        <div class="muted" style="margin-bottom:6px"><b style="color:var(--txt)">➕ Ajouter un article manuellement</b> (référence existante = mise à jour)</div>
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px">
+          <input class="fld" id="na-ref" placeholder="Réf. Odoo *">
+          <input class="fld" id="na-lib" placeholder="Libellé *">
+          <input class="fld" id="na-cb" placeholder="Code-barres (douchette)">
+          <input class="fld" id="na-cat" placeholder="Catégorie">
+          <input class="fld" id="na-px" placeholder="Prix d'achat (ex: 4,50)">
+          <button class="btn" onclick="ajouterArticle()">➕ Ajouter au catalogue</button>
+        </div>
+      </div>
     </div>
     <div class="card admin-only">
       <h3>🔎 Recherche (libellé, référence ou douchette)</h3>
@@ -449,6 +460,16 @@ async function saisirFacture(id,num){
   const r=await api('PATCH','/retours/'+id+'/facture',{facture_remplacement:fac.trim(),date_livraison_prevue:dt.trim()});
   if(r.error){toast('❌ '+r.error);return}
   toast('✅ '+num+' → Remplacé');chargerMes();
+}
+async function ajouterArticle(){
+  const g=x=>$(x).value.trim();
+  const ref=g('na-ref'),lib=g('na-lib');
+  if(!ref||!lib){toast('Référence et libellé obligatoires');return}
+  const r=await api('POST','/retours/articles/import',{lignes:[{ref_odoo:ref,libelle:lib,code_barre:g('na-cb'),categorie:g('na-cat'),prix_achat:g('na-px')}]});
+  if(r.error){toast('❌ '+r.error);return}
+  toast(r.crees?'✅ '+ref+' créé':'🔁 '+ref+' mis à jour');
+  ['na-ref','na-lib','na-cb','na-cat','na-px'].forEach(x=>$(x).value='');
+  $('na-ref').focus();rechercher($('rech').value);
 }
 // ── Import CSV ──
 function importerCSV(input){

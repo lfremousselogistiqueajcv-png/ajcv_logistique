@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.34",
+  "version": "2026.07.04.35",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.35",
+      "date": "11/09/2026",
+      "titre": "Retours : ajout manuel d'articles au catalogue",
+      "notes": [
+        "➕ Dans le panneau Catalogue (admin) : ajout d'un article à la main (réf., libellé, code-barres, catégorie, prix d'achat) — sans passer par un CSV. Une référence déjà connue est mise à jour, jamais doublée."
+      ]
+    },
     {
       "v": "2026.07.04.34",
       "date": "11/09/2026",
