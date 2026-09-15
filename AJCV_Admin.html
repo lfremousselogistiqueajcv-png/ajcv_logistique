@@ -1095,6 +1095,7 @@ async function renderLivraisons(){
       </div>
       <div class="form-grid" style="margin-bottom:14px">
         <div><label>Date</label><input type="date" id="lv-date" value="${today}" onchange="chargerLivraisons()"></div>
+        <div><label>au <span class="muted" style="font-weight:400">(optionnel : plusieurs jours)</span></label><input type="date" id="lv-date-fin" onchange="chargerLivraisons()"></div>
         <div><label>Zone</label><select id="lv-zone" onchange="chargerLivraisons()">
           <option value="">Toutes</option><option value="1">🟢 Zone 1</option><option value="2">🔵 Zone 2</option><option value="3">🟠 Zone 3</option>
         </select></div>
@@ -1112,7 +1113,11 @@ async function chargerLivraisons(){
   // Date JJ/MM/AAAA
   const [y,m,d]=date.split('-');
   const dFR=d+'/'+m+'/'+y;
-  const q=`/livraisons?zone=${encodeURIComponent(zone)}&date=${encodeURIComponent(dFR)}`;
+  const finEl=document.getElementById('lv-date-fin'); const fin=finEl?finEl.value:'';
+  window._lvPlage = !!(fin && fin!==date);
+  const q = _lvPlage
+    ? `/livraisons?zone=${encodeURIComponent(zone)}&debut=${encodeURIComponent(fin<date?fin:date)}&fin=${encodeURIComponent(fin<date?date:fin)}`
+    : `/livraisons?zone=${encodeURIComponent(zone)}&date=${encodeURIComponent(dFR)}`;
   try{
     const data=await api('GET',q);
     _livAll=data.livraisons||[];
@@ -1184,8 +1189,9 @@ function renderLivTable(){
   }
     el.innerHTML=`<div class="muted" style="margin-bottom:10px">${v.total} livraison(s)</div>
     <div class="table-wrap"><table>
-      <thead><tr><th class="sortable" onclick="trierLivraisons('client')">Client${sortArrow('client')}</th><th class="sortable" onclick="trierLivraisons('bl')">N° BL${sortArrow('bl')}</th><th class="sortable" onclick="trierLivraisons('ville')">Ville${sortArrow('ville')}</th><th class="sortable" onclick="trierLivraisons('zone')">Zone${sortArrow('zone')}</th><th class="sortable" onclick="trierLivraisons('statut')">Statut${sortArrow('statut')}</th><th class="sortable" onclick="trierLivraisons('livreur')">Livreur${sortArrow('livreur')}</th><th class="sortable" onclick="trierLivraisons('colis')">Colis${sortArrow('colis')}</th><th></th></tr></thead>
+      <thead><tr>${window._lvPlage?'<th>Date</th>':''}<th class="sortable" onclick="trierLivraisons('client')">Client${sortArrow('client')}</th><th class="sortable" onclick="trierLivraisons('bl')">N° BL${sortArrow('bl')}</th><th class="sortable" onclick="trierLivraisons('ville')">Ville${sortArrow('ville')}</th><th class="sortable" onclick="trierLivraisons('zone')">Zone${sortArrow('zone')}</th><th class="sortable" onclick="trierLivraisons('statut')">Statut${sortArrow('statut')}</th><th class="sortable" onclick="trierLivraisons('livreur')">Livreur${sortArrow('livreur')}</th><th class="sortable" onclick="trierLivraisons('colis')">Colis${sortArrow('colis')}</th><th></th></tr></thead>
       <tbody>${v.rows.map(l=>`<tr>
+        ${window._lvPlage?`<td style="white-space:nowrap">${(l.date_livraison||'').split('-').reverse().join('/')}</td>`:''}
         <td><b>${esc(l.client_nom)}</b></td>
         <td>${l.bl?`<span style="font-family:monospace">${esc(l.bl)}</span>`:'<span class="muted">—</span>'}</td>
         <td>${esc(l.ville)}</td>

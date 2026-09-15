@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.35",
+  "version": "2026.07.04.36",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.36",
+      "date": "15/09/2026",
+      "titre": "Admin : livraisons sur plusieurs jours",
+      "notes": [
+        "📅 Dans l'onglet Livraisons, un champ « au » optionnel permet d'afficher plusieurs jours d'un coup (plage de dates). Une colonne Date apparaît alors dans le tableau. Champ vide = vue d'un seul jour, comme avant."
+      ]
+    },
     {
       "v": "2026.07.04.35",
       "date": "11/09/2026",
