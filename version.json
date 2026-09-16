@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.49",
+  "version": "2026.07.04.50",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.50",
+      "date": "16/09/2026",
+      "titre": "Portail installable (une seule icône AJCV)",
+      "notes": [
+        "📲 Le portail (menu à tuiles) peut maintenant être installé comme une vraie application — bouton « Installer l'application » qui apparaît automatiquement quand c'est possible. Avant, seul un simple raccourci (signet) était proposé depuis le menu.",
+        "🏠 Une seule icône AJCV sur l'écran d'accueil : elle ouvre le menu, et chaque appli (Livreur, Préparateur, Retours…) s'ouvre depuis là sans ressortir du navigateur."
+      ]
+    },
     {
       "v": "2026.07.04.49",
       "date": "16/09/2026",
