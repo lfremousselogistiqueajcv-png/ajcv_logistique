@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.50",
+  "version": "2026.07.04.51",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.51",
+      "date": "16/09/2026",
+      "titre": "Portail : mention en pied de page",
+      "notes": [
+        "✍️ Ajout de « Édité par Laurent FREMOUSSE » en pied de page du portail."
+      ]
+    },
     {
       "v": "2026.07.04.50",
       "date": "16/09/2026",
