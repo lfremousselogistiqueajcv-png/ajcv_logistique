@@ -1,7 +1,17 @@
 {
-  "version": "2026.07.04.48",
+  "version": "2026.07.04.49",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.49",
+      "date": "16/09/2026",
+      "titre": "Logo de l'entreprise + installation mobile corrigée",
+      "notes": [
+        "🎨 Le vrai logo AJCV remplace les icônes provisoires : portail, console Administration (menu + connexion), Livreur (démarrage + connexion), Préparateur (connexion). Favicon et icône d'écran d'accueil sur toutes les applis.",
+        "📲 Corrigé : l'appli Livreur et l'appli Préparateur ne pouvaient pas être installées sur téléphone — leur fiche d'installation n'avait pas d'icônes déclarées, ce qu'Android exige. Le logo sert maintenant d'icône d'installation.",
+        "🔧 Correctif technique : le script de fabrication des sites (test/prod/local) ne savait pas copier des images sans les abîmer — corrigé pour permettre d'ajouter des visuels au projet."
+      ]
+    },
     {
       "v": "2026.07.04.48",
       "date": "16/09/2026",

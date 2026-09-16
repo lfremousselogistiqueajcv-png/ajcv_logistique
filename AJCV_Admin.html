@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AJCV — Administration</title>
+<link rel="icon" href="logo-32.png" type="image/png">
+<link rel="apple-touch-icon" href="logo-192.png">
 <style>
 :root{--gold:#E8A63C;--blue:#4E8BF0;--bg:#12151B;--surface:#181C23;--surface2:#20252E;--border:rgba(255,255,255,.08);--text:#EDEEF1;--text2:#9BA1AC;--text3:#6E7480;--green:#33C481;--red:#F0555A;--orange:#E39A3D}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -13,7 +15,8 @@ a{color:var(--gold)}
 /* LOGIN */
 #login{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}
 .login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:380px}
-.login-logo{text-align:center;font-size:48px;margin-bottom:8px}
+.login-logo{text-align:center;margin-bottom:8px}
+.login-logo img{width:64px;height:64px;border-radius:50%;object-fit:cover}
 .login-card h1{font-size:20px;font-weight:700;color:var(--gold);text-align:center;margin-bottom:4px}
 .login-card .sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:24px}
 label{font-size:12px;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;margin-top:14px}
@@ -39,7 +42,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .sidebar{width:224px;flex:none;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:width .16s ease;overflow:hidden}
 #app.collapsed .sidebar{width:60px}
 .side-brand{display:flex;align-items:center;gap:10px;padding:16px 14px;white-space:nowrap;flex:none}
-.side-mark{width:28px;height:28px;border-radius:8px;background:var(--gold);color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none}
+.side-mark{width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none}
 .side-name{font-weight:800;font-size:14px;color:var(--text)}
 #app.collapsed .side-name{display:none}
 .side-nav{flex:1;overflow-y:auto;padding:4px 10px 16px}
@@ -157,7 +160,7 @@ html[data-theme="light"]{
 <!-- LOGIN -->
 <div id="login">
   <div class="login-card">
-    <div class="login-logo">⚙️</div>
+    <div class="login-logo"><img src="logo-512.png" alt="AJCV"></div>
     <h1>Administration AJCV</h1>
     <div class="sub">La Réunion — 974</div>
     <label>Identifiant</label>
@@ -177,7 +180,7 @@ html[data-theme="light"]{
 <!-- APP -->
 <div id="app">
   <aside class="sidebar">
-    <div class="side-brand"><span class="side-mark">AJ</span><span class="side-name">AJCV</span></div>
+    <div class="side-brand"><img class="side-mark" src="logo-192.png" alt="AJCV"><span class="side-name">AJCV</span></div>
     <nav class="side-nav">
       <div class="nav-tab active" data-tab="accueil" onclick="go('accueil')">🏠<span>Accueil</span></div>
       <div class="side-group">Exploitation</div>
