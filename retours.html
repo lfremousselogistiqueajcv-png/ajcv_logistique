@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>↩️ AJCV — Retours client</title>
 <style>
-  :root{--bg:#0F1724;--card:#16213A;--bd:#24304F;--txt:#E7ECF6;--mut:#8B9EC7;--ok:#22C55E;--err:#EF4444;--acc:#3B82F6}
+  :root{--bg:#12151B;--card:#181C23;--bd:#2A3038;--txt:#EDEEF1;--mut:#9BA1AC;--ok:#33C481;--err:#F0555A;--acc:#E8A63C}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
   header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--bd)}
@@ -13,18 +13,18 @@
   main{max-width:920px;margin:0 auto;padding:16px}
   .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:14px}
   h3{margin:0 0 10px;font-size:15px}
-  .fld{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:#0D1526;color:var(--txt);font-size:15px}
-  .btn{padding:10px 16px;border-radius:10px;border:none;background:var(--acc);color:#fff;font-weight:700;cursor:pointer;font-size:14px}
+  .fld{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:#14171D;color:var(--txt);font-size:15px}
+  .btn{padding:10px 16px;border-radius:10px;border:none;background:var(--acc);color:#181C23;font-weight:700;cursor:pointer;font-size:14px}
   .btn:disabled{opacity:.5}
   .muted{color:var(--mut);font-size:13px}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
   th,td{padding:8px;border-bottom:1px solid var(--bd);text-align:left}
   .pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700}
-  .ok{background:rgba(34,197,94,.15);color:#4ADE80}.err{background:rgba(239,68,68,.15);color:#F87171}
+  .ok{background:rgba(51,196,129,.15);color:#4ADE80}.err{background:rgba(240,85,90,.15);color:#F87171}
   #login-view{max-width:380px;margin:12vh auto;padding:0 16px}
-  .toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%);background:#1E293B;border:1px solid var(--bd);color:var(--txt);padding:10px 18px;border-radius:10px;font-size:14px;z-index:9998;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+  .toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%);background:#20252E;border:1px solid var(--bd);color:var(--txt);padding:10px 18px;border-radius:10px;font-size:14px;z-index:9998;box-shadow:0 6px 20px rgba(0,0,0,.4)}
   input[type=file]{display:none}
-  .lbl-file{display:inline-block;padding:10px 16px;border-radius:10px;background:#1E293B;border:1px solid var(--bd);cursor:pointer;font-weight:700;font-size:14px}
+  .lbl-file{display:inline-block;padding:10px 16px;border-radius:10px;background:#20252E;color:#fff;border:1px solid var(--bd);cursor:pointer;font-weight:700;font-size:14px}
 </style>
 </head>
 <body>
@@ -38,14 +38,14 @@
   </div>
 </div>
 <div id="app-view" style="display:none">
-  <header><h1>↩️ Retours client</h1><span class="badge-v" id="vbadge"></span><span class="muted" id="qui"></span><button class="btn" style="background:#1E293B" onclick="deconnexion()">Quitter</button></header>
+  <header><h1>↩️ Retours client</h1><span class="badge-v" id="vbadge"></span><span class="muted" id="qui"></span><button class="btn" style="background:#20252E;color:#fff" onclick="deconnexion()">Quitter</button></header>
   <main>
     <div class="card">
       <h3>➕ Déclarer un retour</h3>
       <select class="fld" id="rc-commercial" style="margin-bottom:8px"><option value="">— Commercial (qui a récupéré le produit) —</option></select>
       <input class="fld" id="rc-client" placeholder="Nom du client" list="rc-clients" style="margin-bottom:10px"><datalist id="rc-clients"></datalist>
       <div id="rc-lignes"></div>
-      <button class="btn" style="background:#1E293B;margin-top:6px" onclick="ajouterLigne()">+ Ajouter un article</button>
+      <button class="btn" style="background:#20252E;color:#fff;margin-top:6px" onclick="ajouterLigne()">+ Ajouter un article</button>
       <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
         <button class="btn" id="rc-env" onclick="envoyerRetour()">📤 Envoyer le retour</button>
         <span class="muted" id="rc-msg"></span>
@@ -71,7 +71,7 @@
         </select>
         <select class="fld" id="rp-art" style="max-width:240px" onchange="renderReporting()"><option value="">Tous les produits</option></select>
         <input class="fld" id="rp-q" placeholder="Filtrer client / commercial / facture / n° RET…" style="flex:1;min-width:180px" oninput="renderReporting()">
-        <button class="btn" style="background:#1E293B" onclick="exportReporting()">⬇️ CSV</button>
+        <button class="btn" style="background:#20252E;color:#fff" onclick="exportReporting()">⬇️ CSV</button>
       </div>
       <div id="rp-synthese"></div>
       <div id="rp-detail" style="margin-top:12px"></div>
@@ -157,7 +157,7 @@ async function chargerCommerciaux(){
     const sel=$('rc-commercial');
     if(sel){const cur=sel.value;sel.innerHTML='<option value="">— Commercial (qui a récupéré le produit) —</option>'+L.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');if(cur&&L.includes(cur))sel.value=cur;}
     const zone=$('cm-liste');
-    if(zone)zone.innerHTML=L.length?L.map(n=>`<span style="display:inline-flex;align-items:center;gap:6px;background:#0D1526;border:1px solid var(--bd);border-radius:99px;padding:5px 12px;margin:3px;color:var(--txt)">${esc(n)}<b style="cursor:pointer;color:#F87171" onclick="retirerCommercial('${esc(n)}')">✕</b></span>`).join(''):'Aucun commercial — ajoute-les ci-dessus.';
+    if(zone)zone.innerHTML=L.length?L.map(n=>`<span style="display:inline-flex;align-items:center;gap:6px;background:#14171D;border:1px solid var(--bd);border-radius:99px;padding:5px 12px;margin:3px;color:var(--txt)">${esc(n)}<b style="cursor:pointer;color:#F87171" onclick="retirerCommercial('${esc(n)}')">✕</b></span>`).join(''):'Aucun commercial — ajoute-les ci-dessus.';
   }catch(_){}
 }
 async function ajouterCommercial(){
@@ -174,15 +174,15 @@ async function retirerCommercial(n){
 }
 // ── Déclaration (panier multi-articles, photos envoyées dès la prise) ──
 const MOTIFS={fuite:'Fuite',ne_s_allume_pas:"Ne s'allume pas",gout:'Goût',dlc:'DLC',casse:'Casse',autre:'Autre'};
-const STATUTS={declare:['Déclaré','#F59E0B'],recu_depot:['Reçu dépôt','#3B82F6'],remplace:['Remplacé','#8B5CF6'],livre:['Livré','#22C55E'],refuse:['Refusé','#EF4444']};
+const STATUTS={declare:['Déclaré','#E8A63C'],recu_depot:['Reçu dépôt','#4E8BF0'],remplace:['Remplacé','#8B6CF2'],livre:['Livré','#33C481'],refuse:['Refusé','#F0555A']};
 let P={lignes:[]};
 function ajouterLigne(){P.lignes.push({article:null,qte:1,motif:'fuite',commentaire:'',facture_origine:'',photos:[],up:0});renderLignes()}
 function retirerLigne(i){P.lignes.splice(i,1);renderLignes()}
 function renderLignes(){
   $('rc-lignes').innerHTML=P.lignes.map((l,i)=>`
   <div style="border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Article ${i+1}</b><button class="btn" style="background:#7F1D1D;padding:4px 10px" onclick="retirerLigne(${i})">✕</button></div>
-    ${l.article?`<div style="margin-bottom:8px">✅ <b>${esc(l.article.ref_odoo)}</b> — ${esc(l.article.libelle)} <button class="btn" style="background:#1E293B;padding:3px 9px;font-size:12px" onclick="P.lignes[${i}].article=null;renderLignes()">changer</button></div>`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Article ${i+1}</b><button class="btn" style="background:#5C2429;color:#fff;padding:4px 10px" onclick="retirerLigne(${i})">✕</button></div>
+    ${l.article?`<div style="margin-bottom:8px">✅ <b>${esc(l.article.ref_odoo)}</b> — ${esc(l.article.libelle)} <button class="btn" style="background:#20252E;color:#fff;padding:3px 9px;font-size:12px" onclick="P.lignes[${i}].article=null;renderLignes()">changer</button></div>`
       :`<input class="fld" placeholder="Article : libellé, réf ou douchette…" style="margin-bottom:6px" oninput="chercherArt(${i},this.value)"><div id="art-res-${i}"></div>`}
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <input class="fld" type="number" min="1" value="${l.qte}" style="max-width:90px" onchange="P.lignes[${i}].qte=parseInt(this.value)||1" placeholder="Qté">
@@ -243,7 +243,7 @@ async function chargerMes(){
   $('mes-fiches').innerHTML=F.length?'<table><thead><tr><th>N°</th><th>Client</th><th>Article</th><th>Qté</th><th>Motif</th><th>Statut</th><th></th></tr></thead><tbody>'+
     F.map(f=>{const st=STATUTS[f.statut]||[f.statut,'#888'];
       const admin=['Admin','Depot'].includes(S.role);
-      const actL=(admin&&f.statut==='remplace'&&f.recu_le)?`<button class="btn" style="padding:5px 10px;font-size:12px;background:#166534" onclick="livrerFiche('${f.id}','${esc(f.numero)}')">🚚 Livré</button> `:'';
+      const actL=(admin&&f.statut==='remplace'&&f.recu_le)?`<button class="btn" style="padding:5px 10px;font-size:12px;background:#1F5C41;color:#fff" onclick="livrerFiche('${f.id}','${esc(f.numero)}')">🚚 Livré</button> `:'';
       const act=actL+(['declare','recu_depot'].includes(f.statut)?`<button class="btn" style="padding:5px 10px;font-size:12px" onclick="saisirFacture('${f.id}','${esc(f.numero)}')">💶 Facture + date</button>`:'');
       return `<tr><td><b style="cursor:pointer;text-decoration:underline" onclick="ouvrirDetail('${f.id}')">${esc(f.numero)}</b></td><td>${esc(f.client_nom)}</td><td>${f.article?esc(f.article.ref_odoo)+' <span class=muted>'+esc(f.article.libelle)+'</span>':'—'}</td><td>${f.qte}</td><td>${MOTIFS[f.motif]||f.motif}</td><td><span class="pill" style="background:${st[1]}22;color:${st[1]}">${st[0]}</span></td><td>${act}</td></tr>`}).join('')+
     '</tbody></table>':'Aucune fiche.';
@@ -256,8 +256,8 @@ async function chargerReception(){
   $('rd-count').textContent=F.length?'· '+F.length+' en attente':'';
   $('rd-liste').innerHTML=F.length?'<table><thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Article</th><th>Qté</th><th>Reçu</th><th>Motif</th><th>Factures</th><th>Commercial</th><th></th></tr></thead><tbody>'+
     F.map(f=>`<tr><td><b style="cursor:pointer;text-decoration:underline" onclick="ouvrirDetail('${f.id}')">${esc(f.numero)}</b></td><td>${new Date(f.created_at).toLocaleDateString('fr-FR')}</td><td>${esc(f.client_nom)}</td><td>${f.article?esc(f.article.ref_odoo):'—'}</td><td>${f.qte}</td><td><b>${parseInt(f.qte_recue)||0}/${f.qte}</b></td><td>${MOTIFS[f.motif]||f.motif}</td><td class="small">${f.facture_origine?'orig. '+esc(f.facture_origine):''}${f.facture_remplacement?(f.facture_origine?' · ':'')+'rempl. <b>'+esc(f.facture_remplacement)+'</b>':''}${(!f.facture_origine&&!f.facture_remplacement)?'—':''}</td><td>${esc(f.commercial_nom||f.commercial)}</td>
-      <td style="white-space:nowrap"><button class="btn" style="padding:5px 10px;font-size:12px;background:#166534" onclick="recevoirFiche('${f.id}','${esc(f.numero)}',${f.qte-(parseInt(f.qte_recue)||0)})">✅ Reçu</button>
-      <button class="btn" style="padding:5px 10px;font-size:12px;background:#7F1D1D;margin-left:5px" onclick="refuserFiche('${f.id}','${esc(f.numero)}')">❌ Refuser</button></td></tr>`).join('')+
+      <td style="white-space:nowrap"><button class="btn" style="padding:5px 10px;font-size:12px;background:#1F5C41;color:#fff" onclick="recevoirFiche('${f.id}','${esc(f.numero)}',${f.qte-(parseInt(f.qte_recue)||0)})">✅ Reçu</button>
+      <button class="btn" style="padding:5px 10px;font-size:12px;background:#5C2429;color:#fff;margin-left:5px" onclick="refuserFiche('${f.id}','${esc(f.numero)}')">❌ Refuser</button></td></tr>`).join('')+
     '</tbody></table>':'<span class="muted">Rien en attente — tout est reçu. ✅</span>';
 }
 async function recevoirFiche(id,num,restant){
@@ -312,7 +312,7 @@ function renderReporting(){
     if(f.recu_le)dRec.push((new Date(f.recu_le)-new Date(f.date))/86400000);
     if(f.date_livraison_prevue&&f.statut!=='livre'&&f.statut!=='refuse'&&new Date(f.date_livraison_prevue)<new Date())retard++});
   const dMoy=dRec.length?(dRec.reduce((a,b)=>a+b,0)/dRec.length):null;
-  const tuile=(v,l,c)=>`<div style="flex:1;min-width:105px;background:#0D1526;border:1px solid var(--bd);border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:${c||'var(--txt)'}">${v}</div><div class="muted" style="font-size:11px">${l}</div></div>`;
+  const tuile=(v,l,c)=>`<div style="flex:1;min-width:105px;background:#14171D;border:1px solid var(--bd);border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:${c||'var(--txt)'}">${v}</div><div class="muted" style="font-size:11px">${l}</div></div>`;
   $('rp-synthese').innerHTML=A.length?`
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     ${tuile(F.length,'Fiches')}${tuile(qT,'Produits déf.','#F87171')}${tuile(cT.toFixed(0)+' €','Coût gestes','#FBBF24')}
@@ -320,7 +320,7 @@ function renderReporting(){
     ${tuile((parStatut.refuse||0),'Refusées')}
   </div>
   <div class="muted" style="margin-bottom:6px">Par motif : ${Object.entries(parMotif).sort((a,b)=>b[1]-a[1]).map(([m,q])=>(MOTIFS[m]||m)+' <b style="color:var(--txt)">'+q+'</b>').join(' · ')||'—'}
-   <button class="btn" style="padding:5px 12px;font-size:12px;margin-left:10px;background:#166534" onclick="dossierFournisseur()">📦 Dossier fournisseur (photos)</button></div>
+   <button class="btn" style="padding:5px 12px;font-size:12px;margin-left:10px;background:#1F5C41;color:#fff" onclick="dossierFournisseur()">📦 Dossier fournisseur (photos)</button></div>
     <table><thead><tr><th>Réf.</th><th>Article</th><th>Fiches</th><th>Qté déf.</th><th>Reçu dépôt</th><th>Coût</th></tr></thead><tbody>
     ${A.map(a=>`<tr><td><b>${esc(a.ref)}</b></td><td>${esc(a.article)}</td><td>${a.fiches}</td><td><b>${a.qte}</b></td><td>${a.recu||0}/${a.qte}${(a.recu||0)<a.qte?' <span class="pill err">incomplet</span>':' <span class="pill ok">✓</span>'}</td><td>${a.cout?a.cout.toFixed(2)+' €':'—'}</td></tr>`).join('')}</tbody></table>`:'<span class="muted">Aucune fiche sur la période.</span>';
   $('rp-detail').innerHTML=F.length?`<details><summary class="muted" style="cursor:pointer">Détail des ${F.length} fiches</summary>
@@ -383,7 +383,7 @@ async function ouvrirDetail(id){
   bg=document.createElement('div');bg.id='retDet';
   bg.style.cssText='position:fixed;inset:0;z-index:9996;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:14px';
   bg.innerHTML=`<div style="background:var(--card);border:1px solid var(--bd);border-radius:14px;max-width:600px;width:100%;max-height:85vh;overflow:auto;padding:18px;color:var(--txt)">
-    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">${esc(f.numero)} <span class="pill" style="background:${st[1]}22;color:${st[1]}">${st[0]}</span></h3><button class="btn" style="background:#1E293B;padding:5px 12px" onclick="document.getElementById('retDet').remove()">✕</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">${esc(f.numero)} <span class="pill" style="background:${st[1]}22;color:${st[1]}">${st[0]}</span></h3><button class="btn" style="background:#20252E;color:#fff;padding:5px 12px" onclick="document.getElementById('retDet').remove()">✕</button></div>
     <div style="margin:10px 0">${d.article?'<b>'+esc(d.article.ref_odoo)+'</b> — '+esc(d.article.libelle):'—'} · x${f.qte} · ${MOTIFS[f.motif]||f.motif}<br>
       <span class="muted">Client : ${esc(f.client_nom)} · Commercial : ${esc(f.commercial_nom||f.commercial)}${f.facture_origine?' · Fact. origine : '+esc(f.facture_origine):''}${f.facture_remplacement?' · Fact. rempl. : <b>'+esc(f.facture_remplacement)+'</b>':''}${f.date_livraison_prevue?' · Livraison prévue : '+esc(f.date_livraison_prevue):''}</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${(d.photos||[]).map((p,ix)=>`<img src="${p.url}" onclick='voirPhotos(${JSON.stringify((d.photos||[]).map(x=>x.url)).replace(/'/g,"&#39;")},${ix})' style="width:92px;height:92px;object-fit:cover;border-radius:10px;border:1px solid var(--bd);cursor:pointer">`).join('')||'<span class="muted">Aucune photo.</span>'}</div>
@@ -402,7 +402,7 @@ async function ouvrirDetail(id){
       <input class="fld" id="cor-qr" type="number" min="0" max="${f.qte}" value="${parseInt(f.qte_recue)||0}" style="max-width:90px;padding:7px" title="Quantité reçue">
       <span class="muted">/${f.qte} reçu</span>
       <button class="btn" style="padding:7px 14px;font-size:13px" onclick="corrigerFiche('${f.id}','${esc(f.numero)}')">💾 Corriger</button>
-      <button class="btn" style="padding:7px 14px;font-size:13px;background:#1E293B" onclick="modifierFiche('${f.id}')">✏️ Modifier la fiche</button>`:''}
+      <button class="btn" style="padding:7px 14px;font-size:13px;background:#20252E;color:#fff" onclick="modifierFiche('${f.id}')">✏️ Modifier la fiche</button>`:''}
     </div>`;
   }
 }
@@ -426,7 +426,7 @@ async function modifierFiche(id){
     </div>
     <div style="margin-top:10px;display:flex;gap:8px">
       <button class="btn" onclick="enregistrerModif('${f.id}','${esc(f.numero)}')">💾 Enregistrer</button>
-      <button class="btn" style="background:#1E293B" onclick="document.getElementById('retDet').remove();ouvrirDetail('${f.id}')">Annuler</button>
+      <button class="btn" style="background:#20252E;color:#fff" onclick="document.getElementById('retDet').remove();ouvrirDetail('${f.id}')">Annuler</button>
     </div></div>`;
 }
 async function enregistrerModif(id,num){

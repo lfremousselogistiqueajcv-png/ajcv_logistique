@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#0D1B4B">
+<meta name="theme-color" content="#181C23">
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://unpkg.com">
 <link rel="preconnect" href="https://router.project-osrm.org">
@@ -12,15 +12,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="AJCV Livraisons">
-<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22AJCV%20Livreur%22%2C%22short_name%22%3A%22AJCV%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230D1B4B%22%2C%22theme_color%22%3A%22%230D1B4B%22%7D">
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22AJCV%20Livreur%22%2C%22short_name%22%3A%22AJCV%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23181C23%22%2C%22theme_color%22%3A%22%23181C23%22%7D">
 <title>AJCV Livraisons</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root {
-  --navy:#0D1B4B; --navy2:#1A2B5F; --gold:#FFB300; --gold2:#FFC933;
-  --dark:#080F28; --surface:#111827; --surface2:#1F2937;
-  --green:#22C55E; --red:#EF4444; --blue:#3B82F6; --orange:#F97316; --purple:#A855F7;
-  --text:#F9FAFB; --text2:#9CA3AF; --text3:#6B7280;
+  --navy:#181C23; --navy2:#20252E; --gold:#E8A63C; --gold2:#F0BE6E;
+  --dark:#12151B; --surface:#181C23; --surface2:#20252E;
+  --green:#33C481; --red:#F0555A; --blue:#4E8BF0; --orange:#E39A3D; --purple:#8B6CF2;
+  --text:#EDEEF1; --text2:#9BA1AC; --text3:#6E7480;
   --border:rgba(255,255,255,0.08);
   --r:14px; --rs:8px;
 }
@@ -241,14 +241,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .charge-colis span small{font-size:9px;font-weight:600;color:var(--text2)}
 /* MODE CLAIR (accessibilite haute lisibilite) */
 html[data-theme="light"]{
-  --dark:#EDF1F7; --surface:#FFFFFF; --surface2:#EBEFF5; --surface3:#DCE2EC;
-  --navy:#E3E8F2; --navy2:#D5DCEA;
-  --text:#0F172A; --text2:#475569; --text3:#64748B;
-  --border:rgba(15,23,42,0.14);
+  --dark:#F4F5F7; --surface:#FFFFFF; --surface2:#EDEEF2; --surface3:#E3E5EA;
+  --navy:#EDEEF2; --navy2:#E3E5EA; --gold:#0B6B57; --gold2:#0E8069;
+  --text:#1B1F27; --text2:#666B76; --text3:#8A8F99;
+  --border:rgba(15,23,42,0.10);
 }
 #theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #theme-btn:active{transform:scale(.94)}
-#test-banner{position:fixed;top:0;left:0;right:0;z-index:10002;background:#A855F7;color:#fff;font:600 13px/1.4 Arial,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+#test-banner{position:fixed;top:0;left:0;right:0;z-index:10002;background:#8B6CF2;color:#fff;font:600 13px/1.4 Arial,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 </style>
 <script>try{var _t=localStorage.getItem('ajcv_theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 </head>
@@ -296,7 +296,7 @@ html[data-theme="light"]{
     <div id="loginError" style="display:none;background:rgba(239,68,68,.15);border:1px solid var(--red);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;text-align:center"></div>
 
     <button id="btnLogin" class="btn-login" onclick="connexion()" disabled>Se connecter</button>
-    <div style="text-align:center;margin-top:14px"><a href="reset.html" style="color:#FFB300;font-size:13px;text-decoration:none">Mot de passe oublié ?</a></div>
+    <div style="text-align:center;margin-top:14px"><a href="reset.html" style="color:#E8A63C;font-size:13px;text-decoration:none">Mot de passe oublié ?</a></div>
 
     <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text3)">
       🔒 Session sécurisée · Expiration automatique 8h<br>
@@ -321,9 +321,10 @@ html[data-theme="light"]{
       <button id="verBadge" onclick="ouvrirNouveautes()" title="Nouveautés"
         style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer;margin-right:6px">v…</button>
       <button id="btnInstall" onclick="installerApp()"
-        style="display:none;align-items:center;gap:4px;padding:4px 10px;background:#FFB300;color:#0D1B4B;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">
+        style="display:none;align-items:center;gap:4px;padding:4px 10px;background:#E8A63C;color:#181C23;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">
         📲 Installer
       </button>
+      <button class="header-btn" onclick="ouvrirMonPlanning()" title="Mon planning">🗓️</button>
       <button class="header-btn notif-btn" onclick="checkNotifications()">
         🔔<span class="notif-badge" id="notifBadge">0</span>
       </button>
@@ -337,9 +338,6 @@ html[data-theme="light"]{
     </div>
     <div class="tab" onclick="switchTab('chargement')">
       <span class="tab-icon">🚚</span>Chargement
-    </div>
-    <div class="tab" onclick="switchTab('carte')">
-      <span class="tab-icon">🗺️</span>Carte
     </div>
     <div class="tab" onclick="switchTab('done')">
       <span class="tab-icon">✅</span>Effectuées
@@ -383,6 +381,23 @@ html[data-theme="light"]{
     <div class="modal-btns">
       <button class="btn-cancel" onclick="fermerModal()">Annuler</button>
       <button class="btn-confirm" onclick="confirmerStatut()">✅ Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MON PLANNING -->
+<div class="modal-bg" id="modalPlanning">
+  <div class="modal-sheet" style="max-height:80vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🗓️ Mon planning</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:8px 0 4px">
+      <button onclick="_semainePlanningDelta(-1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--rs);padding:7px 12px;cursor:pointer">◀</button>
+      <span id="planningSemaine" style="color:var(--gold);font-weight:700;font-size:13px"></span>
+      <button onclick="_semainePlanningDelta(1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--rs);padding:7px 12px;cursor:pointer">▶</button>
+    </div>
+    <div id="planningCorps"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fermerMonPlanning()" style="width:100%">Fermer</button>
     </div>
   </div>
 </div>
@@ -1099,22 +1114,59 @@ function switchTab(tab) {
   state.activeTab = tab;
   if (tab === 'chargement') state._camionStatutDate = null;
   document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['livraisons','chargement','carte','done'][i] === tab);
+    t.classList.toggle('active', ['livraisons','chargement','done'][i] === tab);
   });
   renderTab();
-  // Fix Leaflet dans iframe : forcer redimensionnement quand on arrive sur la carte
-  if (tab === 'carte') {
-    setTimeout(() => { if (map) { map.invalidateSize(true); } }, 100);
-    setTimeout(() => { if (map) { map.invalidateSize(true); updateMapMarkers(); } }, 500);
-    setTimeout(() => { if (map) map.invalidateSize(true); }, 1000);
-  }
 }
 
 function renderTab() {
   if (state.activeTab === 'livraisons') renderLivraisons(false);
   else if (state.activeTab === 'chargement') renderChargement();
-  else if (state.activeTab === 'carte') renderCarte();
   else if (state.activeTab === 'done') renderLivraisons(true);
+}
+
+// ════════════════════════════════════════
+// MON PLANNING (missions données par le responsable — lecture seule)
+// Ouvert en fenêtre depuis l'en-tête, pas un onglet : ce n'est pas un statut de tournée.
+// ════════════════════════════════════════
+function _escPlan(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _lundiDeSem(d){ const x=new Date(d); const j=(x.getDay()+6)%7; x.setDate(x.getDate()-j); return x; }
+function _isoJourLocal(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+const _monPlanning={ weekStart:_isoJourLocal(_lundiDeSem(new Date())), items:[] };
+function ouvrirMonPlanning(){ document.getElementById('modalPlanning').classList.add('active'); renderMonPlanning(); }
+function fermerMonPlanning(){ document.getElementById('modalPlanning').classList.remove('active'); }
+async function renderMonPlanning(){
+  const c = document.getElementById('planningCorps');
+  c.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><div class="empty-title">Chargement...</div></div>';
+  const d0=new Date(_monPlanning.weekStart+'T00:00:00');
+  const jours=Array.from({length:7},(_,i)=>{const d=new Date(d0);d.setDate(d.getDate()+i);return _isoJourLocal(d);});
+  try{
+    const resp = await fetch(`${CFG.API_URL}/planning?personne=${encodeURIComponent(state.login||'')}&debut=${jours[0]}&fin=${jours[6]}`,
+      { headers:{'Authorization':`Bearer ${state.token||''}`} });
+    const data = await resp.json();
+    _monPlanning.items = data.planning || [];
+  }catch(_){ _monPlanning.items = []; }
+  const JOURS_LBL=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+  const parJour={}; _monPlanning.items.forEach(it=>{ (parJour[it.date_jour]=parJour[it.date_jour]||[]).push(it); });
+  const auj=_isoJourLocal(new Date());
+  const f=(iso)=>{const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});};
+  document.getElementById('planningSemaine').textContent = 'Semaine du '+f(jours[0])+' au '+f(jours[6]);
+  c.innerHTML = jours.map((j,i)=>{
+    const items=(parJour[j]||[]).sort((a,b)=>a.heure_debut.localeCompare(b.heure_debut));
+    return `<div style="margin-top:12px">
+      <div style="font-size:11px;font-weight:700;color:${j===auj?'var(--gold)':'var(--text3)'};text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${JOURS_LBL[i]} ${f(j)}${j===auj?' · aujourd’hui':''}</div>
+      ${items.length?items.map(it=>`
+        <div style="background:var(--surface2);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:13px">
+          <b>${(it.taches_types&&it.taches_types.icone)||'📋'} ${(it.taches_types&&_escPlan(it.taches_types.nom))||'Mission'}</b><br>
+          <span style="color:var(--text2)">🕐 ${it.heure_debut.slice(0,5)} – ${it.heure_fin.slice(0,5)}${it.commentaire?' · '+_escPlan(it.commentaire):''}</span>
+        </div>`).join(''):'<div style="color:var(--text2);font-size:12.5px;padding:2px 0 4px">Rien de prévu</div>'}
+    </div>`;
+  }).join('');
+}
+function _semainePlanningDelta(delta){
+  const d=new Date(_monPlanning.weekStart+'T00:00:00'); d.setDate(d.getDate()+delta*7);
+  _monPlanning.weekStart=_isoJourLocal(d);
+  renderMonPlanning();
 }
 
 // ════════════════════════════════════════
@@ -1646,7 +1698,7 @@ function renderLivraisons(showDone) {
       </div>`;
       const _src = String(state.routeInfo.sourceDistance || '');
       const _routier = _src.includes('google') || _src.includes('osrm');
-      html += `<div style="text-align:center;font-size:11px;font-weight:600;margin:-2px 0 8px;color:${_routier ? '#22C55E' : '#FFB300'}">${
+      html += `<div style="text-align:center;font-size:11px;font-weight:600;margin:-2px 0 8px;color:${_routier ? '#33C481' : '#E8A63C'}">${
         _routier
           ? '🛣️ Itinéraire routier réel (OSRM)'
           : '📐 Estimation géographique (OSRM indisponible) — ordre par le tour de l\'île'
@@ -1809,8 +1861,8 @@ function renderCarte() {
   }
   if (state.routeInfo && state.routeInfo.sourceDistance) {
     const routier = String(state.routeInfo.sourceDistance).includes('google') || String(state.routeInfo.sourceDistance).includes('osrm');
-    badge.style.background = routier ? '#22C55E' : '#FFB300';
-    badge.style.color = routier ? '#fff' : '#1a1a2e';
+    badge.style.background = routier ? '#33C481' : '#E8A63C';
+    badge.style.color = routier ? '#fff' : '#181C23';
     badge.textContent = routier ? '🛣️ Itinéraire routier réel (OSRM)' : '📐 Estimation géographique (OSRM indisponible)';
     badge.style.display = 'block';
   } else {
@@ -1837,7 +1889,7 @@ function renderCarte() {
 
       // Marqueur dépôt
       const depotIcon = L.divIcon({
-        html: '<div style="width:20px;height:20px;border-radius:50%;background:#FFB300;border:3px solid #0D1B4B;display:flex;align-items:center;justify-content:center;font-size:10px">🏭</div>',
+        html: '<div style="width:20px;height:20px;border-radius:50%;background:#E8A63C;border:3px solid #181C23;display:flex;align-items:center;justify-content:center;font-size:10px">🏭</div>',
         iconSize: [20,20], iconAnchor: [10,10], className: ''
       });
       L.marker([CFG.DEPOT.lat, CFG.DEPOT.lng], { icon: depotIcon })
@@ -1891,10 +1943,10 @@ function updateMapMarkers() {
       lng = coords[1] + (Math.random()-.5)*.008;
     }
 
-    let col = '#FFB300';
-    if (l.statut === '✅ Livré')         col = '#22C55E';
-    else if (l.statut === '❌ Non livré') col = '#EF4444';
-    else if (l.statut === '🔄 Reporté')  col = '#A855F7';
+    let col = '#E8A63C';
+    if (l.statut === '✅ Livré')         col = '#33C481';
+    else if (l.statut === '❌ Non livré') col = '#F0555A';
+    else if (l.statut === '🔄 Reporté')  col = '#8B6CF2';
 
     let ordre = '';
     if (state.ordreOptimise) {
@@ -1975,7 +2027,7 @@ async function tracerRouteOSRM() {
 
     // Convertir GeoJSON [lng,lat] → Leaflet [lat,lng]
     const latlngs = coords.map(c => [c[1], c[0]]);
-    L.polyline(latlngs, { color: '#FFB300', weight: 4, opacity: 0.85 }).addTo(markersLayer);
+    L.polyline(latlngs, { color: '#E8A63C', weight: 4, opacity: 0.85 }).addTo(markersLayer);
 
     // Mettre à jour km/min avec valeurs OSRM
     const totalKmOSRM  = Math.round(data.routes[0].distance / 100) / 10;
@@ -1997,7 +2049,7 @@ async function tracerRouteOSRM() {
       ...coordsStops.map(s => [parseFloat(s.lat), parseFloat(s.lng)]),
       [CFG.DEPOT.lat, CFG.DEPOT.lng]
     ];
-    L.polyline(points, { color: '#FFB300', weight: 3, opacity: .6, dashArray: '8,4' }).addTo(markersLayer);
+    L.polyline(points, { color: '#E8A63C', weight: 3, opacity: .6, dashArray: '8,4' }).addTo(markersLayer);
   }
 }
 
@@ -2530,6 +2582,7 @@ async function confirmerStatut() {
       showToast('✅ Statut mis à jour', 'success');
       renderTab();
       closeDetail();
+      if (statut === '❌ Non livré' && l.id) proposerAvisPassage(l);
     } else {
       showToast('❌ ' + (data.error || 'Code incorrect'), 'error');
     }
@@ -2969,7 +3022,7 @@ async function verifierLivraisonLivree(l){
   if (!resp.ok) return false;
   const data = await resp.json();
   const f = (data.livraisons||[]).find(x => (l.id && String(x.id)===String(l.id)) || (l.bl && x.bl===l.bl));
-  return !!(f && /livré/i.test(f.statut||''));
+  return !!(f && f.statut === '✅ Livré'); // exact : "❌ Non livré" ne doit jamais compter comme confirmé
 }
 
 // ════════════════════════════════════════
@@ -2996,6 +3049,17 @@ if ('Notification' in window) Notification.requestPermission();
 // ════════════════════════════════════════
 // HELPERS
 // ════════════════════════════════════════
+async function proposerAvisPassage(l){
+  if(!confirm('📩 Envoyer un avis de passage par email au client ?\n(passage horodaté + demande de reprogrammation)')) return;
+  try{
+    const resp=await fetch(`${CFG.API_URL}/livraisons/avis-passage`,{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
+      body:JSON.stringify({id:l.id})});
+    const d=await resp.json();
+    if(d.success) showToast('📩 Avis envoyé à '+d.email,'success');
+    else showToast('❌ '+(d.error||'Envoi impossible'),'error');
+  }catch(e){ showToast('❌ Réseau : avis non envoyé','error'); }
+}
 function getStatutClass(statut) {
   const map = {'✅ Livré':'pill-livre','❌ Non livré':'pill-nonlivre','🔄 Reporté':'pill-reporte','📞 À rappeler':'pill-rappel'};
   return map[statut] || 'pill-attente';
@@ -3067,8 +3131,8 @@ function montrerBanniereMaj(){
   if(document.getElementById('majBanner')) return;
   const b = document.createElement('div');
   b.id = 'majBanner';
-  b.style.cssText = 'position:fixed;left:12px;right:12px;bottom:16px;z-index:9500;background:#0D1B4B;color:#fff;border:1px solid #FFB300;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:14px';
-  b.innerHTML = '<span style="font-size:18px">🔄</span><span style="flex:1">Nouvelle version disponible</span><button style="background:#FFB300;color:#0D1B4B;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer">Mettre à jour</button>';
+  b.style.cssText = 'position:fixed;left:12px;right:12px;bottom:16px;z-index:9500;background:#181C23;color:#fff;border:1px solid #E8A63C;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:14px';
+  b.innerHTML = '<span style="font-size:18px">🔄</span><span style="flex:1">Nouvelle version disponible</span><button style="background:#E8A63C;color:#181C23;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer">Mettre à jour</button>';
   b.querySelector('button').onclick = ()=>{ localStorage.setItem('ajcv_app_version', _verEnAttente.version); location.replace(location.pathname + '?v=' + encodeURIComponent(_verEnAttente.version)); };
   document.body.appendChild(b);
 }
@@ -3119,8 +3183,8 @@ ap(document.documentElement.getAttribute('data-theme')||'dark');var b=document.g
   function showMaint(msg){
     if(document.getElementById('maint-screen'))return;
     var d=document.createElement('div'); d.id='maint-screen';
-    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#0F1724;color:#F0F4FF;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
-    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#8B9EC7">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#8B9EC7;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
+    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#12151B;color:#EDEEF1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#9BA1AC">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#9BA1AC;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
     document.body.appendChild(d);
     document.getElementById('maint-admin').onclick=function(){ d.remove(); };
   }

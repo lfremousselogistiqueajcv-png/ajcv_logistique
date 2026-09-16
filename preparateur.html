@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0D1B4B">
-<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22AJCV%20Pr%C3%A9pa%22%2C%22short_name%22%3A%22Pr%C3%A9pa%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230D1B4B%22%2C%22theme_color%22%3A%22%230D1B4B%22%7D">
+<meta name="theme-color" content="#181C23">
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22AJCV%20Pr%C3%A9pa%22%2C%22short_name%22%3A%22Pr%C3%A9pa%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23181C23%22%2C%22theme_color%22%3A%22%23181C23%22%7D">
 <title>AJCV Préparation</title>
 <style>
 :root{
-  --navy:#0D1B4B; --navy2:#1A2B5F; --gold:#FFB300; --gold2:#FFC933;
-  --dark:#080F28; --surface:#111827; --surface2:#1F2937;
-  --green:#22C55E; --red:#EF4444; --blue:#3B82F6; --orange:#F97316;
-  --text:#F9FAFB; --text2:#9CA3AF; --text3:#6B7280;
+  --navy:#181C23; --navy2:#20252E; --gold:#E8A63C; --gold2:#F0BE6E;
+  --dark:#12151B; --surface:#181C23; --surface2:#20252E;
+  --green:#33C481; --red:#F0555A; --blue:#4E8BF0; --orange:#E39A3D;
+  --text:#EDEEF1; --text2:#9BA1AC; --text3:#6E7480;
   --border:rgba(255,255,255,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -104,14 +104,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-relacher{background:none;border:none;color:var(--text2);font-size:12.5px;cursor:pointer;padding:8px 6px 2px;text-decoration:underline;align-self:flex-start}
 /* MODE CLAIR (accessibilite haute lisibilite) */
 html[data-theme="light"]{
-  --dark:#EDF1F7; --surface:#FFFFFF; --surface2:#EBEFF5; --surface3:#DCE2EC;
-  --navy:#E3E8F2; --navy2:#D5DCEA;
-  --text:#0F172A; --text2:#475569; --text3:#64748B;
-  --border:rgba(15,23,42,0.14);
+  --dark:#F4F5F7; --surface:#FFFFFF; --surface2:#EDEEF2; --surface3:#E3E5EA;
+  --navy:#EDEEF2; --navy2:#E3E5EA; --gold:#0B6B57; --gold2:#0E8069;
+  --text:#1B1F27; --text2:#666B76; --text3:#8A8F99;
+  --border:rgba(15,23,42,0.10);
 }
 #theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #theme-btn:active{transform:scale(.94)}
-#test-banner{position:fixed;top:0;left:0;right:0;z-index:10002;background:#A855F7;color:#fff;font:600 13px/1.4 Arial,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+#test-banner{position:fixed;top:0;left:0;right:0;z-index:10002;background:#8B6CF2;color:#fff;font:600 13px/1.4 Arial,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 
 /* ── Étiquettes colis (Zebra 100×150, paramétrable via ETIQ_CFG) ── */
 #etiqOverlay{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.75);overflow:auto;padding:14px}
@@ -163,6 +163,7 @@ html[data-theme="light"]{
   <div class="topbar">
     <div class="ttl">🧰 Préparation<small id="userTag"></small></div>
     <span class="verbadge" id="verBadge" onclick="ouvrirNouveautes()">v…</span>
+    <button class="iconbtn" onclick="ouvrirMonPlanning()" title="Mon planning">🗓️</button>
     <button class="iconbtn" onclick="chargerPrep(true)" title="Rafraîchir">🔄</button>
     <button class="iconbtn" onclick="logout()" title="Déconnexion">⏻</button>
   </div>
@@ -188,6 +189,20 @@ html[data-theme="light"]{
     <button class="close" onclick="fermerNouveautes()">Fermer</button>
   </div>
 </div>
+<div class="ovl" id="planningModal">
+  <div class="box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <h3 style="margin:0">🗓️ Mon planning</h3>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0">
+      <button class="iconbtn" onclick="_semainePlanningDelta(-1)">◀</button>
+      <span id="planningSemaine" style="font-size:13px;font-weight:700;color:var(--gold)"></span>
+      <button class="iconbtn" onclick="_semainePlanningDelta(1)">▶</button>
+    </div>
+    <div id="planningCorps"></div>
+    <button class="close" onclick="fermerMonPlanning()">Fermer</button>
+  </div>
+</div>
 <div class="ovl" id="boModal">
   <div class="box">
     <h3 id="boTitre">🥤 Boissons</h3>
@@ -201,7 +216,7 @@ html[data-theme="light"]{
 <script>
 const CFG = { API_URL: 'https://ajcvbackend-production.up.railway.app' };
 const VERSION_URL = 'version.json';
-const state = { token:'', prenom:'', login:'', role:'', tokenExpiry:0, orders:[], photos:{}, sync:{}, _upQ:{}, search:'', _date:'', volet:'apreparer', boissonsRef:[], _boId:null };
+const state = { token:'', prenom:'', login:'', role:'', tokenExpiry:0, orders:[], photos:{}, sync:{}, _upQ:{}, _photoBusy:{}, search:'', _date:'', volet:'apreparer', boissonsRef:[], _boId:null };
 // ── Persistance des photos (survit au rechargement Android pendant la prise) ──
 const _PHK='ajcvprep_photos_v1';
 function persisterPhotos(){
@@ -407,7 +422,7 @@ function carteCommande(l, volet){
     <input type="file" accept="image/*" capture="environment" id="file-${l.id}" style="display:none" onchange="photoChoisie('${l.id}',this)">
     <div id="thumbs-${l.id}" class="thumbs-wrap"></div>
     <div class="c-actions">
-      <button class="btn-photo" onclick="document.getElementById('file-${l.id}').click()">📷 Prendre une photo</button>
+      <button class="btn-photo" id="btnphoto-${l.id}" onclick="declencherPhoto('${l.id}')">📷 Prendre une photo</button>
       <button class="btn-val" id="val-${l.id}" onclick="validerPrep('${l.id}')">Valider ✓</button>
     </div>
     ${refaire?'':`<button class="btn-relacher" onclick="relacherPrep('${l.id}')">↩️ Remettre à préparer</button>`}`;
@@ -458,8 +473,25 @@ async function compresserPhoto(file, maxDim, quality){
     fr.onerror=reject; fr.readAsDataURL(file);
   });
 }
+// Anti double-appui : bloque un 2e lancement de l'appareil photo tant que le précédent
+// n'est pas complètement traité (cause du blocage "opération précédente" sur A17).
+function declencherPhoto(id){
+  if(state._photoBusy[id]) return;
+  state._photoBusy[id]=true;
+  const btn=document.getElementById('btnphoto-'+id); if(btn){ btn.disabled=true; btn.textContent='⏳ Patiente…'; }
+  clearTimeout(state._photoBusy['t'+id]);
+  state._photoBusy['t'+id]=setTimeout(()=>libererPhoto(id),15000); // filet de sécurité si annulation non détectée
+  const inp=document.getElementById('file-'+id);
+  inp.oncancel=()=>libererPhoto(id);
+  inp.click();
+}
+function libererPhoto(id){
+  state._photoBusy[id]=false;
+  clearTimeout(state._photoBusy['t'+id]);
+  const btn=document.getElementById('btnphoto-'+id); if(btn){ btn.disabled=false; btn.textContent='📷 Prendre une photo'; }
+}
 async function photoChoisie(id,input){
-  const files=input.files; if(!files||!files.length) return;
+  const files=input.files; if(!files||!files.length){ libererPhoto(id); return; }
   showToast('⏳ Traitement de la photo…');
   if(!Array.isArray(state.photos[id])) state.photos[id]=[];
   for(const f of files){
@@ -467,6 +499,7 @@ async function photoChoisie(id,input){
     catch(e){ showToast('❌ Une photo illisible','error'); }
   }
   input.value='';
+  libererPhoto(id);
   renderThumbs(id);
   lancerUploadImmediat(id);
 }
@@ -687,6 +720,46 @@ function ouvrirNouveautes(){
 }
 function fermerNouveautes(){ document.getElementById('nouveautesModal').style.display='none'; }
 
+// ── MON PLANNING (missions données par le responsable — lecture seule) ──
+function _escPlan(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _lundiDeSem(d){ const x=new Date(d); const j=(x.getDay()+6)%7; x.setDate(x.getDate()-j); return x; }
+function _isoJourLocal(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+const _monPlanning={ weekStart:_isoJourLocal(_lundiDeSem(new Date())) };
+function ouvrirMonPlanning(){ document.getElementById('planningModal').style.display='flex'; _chargerMonPlanning(); }
+function fermerMonPlanning(){ document.getElementById('planningModal').style.display='none'; }
+function _semainePlanningDelta(delta){
+  const d=new Date(_monPlanning.weekStart+'T00:00:00'); d.setDate(d.getDate()+delta*7);
+  _monPlanning.weekStart=_isoJourLocal(d);
+  _chargerMonPlanning();
+}
+async function _chargerMonPlanning(){
+  const corps=document.getElementById('planningCorps'); corps.innerHTML='<div class="empty">Chargement…</div>';
+  const d0=new Date(_monPlanning.weekStart+'T00:00:00');
+  const jours=Array.from({length:7},(_,i)=>{const d=new Date(d0);d.setDate(d.getDate()+i);return _isoJourLocal(d);});
+  const f=(iso)=>{const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});};
+  document.getElementById('planningSemaine').textContent='Semaine du '+f(jours[0])+' au '+f(jours[6]);
+  let items=[];
+  try{
+    const resp=await fetch(`${CFG.API_URL}/planning?personne=${encodeURIComponent(state.login||'')}&debut=${jours[0]}&fin=${jours[6]}`,{headers:{'Authorization':`Bearer ${state.token}`}});
+    const data=await resp.json();
+    items=data.planning||[];
+  }catch(_){}
+  const JOURS_LBL=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+  const parJour={}; items.forEach(it=>{ (parJour[it.date_jour]=parJour[it.date_jour]||[]).push(it); });
+  const auj=_isoJourLocal(new Date());
+  corps.innerHTML=jours.map((j,i)=>{
+    const its=(parJour[j]||[]).sort((a,b)=>a.heure_debut.localeCompare(b.heure_debut));
+    return `<div style="margin-top:12px">
+      <div style="font-size:11px;font-weight:700;color:${j===auj?'var(--gold)':'var(--text2)'};text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${JOURS_LBL[i]} ${f(j)}${j===auj?' · aujourd’hui':''}</div>
+      ${its.length?its.map(it=>`
+        <div style="background:var(--surface2);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:13px">
+          <b>${(it.taches_types&&it.taches_types.icone)||'📋'} ${(it.taches_types&&_escPlan(it.taches_types.nom))||'Mission'}</b><br>
+          <span class="muted">🕐 ${it.heure_debut.slice(0,5)} – ${it.heure_fin.slice(0,5)}${it.commentaire?' · '+_escPlan(it.commentaire):''}</span>
+        </div>`).join(''):'<div class="muted" style="font-size:12.5px;padding:2px 0 4px">Rien de prévu</div>'}
+    </div>`;
+  }).join('');
+}
+
 /* ─────────── BOOT ─────────── */
 restoreSession();
 verifierVersion();
@@ -795,8 +868,8 @@ ap(document.documentElement.getAttribute('data-theme')||'dark');var b=document.g
   function showMaint(msg){
     if(document.getElementById('maint-screen'))return;
     var d=document.createElement('div'); d.id='maint-screen';
-    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#0F1724;color:#F0F4FF;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
-    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#8B9EC7">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#8B9EC7;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
+    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#12151B;color:#EDEEF1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#9BA1AC">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#9BA1AC;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
     document.body.appendChild(d);
     document.getElementById('maint-admin').onclick=function(){ d.remove(); };
   }

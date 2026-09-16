@@ -3,85 +3,97 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AJCV — Logistique & Production</title>
+<title>AJCV — Logistique &amp; Production</title>
 <style>
   :root{
-    --bg1:#0B1120; --bg2:#101B33; --card:rgba(255,255,255,.045);
-    --border:rgba(255,255,255,.09); --txt:#EDF2FB; --mut:#93A5C9;
+    --bg:#12151B; --surface:rgba(255,255,255,.035); --border:rgba(255,255,255,.08);
+    --text:#F3F1E8; --mut:#9A9FA8; --gold:#E8A63C;
   }
   *{box-sizing:border-box}
   body{
-    margin:0;min-height:100vh;color:var(--txt);
+    margin:0;min-height:100vh;color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    background:
-      radial-gradient(1100px 500px at 85% -10%, rgba(59,130,246,.16), transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, rgba(16,185,129,.13), transparent 60%),
-      linear-gradient(160deg, var(--bg1), var(--bg2));
-    display:flex;align-items:center;justify-content:center;padding:34px 18px;
+    background:radial-gradient(1200px 620px at 50% -8%, rgba(255,255,255,.05), transparent 62%), var(--bg);
+    padding:38px 18px 50px;
   }
-  .wrap{max-width:880px;width:100%}
-  header{text-align:center;margin-bottom:34px;animation:pop .5s ease both}
-  .logo{
-    width:64px;height:64px;margin:0 auto 14px;border-radius:18px;display:flex;align-items:center;justify-content:center;
-    font-size:32px;background:linear-gradient(135deg,#3B82F6 0%,#10B981 100%);
-    box-shadow:0 10px 30px rgba(59,130,246,.35);
-  }
-  h1{font-size:26px;margin:0;letter-spacing:.3px}
-  h1 b{background:linear-gradient(90deg,#7CB2FF,#4ADE80);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .sub{color:var(--mut);font-size:13.5px;margin-top:6px}
-  .sect{color:var(--mut);font-size:11.5px;letter-spacing:2.2px;text-transform:uppercase;margin:26px 4px 12px;font-weight:700}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:14px}
+  .wrap{max-width:900px;margin:0 auto}
+  header{text-align:center;margin-bottom:36px}
+  .brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+  .brand .mark{width:34px;height:34px;border-radius:9px;background:var(--gold);color:#211705;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;letter-spacing:-.02em}
+  h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.01em}
+  .sub{color:var(--mut);font-size:13px;margin-top:8px}
+  .sect{color:var(--mut);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin:30px 2px 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
   a.tile{
-    position:relative;display:block;padding:20px 18px 18px;border-radius:16px;text-decoration:none;color:var(--txt);
-    background:var(--card);border:1px solid var(--border);backdrop-filter:blur(8px);
-    transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
-    animation:pop .5s ease both;overflow:hidden;
+    position:relative;display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:14px;text-decoration:none;color:var(--text);
+    background:var(--surface);border:1px solid var(--border);
+    transition:transform .15s ease, border-color .15s ease;
   }
-  a.tile::before{
-    content:'';position:absolute;inset:0 0 auto 0;height:3px;border-radius:16px 16px 0 0;
-    background:var(--acc,linear-gradient(90deg,#3B82F6,#60A5FA));opacity:.85;
-  }
-  a.tile:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.22);box-shadow:0 14px 34px rgba(0,0,0,.35)}
+  a.tile:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.18)}
   .ico{
-    width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;
-    font-size:24px;margin-bottom:12px;background:rgba(255,255,255,.06);border:1px solid var(--border);
+    flex:none;width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 14px -6px rgba(0,0,0,.5);
   }
-  .nom{font-weight:700;font-size:15.5px}
-  .desc{color:var(--mut);font-size:12.5px;margin-top:4px;line-height:1.45}
-  .t-admin{--acc:linear-gradient(90deg,#3B82F6,#60A5FA)}
-  .t-livreur{--acc:linear-gradient(90deg,#F59E0B,#FBBF24)}
-  .t-prep{--acc:linear-gradient(90deg,#8B5CF6,#A78BFA)}
-  .t-carte{--acc:linear-gradient(90deg,#06B6D4,#22D3EE)}
-  .t-cbd{--acc:linear-gradient(90deg,#10B981,#34D399)}
-  .t-cbdp{--acc:linear-gradient(90deg,#84CC16,#A3E635)}
-  .t-com{--acc:linear-gradient(90deg,#EC4899,#F472B6)}
-  footer{text-align:center;color:var(--mut);font-size:12px;margin-top:34px;opacity:.8}
-  @keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  .grid a:nth-child(2){animation-delay:.05s}.grid a:nth-child(3){animation-delay:.1s}.grid a:nth-child(4){animation-delay:.15s}
-  @media(max-width:460px){ .grid{grid-template-columns:1fr 1fr} a.tile{padding:16px 14px} .ico{width:40px;height:40px;font-size:21px} }
+  .ico svg{width:21px;height:21px;stroke:#F5F1E8;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .nom{font-weight:700;font-size:14.5px}
+  .desc{color:var(--mut);font-size:12px;margin-top:3px;line-height:1.45}
+  .t-admin .ico{background:#1B222C;border:1px solid #3A3220}
+  .t-admin .ico svg{stroke:var(--gold)}
+  .t-livreur .ico{background:linear-gradient(135deg,#FF9A56,#FF5D6C)}
+  .t-prep .ico{background:linear-gradient(135deg,#FFB238,#FF8A3D)}
+  .t-carte .ico{background:linear-gradient(135deg,#22C3B0,#1596B0)}
+  .t-retours .ico{background:linear-gradient(135deg,#8B6CF2,#5B3FC7)}
+  .t-cbd .ico{background:linear-gradient(135deg,#4CC97A,#1F9A5C)}
+  .t-cbdp .ico{background:linear-gradient(135deg,#3E8EF2,#3A5FD9)}
+  footer{text-align:center;color:var(--mut);font-size:11.5px;margin-top:38px;opacity:.75}
+  @media(max-width:480px){ .grid{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <div class="logo">🚚</div>
-      <h1>AJCV — <b>Logistique &amp; Production</b></h1>
+      <div class="brand"><div class="mark">AJ</div><h1>AJCV — Logistique &amp; Production</h1></div>
       <div class="sub">Saint-Denis · La Réunion — <span id="jour"></span></div>
     </header>
 
     <div class="sect">Logistique</div>
     <div class="grid">
-      <a class="tile t-admin" href="AJCV_Admin.html"><div class="ico">🗂️</div><div class="nom">Administration</div><div class="desc">Livraisons · Plan de tournée · KPI · Rotation des zones</div></a>
-      <a class="tile t-livreur" href="livreur_final.html"><div class="ico">🚚</div><div class="nom">Livreur</div><div class="desc">Tournées, livraisons &amp; encaissements</div></a>
-      <a class="tile t-prep" href="preparateur.html"><div class="ico">📦</div><div class="nom">Préparateur</div><div class="desc">Préparations, colis &amp; photos sécurisées</div></a>
-      <a class="tile t-carte" href="carte_livraisons_AJCV_v4.html"><div class="ico">🗺️</div><div class="nom">Carte</div><div class="desc">Les livraisons du jour sur la carte</div></a>
-      <a class="tile t-com" href="retours.html"><div class="ico">↩️</div><div class="nom">Retours client</div><div class="desc">Produits défectueux &amp; remplacements</div></a>
+      <a class="tile t-livreur" href="livreur_final.html">
+        <div class="ico"><svg viewBox="0 0 24 24"><rect x="1" y="7" width="13" height="10" rx="1"/><path d="M14 10h4l4 4v3h-8"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg></div>
+        <div><div class="nom">Livreur</div><div class="desc">Tournées, livraisons &amp; encaissements</div></div>
+      </a>
+      <a class="tile t-prep" href="preparateur.html">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg></div>
+        <div><div class="nom">Préparateur</div><div class="desc">Préparations, colis &amp; photos sécurisées</div></div>
+      </a>
+      <a class="tile t-carte" href="carte_livraisons_AJCV_v4.html">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></div>
+        <div><div class="nom">Carte</div><div class="desc">Les livraisons du jour sur la carte</div></div>
+      </a>
+      <a class="tile t-retours" href="retours.html">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M4.5 9a8 8 0 1 1 1.4 9"/><path d="M4.5 4v5h5"/></svg></div>
+        <div><div class="nom">Retours client</div><div class="desc">Produits défectueux &amp; remplacements</div></div>
+      </a>
     </div>
 
     <div class="sect">Production CBD</div>
     <div class="grid">
-      <a class="tile t-cbd" href="admin_production.html"><div class="ico">🌿</div><div class="nom">Console Production</div><div class="desc">Ventes · Stock · Traçabilité · Pointages · Dashboard</div></a>
-      <a class="tile t-cbdp" href="preparateur_cbd.html"><div class="ico">🎯</div><div class="nom">Préparateur CBD</div><div class="desc">À produire · Saisie · Pointage du temps</div></a>
+      <a class="tile t-cbd" href="admin_production.html">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M5 19c8 1 14-5 14-14-9 0-14 6-14 14z"/><path d="M5 19c2-4 5-8 10-11"/></svg></div>
+        <div><div class="nom">Console Production</div><div class="desc">Ventes · Stock · Traçabilité · Pointages</div></div>
+      </a>
+      <a class="tile t-cbdp" href="preparateur_cbd.html">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M7.5 8l1.3-4h6.4l1.3 4"/><path d="M5.5 8h13l-1.1 11.3a2 2 0 0 1-2 1.7H8.6a2 2 0 0 1-2-1.7L5.5 8z"/><path d="M9 11v2.2M15 11v2.2"/></svg></div>
+        <div><div class="nom">Atelier CBD</div><div class="desc">À produire · Saisie · Pointage du temps</div></div>
+      </a>
+    </div>
+
+    <div class="sect">Pilotage</div>
+    <div class="grid">
+      <a class="tile t-admin" href="AJCV_Admin.html">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div><div class="nom">Administration</div><div class="desc">Livraisons · Plan de tournée · KPI · Zones</div></div>
+      </a>
     </div>
 
     <footer>AJCV SARL — plateforme interne</footer>

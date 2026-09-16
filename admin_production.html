@@ -6,17 +6,18 @@
 <title>🌿 Production CBD — AJCV</title>
 <style>
 :root{
-  --navy:#0D1B4B; --gold:#FFB300; --gold2:#FFC933;
-  --dark:#080F28; --surface:#111827; --surface2:#1F2937; --surface3:#283549;
-  --green:#22C55E; --red:#EF4444; --blue:#3B82F6; --orange:#F97316; --purple:#A855F7;
-  --text:#F9FAFB; --text2:#9CA3AF; --text3:#6B7280; --border:rgba(255,255,255,0.08);
+  --navy:#181C23; --gold:#E8A63C; --gold2:#F0BE6E;
+  --dark:#12151B; --surface:#181C23; --surface2:#20252E; --surface3:#2A3038;
+  --green:#33C481; --red:#F0555A; --blue:#4E8BF0; --orange:#E39A3D; --purple:#8B6CF2;
+  --text:#EDEEF1; --text2:#9BA1AC; --text3:#6E7480; --border:rgba(255,255,255,0.08);
   --r:14px; --rs:9px;
 }
 /* ── MODE CLAIR (accessibilité — haute lisibilité) ── */
 html[data-theme="light"]{
-  --dark:#EDF1F7; --surface:#FFFFFF; --surface2:#EBEFF5; --surface3:#DCE2EC;
-  --text:#0F172A; --text2:#475569; --text3:#64748B;
-  --border:rgba(15,23,42,0.14);
+  --dark:#F4F5F7; --surface:#FFFFFF; --surface2:#EDEEF2; --surface3:#E3E5EA;
+  --gold:#0B6B57; --gold2:#0E8069;
+  --text:#1B1F27; --text2:#666B76; --text3:#8A8F99;
+  --border:rgba(15,23,42,0.10);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--dark);color:var(--text);-webkit-tap-highlight-color:transparent}
@@ -84,10 +85,10 @@ th{color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.4p
 tr.inactif{opacity:.45}
 td .qin{width:72px;padding:6px;text-align:center;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text)}
 .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
-.b-urgent{background:rgba(239,68,68,.18);color:#fca5a5}
-.b-aprod{background:rgba(249,115,22,.18);color:#fdba74}
-.b-ok{background:rgba(34,197,94,.18);color:#86efac}
-.b-info{background:rgba(59,130,246,.18);color:#93c5fd}
+.b-urgent{background:rgba(240,85,90,.18);color:#fca5a5}
+.b-aprod{background:rgba(227,154,61,.18);color:#fdba74}
+.b-ok{background:rgba(51,196,129,.18);color:#86efac}
+.b-info{background:rgba(78,139,240,.18);color:#93c5fd}
 .b-grey{background:rgba(148,163,184,.18);color:#cbd5e1}
 .tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:6px;background:var(--surface3);color:var(--text2)}
 .loading{text-align:center;color:var(--text2);padding:24px}
@@ -743,8 +744,8 @@ function formReception(r){
 // ══════════════
 // POINTAGE (temps de production)
 // ══════════════
-const _PT_LBL={debut:'▶️ Démarrer la journée',pause:'⏸️ Pause',reprise:'▶️ Reprendre',cloture:'🏁 Clôturer la journée'};
-const _PT_ETAT={debut:'🟢 En production',reprise:'🟢 En production',pause:'🟡 En pause',cloture:'🔴 Journée clôturée'};
+const _PT_LBL={debut:'▶️ Démarrer un créneau',pause:'⏸️ Pause',reprise:'▶️ Reprendre',cloture:'🏁 Clôturer la journée'};
+const _PT_ETAT={debut:'🟢 En production',reprise:'🟢 En production',pause:'🟡 En pause',cloture:'🔴 Créneau terminé'};
 async function renderPointage(){
   $('content').innerHTML='<div class="loading">Chargement…</div>';
   const d=await api('GET','/cbd/pointages');
@@ -757,7 +758,7 @@ async function renderPointage(){
   const chrono=prep=>((d.evenements||[]).filter(e=>e.preparateur===prep).map(e=>_ptIco[e.type]+' '+fmtH(e.horodatage)+(e.motif?' ('+esc(e.motif)+')':'')).join(' → '))||'—';
   if(!respo){
     const etat=mien?mien.etat:null;
-    const suiv={null:['debut'],debut:['pause','cloture'],reprise:['pause','cloture'],pause:['reprise','cloture'],cloture:[]}[etat]||[];
+    const suiv={null:['debut'],debut:['pause','cloture'],reprise:['pause','cloture'],pause:['reprise','cloture'],cloture:['debut']}[etat]||[];
     $('content').innerHTML=`<div class="card"><h3>⏱️ Mon pointage</h3>
       <div style="font-size:18px;font-weight:800;margin:10px 0">${etat?_PT_ETAT[etat]:'⚪ Pas encore pointé'}</div>
       <div class="small muted">Début : ${fmtH(mien&&mien.debut)} · Pauses : ${mien?mien.pauses:0} · Temps effectif : <b>${fmtM(mien?mien.effectif_min:null)}</b> · Pause : ${mien&&mien.pause_min!=null?mien.pause_min+' min':'—'}</div>
@@ -1356,8 +1357,8 @@ document.addEventListener('visibilitychange',()=>{ if(!document.hidden) verifier
   function showMaint(msg){
     if(document.getElementById('maint-screen'))return;
     var d=document.createElement('div'); d.id='maint-screen';
-    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#0F1724;color:#F0F4FF;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
-    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#8B9EC7">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#8B9EC7;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
+    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#12151B;color:#EDEEF1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#9BA1AC">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#9BA1AC;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
     document.body.appendChild(d);
     document.getElementById('maint-admin').onclick=function(){ d.remove(); };
   }

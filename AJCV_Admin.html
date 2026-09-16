@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AJCV — Administration</title>
 <style>
-:root{--gold:#FFB300;--blue:#1565C0;--bg:#0F1724;--surface:#1A2332;--surface2:#243044;--border:rgba(255,255,255,.1);--text:#F0F4FF;--text2:#8B9EC7;--green:#22C55E;--red:#EF4444;--orange:#E67E22}
+:root{--gold:#E8A63C;--blue:#4E8BF0;--bg:#12151B;--surface:#181C23;--surface2:#20252E;--border:rgba(255,255,255,.08);--text:#EDEEF1;--text2:#9BA1AC;--text3:#6E7480;--green:#33C481;--red:#F0555A;--orange:#E39A3D}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 input,select,button,textarea{font-family:inherit}
@@ -35,13 +35,41 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .pwd-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px}
 /* APP */
 #app{display:none}
-.topbar{background:var(--surface);border-bottom:2px solid var(--gold);position:sticky;top:0;z-index:100}
-.topbar-inner{max-width:1300px;margin:0 auto;padding:0 16px;display:flex;align-items:center;gap:4px;overflow-x:auto}
-.nav-tab{padding:16px 14px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px}
-.nav-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
-.nav-tab:hover{color:var(--text)}
+#app.on{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:224px;flex:none;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:width .16s ease;overflow:hidden}
+#app.collapsed .sidebar{width:60px}
+.side-brand{display:flex;align-items:center;gap:10px;padding:16px 14px;white-space:nowrap;flex:none}
+.side-mark{width:28px;height:28px;border-radius:8px;background:var(--gold);color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none}
+.side-name{font-weight:800;font-size:14px;color:var(--text)}
+#app.collapsed .side-name{display:none}
+.side-nav{flex:1;overflow-y:auto;padding:4px 10px 16px}
+.side-group{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);padding:14px 8px 6px;white-space:nowrap}
+#app.collapsed .side-group{display:none}
+.nav-tab{padding:9px 10px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:11px;border-radius:8px;margin-bottom:1px}
+.nav-tab.active{color:var(--gold);background:rgba(232,166,60,.12);font-weight:700}
+.nav-tab:hover{color:var(--text);background:var(--surface2)}
+#app.collapsed .nav-tab{justify-content:center}
+#app.collapsed .nav-tab span{display:none}
+.main-col{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.topbar2{flex:none;display:flex;align-items:center;gap:12px;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface)}
+.icon-btn{background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:5px 9px;border-radius:7px;line-height:1}
+.icon-btn:hover{background:var(--surface2);color:var(--text)}
 .topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center}
-.content-wrap{max-width:1300px;margin:0 auto;padding:20px 16px}
+.content-wrap{flex:1;overflow-y:auto;max-width:1300px;margin:0 auto;padding:20px 16px;width:100%}
+/* ACCUEIL */
+.acc-group{margin-bottom:22px}
+.acc-group-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);margin:0 2px 10px}
+.acc-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.acc-tile{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:transform .12s ease,border-color .12s ease}
+.acc-tile:hover{transform:translateY(-2px);border-color:var(--gold)}
+.acc-ic{flex:none;width:38px;height:38px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:19px}
+.acc-lbl{font-weight:700;font-size:13.5px}
+.acc-desc{font-size:11.5px;color:var(--text2);margin-top:2px}
+@media(max-width:720px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;box-shadow:0 0 0 100vw rgba(0,0,0,0)}
+  #app:not(.collapsed) .sidebar{box-shadow:0 0 0 100vw rgba(0,0,0,.45)}
+  #app.collapsed .sidebar{width:0;border:none}
+}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
 .card h3{font-size:16px;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
@@ -101,9 +129,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .addr-item:last-child{border-bottom:none}
 /* MODE CLAIR (accessibilite haute lisibilite) */
 html[data-theme="light"]{
-  --bg:#EDF1F7; --surface:#FFFFFF; --surface2:#EBEFF5; --surface3:#DCE2EC;
-  --text:#0F172A; --text2:#475569; --text3:#64748B;
-  --border:rgba(15,23,42,0.14);
+  --gold:#0B6B57; --bg:#F4F5F7; --surface:#FFFFFF; --surface2:#EDEEF2; --surface3:#E3E5EA;
+  --text:#1B1F27; --text2:#666B76; --text3:#8A8F99;
+  --border:rgba(15,23,42,0.10);
+  --green:#1E8E5A; --red:#C0392B; --orange:#B9791F; --blue:#2D6FE0;
 }
 #theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #theme-btn:active{transform:scale(.94)}
@@ -147,23 +176,38 @@ html[data-theme="light"]{
 
 <!-- APP -->
 <div id="app">
-  <div class="topbar">
-    <div class="topbar-inner">
-      <div class="nav-tab active" data-tab="livraisons" onclick="go('livraisons')">📦 Livraisons</div>
-      <div class="nav-tab" data-tab="prep" onclick="go('prep')">🧰 Préparation</div>
-      <div class="nav-tab" data-tab="plan" onclick="go('plan')">🗺️ Plan de tournée</div>
-      <div class="nav-tab" data-tab="chargement" onclick="go('chargement')">🚚 Chargement</div>
-      <div class="nav-tab" data-tab="zones" onclick="go('zones')">📍 Zones</div>
-      <div class="nav-tab" data-tab="impLiv" onclick="go('impLiv')">📥 Import Livraisons</div>
-      <div class="nav-tab" data-tab="impCli" onclick="go('impCli')">📥 Import Clients</div>
-      <div class="nav-tab" data-tab="clients" onclick="go('clients')">🏪 Clients</div>
-      <div class="nav-tab" data-tab="boissons" onclick="go('boissons')">📦 Produits</div>
-      <div class="nav-tab" data-tab="users" onclick="go('users')">🔐 Utilisateurs</div>
-      <div class="nav-tab" data-tab="docs" onclick="go('docs')">📄 Documents</div>
-      <div class="nav-tab" data-tab="flotte" onclick="go('flotte')">🚐 Flotte</div>
-      <div class="nav-tab" data-tab="kpi" onclick="go('kpi')">📊 KPI</div>
-      <div class="nav-tab" data-tab="odoo" onclick="go('odoo')">🔄 Imports Odoo</div>
-      <div class="nav-tab" data-tab="maint" onclick="go('maint')">🔧 Maintenance</div>
+  <aside class="sidebar">
+    <div class="side-brand"><span class="side-mark">AJ</span><span class="side-name">AJCV</span></div>
+    <nav class="side-nav">
+      <div class="nav-tab active" data-tab="accueil" onclick="go('accueil')">🏠<span>Accueil</span></div>
+      <div class="side-group">Exploitation</div>
+      <div class="nav-tab" data-tab="livraisons" onclick="go('livraisons')">📦<span>Livraisons</span></div>
+      <div class="nav-tab" data-tab="prep" onclick="go('prep')">🧰<span>Préparation</span></div>
+      <div class="nav-tab" data-tab="plan" onclick="go('plan')">🗺️<span>Plan de tournée</span></div>
+      <div class="nav-tab" data-tab="chargement" onclick="go('chargement')">🚚<span>Chargement</span></div>
+      <div class="nav-tab" data-tab="zones" onclick="go('zones')">📍<span>Zones</span></div>
+      <div class="side-group">Catalogue</div>
+      <div class="nav-tab" data-tab="clients" onclick="go('clients')">🏪<span>Clients</span></div>
+      <div class="nav-tab" data-tab="boissons" onclick="go('boissons')">📦<span>Produits</span></div>
+      <div class="side-group">Imports</div>
+      <div class="nav-tab" data-tab="impLiv" onclick="go('impLiv')">📥<span>Import Livraisons</span></div>
+      <div class="nav-tab" data-tab="impCli" onclick="go('impCli')">📥<span>Import Clients</span></div>
+      <div class="nav-tab" data-tab="odoo" onclick="go('odoo')">🔄<span>Imports Odoo</span></div>
+      <div class="side-group">Équipe</div>
+      <div class="nav-tab" data-tab="planning" onclick="go('planning')">🗓️<span>Planning</span></div>
+      <div class="side-group">Pilotage</div>
+      <div class="nav-tab" data-tab="kpi" onclick="go('kpi')">📊<span>KPI</span></div>
+      <div class="nav-tab" data-tab="docs" onclick="go('docs')">📄<span>Documents</span></div>
+      <div class="side-group">Administration</div>
+      <div class="nav-tab" data-tab="users" onclick="go('users')">🔐<span>Utilisateurs</span></div>
+      <div class="nav-tab" data-tab="journal" onclick="go('journal')">📋<span>Journal d'activité</span></div>
+      <div class="nav-tab" data-tab="flotte" onclick="go('flotte')">🚐<span>Flotte</span></div>
+      <div class="nav-tab" data-tab="maint" onclick="go('maint')">🔧<span>Maintenance</span></div>
+    </nav>
+  </aside>
+  <div class="main-col">
+    <div class="topbar2">
+      <button class="icon-btn" onclick="toggleSidebar()" title="Replier/déplier le menu">☰</button>
       <div class="topbar-right">
         <button id="verBadge" class="btn btn-gray btn-sm" onclick="ouvrirNouveautes()" title="Nouveautés">v…</button>
         <span id="userInfo" style="font-size:12px;color:var(--gold)"></span>
@@ -171,8 +215,8 @@ html[data-theme="light"]{
         <button class="btn btn-gray btn-sm" onclick="logout()">Déco.</button>
       </div>
     </div>
+    <div class="content-wrap" id="content" onclick="if(window.innerWidth<=720 && !document.getElementById('app').classList.contains('collapsed') && !event.target.closest('.sidebar')) document.getElementById('app').classList.add('collapsed')"></div>
   </div>
-  <div class="content-wrap" id="content"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -330,6 +374,45 @@ html[data-theme="light"]{
   </div>
 </div>
 
+<!-- MODAL PLANNING (mission de l'équipe) -->
+<div class="modal-bg" id="modalPlanning">
+  <div class="modal">
+    <h3 id="pl-titre">➕ Nouvelle mission</h3>
+    <div class="form-grid">
+      <div><label>Personne *</label><select id="pl-personne"></select></div>
+      <div><label>Tâche *</label><select id="pl-tache"></select></div>
+      <div><label>Date *</label><input type="date" id="pl-date"></div>
+      <div></div>
+      <div><label>Début *</label><input type="time" id="pl-debut"></div>
+      <div><label>Fin *</label><input type="time" id="pl-fin"></div>
+      <div style="grid-column:1/-1"><label>Commentaire</label><input id="pl-commentaire" placeholder="Précisions pour l'équipe (optionnel)"></div>
+    </div>
+    <div class="err" id="plErr"></div>
+    <div class="form-actions">
+      <button class="btn btn-red" id="pl-del" style="display:none;margin-right:auto" onclick="supprimerPlanning()">🗑️ Supprimer</button>
+      <button class="btn btn-gray" onclick="fermerModal('modalPlanning')">Annuler</button>
+      <button class="btn btn-green" onclick="enregistrerPlanning()">✅ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GESTION DES TYPES DE TÂCHES (référentiel paramétrable) -->
+<div class="modal-bg" id="modalTachesTypes">
+  <div class="modal">
+    <h3>⚙️ Types de tâches</h3>
+    <p class="muted" style="margin-bottom:12px">La liste des missions proposées lors de l'affectation. Désactiver une tâche ne supprime pas l'historique des missions déjà planifiées.</p>
+    <div id="tt-liste"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;align-items:flex-end">
+      <div style="width:64px"><label>Icône</label><input id="tt-icone" value="📋" style="text-align:center"></div>
+      <div style="flex:1"><label>Nouvelle tâche</label><input id="tt-nom" placeholder="Ex: Étiquetage"></div>
+      <button class="btn btn-green" onclick="ajouterTypeTache()">➕ Ajouter</button>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-gray" onclick="fermerGestionTaches()">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalGeo">
   <div class="modal">
     <h3>🌍 Re-géocodage des adresses</h3>
@@ -390,7 +473,7 @@ async function api(method, path, body){
 }
 function sessionExpiree(){
   localStorage.removeItem('ajcv_admin'); S.token='';
-  document.getElementById('app').style.display='none';
+  document.getElementById('app').classList.remove('on');
   document.getElementById('login').style.display='flex';
   toast('⚠️ Session expirée, reconnectez-vous');
 }
@@ -414,21 +497,26 @@ async function connexion(){
     demarrer();
   }catch(e){err.textContent='Erreur de connexion';err.style.display='block';}
 }
-function logout(){localStorage.removeItem('ajcv_admin');S.token='';document.getElementById('app').style.display='none';document.getElementById('login').style.display='flex';}
+function logout(){localStorage.removeItem('ajcv_admin');S.token='';document.getElementById('app').classList.remove('on');document.getElementById('login').style.display='flex';}
 function demarrer(){
   document.getElementById('login').style.display='none';
-  document.getElementById('app').style.display='block';
+  const app=document.getElementById('app');
+  app.classList.add('on');
+  if(window.innerWidth<=720) app.classList.add('collapsed'); // menu replié par défaut sur petit écran
   document.getElementById('userInfo').textContent=S.prenom+' · '+S.role;
-  go('livraisons');
+  go('accueil');
 }
+function toggleSidebar(){ document.getElementById('app').classList.toggle('collapsed'); }
 
 // ── NAVIGATION ─────────────────────────────────────────────────────────────
 function go(tab){
   S.tab=tab;
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  if(window.innerWidth<=720) document.getElementById('app').classList.add('collapsed'); // referme le menu après un choix sur mobile
   const c=document.getElementById('content');
   c.innerHTML='<div class="loading"><div class="spin"></div></div>';
-  if(tab==='livraisons') renderLivraisons();
+  if(tab==='accueil') renderAccueil();
+  else if(tab==='livraisons') renderLivraisons();
   else if(tab==='prep') renderPreparations();
   else if(tab==='plan') renderPlan();
   else if(tab==='impLiv') renderImportLiv();
@@ -443,6 +531,60 @@ function go(tab){
   else if(tab==='zones') renderZones();
   else if(tab==='chargement') renderChargements();
   else if(tab==='maint') renderMaintenance();
+  else if(tab==='journal') renderJournal();
+  else if(tab==='planning') renderPlanning();
+}
+
+// ── ACCUEIL ────────────────────────────────────────────────────────────────
+function renderAccueil(){
+  const GROUPS=[
+    {label:'Exploitation', items:[
+      ['📦','Livraisons','livraisons','Bons de livraison, statuts, édition'],
+      ['🧰','Préparation','prep','Suivi des préparations et photos'],
+      ['🗺️','Plan de tournée','plan','Affectation des livreurs par zone'],
+      ['🚚','Chargement','chargement','Camions, colis, plaques'],
+      ['📍','Zones','zones','Secteurs de livraison'],
+    ]},
+    {label:'Catalogue', items:[
+      ['🏪','Clients','clients','Fiches, adresses, contraintes'],
+      ['📦','Produits','boissons','Boissons, charbons, PLV, TPE'],
+    ]},
+    {label:'Imports', items:[
+      ['📥','Import Livraisons','impLiv','Import CSV des bons de livraison'],
+      ['📥','Import Clients','impCli','Import CSV du fichier clients'],
+      ['🔄','Imports Odoo','odoo','Synchronisation catalogue Odoo'],
+    ]},
+    {label:'Équipe', items:[
+      ['🗓️','Planning','planning','Missions de la semaine, par personne'],
+    ]},
+    {label:'Pilotage', items:[
+      ['📊','KPI','kpi','Tableaux de bord et statistiques'],
+      ['📄','Documents','docs','Bons de réception et signatures'],
+    ]},
+    {label:'Administration', items:[
+      ['🔐','Utilisateurs','users','Comptes, rôles, casquettes'],
+      ['📋','Journal d’activité','journal','Historique des actions, filtrable'],
+      ['🚐','Flotte','flotte','Véhicules et affectations'],
+      ['🔧','Maintenance','maint','Mise en pause des applis'],
+    ]},
+  ];
+  document.getElementById('content').innerHTML = `
+    <div style="margin-bottom:22px">
+      <h3 style="color:var(--text);font-size:19px;margin-bottom:4px">👋 Bonjour ${esc(S.prenom||'')}</h3>
+      <p class="muted">Voici les modules de l'administration AJCV.</p>
+    </div>
+    ${GROUPS.map(g=>`
+      <div class="acc-group">
+        <div class="acc-group-label">${g.label}</div>
+        <div class="acc-tiles">
+          ${g.items.map(([ic,label,tab,desc])=>`
+            <div class="acc-tile" onclick="go('${tab}')">
+              <div class="acc-ic">${ic}</div>
+              <div><div class="acc-lbl">${label}</div><div class="acc-desc">${desc}</div></div>
+            </div>`).join('')}
+        </div>
+      </div>`).join('')}
+  `;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -735,10 +877,12 @@ async function renderPlan(){
     </div>`;
   planReload();
 }
+// Vraie livraison terminée UNIQUEMENT (❌ Non livré contient aussi le mot "livré" — piège du .includes/regex simple)
+function estLivree(statut){ const s=(statut||'').toLowerCase(); return s.includes('livré') && !s.includes('non'); }
 async function planReload(){
   const r = await api('GET','/livraisons?date='+encodeURIComponent(_plan.date)).catch(()=>({livraisons:[]}));
   _plan.allLivs = r.livraisons||[];
-  _plan.livs = _plan.allLivs.filter(l=>!/livré/i.test(l.statut||'') && !(l.commercial===true||l.commercial==='true'));
+  _plan.livs = _plan.allLivs.filter(l=>!estLivree(l.statut) && !(l.commercial===true||l.commercial==='true'));
   planRenderCounters();
   planRenderCharge();
   planRenderTable();
@@ -750,7 +894,7 @@ function planRenderCounters(){
   const pretes=all.filter(l=>l.prepare===true||l.prepare==='true').length;
   const affectees=all.filter(l=>(l.livreur||'').trim()).length;
   const chargees=all.filter(l=>l.charge===true||l.charge==='true').length;
-  const livrees=all.filter(l=>/livré/i.test(l.statut||'')).length;
+  const livrees=all.filter(l=>estLivree(l.statut)).length;
   const c=(lbl,val,bg,fg)=>`<div style="flex:1;min-width:90px;background:${bg};border-radius:10px;padding:10px 8px;text-align:center"><div style="font-size:23px;font-weight:800;color:${fg};line-height:1">${val}</div><div style="font-size:11px;font-weight:600;color:${fg};opacity:.9;margin-top:3px">${lbl}</div></div>`;
   el.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
     ${c('Total du jour',total,'#f1f5f9','#475569')}
@@ -1202,10 +1346,10 @@ function renderLivTable(){
           <option value="🟠 Zone 3 — Livreur 3" ${zNum(l.zone)==='3'?'selected':''}>🟠 Z3</option>
           <option value="⛔ NON LIVRÉ" ${/NON LIVR/i.test(l.zone||'')?'selected':''}>⛔ Non livré</option>
         </select></td>
-        <td>${statutPill(l.statut)}${(/livr/i.test(l.statut||'')&&l.date_heure_livraison)?`<div class="muted" style="font-size:11px;margin-top:2px">🕒 ${dtFR(l.date_heure_livraison)}</div>`:''}</td>
+        <td>${statutPill(l.statut)}${(estLivree(l.statut)&&l.date_heure_livraison)?`<div class="muted" style="font-size:11px;margin-top:2px">🕒 ${dtFR(l.date_heure_livraison)}</div>`:''}</td>
         <td>${(l.commercial===true||l.commercial==='true')?'<span style="color:#7c3aed;font-weight:700">👔 Commercial</span>':esc(l.livreur||'—')}</td>
         <td>${l.nb_colis||l.colis||1}</td>
-        <td>${(l.prepare===true||l.prepare==='true')&&l.photo_preparation?`<button class="btn btn-sm" style="background:#ecfdf5;color:#059669" title="Photo de préparation" onclick="lbP('${encodeURIComponent(JSON.stringify(photosDe(l)))}')">📷</button> `:''}<button class="btn btn-sm" style="background:#e2e8f0;color:#475569" title="Modifier les quantités (colis, boissons, charbons, cadeaux)" onclick="ouvrirEditLiv('${l.id}')">✏️</button> <button class="btn btn-sm" style="background:#eef2ff;color:#4f46e5" title="Reporter à une autre date" onclick="reporterLivraison('${l.id}')">📅</button> <button class="btn btn-sm" style="background:${l.vendredi?'#f59e0b':'#eee'};color:${l.vendredi?'#fff':'#999'}" title="${l.vendredi?'Topée vendredi (cliquer pour retirer)':'Topez pour le vendredi (toute l\'île)'}" onclick="toggleVendredi('${l.id}',${l.vendredi?'true':'false'})">🏁</button> <button class="btn btn-sm" style="background:${l.commercial?'#7c3aed':'#eee'};color:${l.commercial?'#fff':'#999'}" title="${l.commercial?'Livrée par un commercial (cliquer pour remettre en livreur)':'Toper « commercial » (sortie du circuit livreurs)'}" onclick="toggleCommercial('${l.id}',${l.commercial?'true':'false'})">👔</button> <button class="btn btn-sm" style="background:${/livré/i.test(l.statut||'')?'#059669':'#eee'};color:${/livré/i.test(l.statut||'')?'#fff':'#999'}" title="${/livré/i.test(l.statut||'')?'Livrée (cliquer pour remettre À livrer)':'Toper « Livré » (sans passer par l’appli livreur)'}" onclick="toperLivre('${l.id}',${/livré/i.test(l.statut||'')})">✅</button> <button class="btn btn-red btn-sm" onclick="suppLivraison('${l.id}','${esc(l.client_nom).replace(/'/g,"\\'")}')">🗑️</button></td>
+        <td>${(l.prepare===true||l.prepare==='true')&&l.photo_preparation?`<button class="btn btn-sm" style="background:#ecfdf5;color:#059669" title="Photo de préparation" onclick="lbP('${encodeURIComponent(JSON.stringify(photosDe(l)))}')">📷</button> `:''}<button class="btn btn-sm" style="background:#e2e8f0;color:#475569" title="Modifier les quantités (colis, boissons, charbons, cadeaux)" onclick="ouvrirEditLiv('${l.id}')">✏️</button> <button class="btn btn-sm" style="background:#eef2ff;color:#4f46e5" title="Reporter à une autre date" onclick="reporterLivraison('${l.id}')">📅</button> <button class="btn btn-sm" style="background:${l.vendredi?'#f59e0b':'#eee'};color:${l.vendredi?'#fff':'#999'}" title="${l.vendredi?'Topée vendredi (cliquer pour retirer)':'Topez pour le vendredi (toute l\'île)'}" onclick="toggleVendredi('${l.id}',${l.vendredi?'true':'false'})">🏁</button> <button class="btn btn-sm" style="background:${l.commercial?'#7c3aed':'#eee'};color:${l.commercial?'#fff':'#999'}" title="${l.commercial?'Livrée par un commercial (cliquer pour remettre en livreur)':'Toper « commercial » (sortie du circuit livreurs)'}" onclick="toggleCommercial('${l.id}',${l.commercial?'true':'false'})">👔</button> <button class="btn btn-sm" style="background:${estLivree(l.statut)?'#059669':'#eee'};color:${estLivree(l.statut)?'#fff':'#999'}" title="${estLivree(l.statut)?'Livrée (cliquer pour remettre À livrer)':'Toper « Livré » (sans passer par l’appli livreur)'}" onclick="toperLivre('${l.id}',${estLivree(l.statut)})">✅</button> <button class="btn btn-red btn-sm" onclick="suppLivraison('${l.id}','${esc(l.client_nom).replace(/'/g,"\\'")}')">🗑️</button></td>
       </tr>`).join('')}</tbody>
     </table></div>
     ${pgBar('liv','renderLivTable')}`;
@@ -2094,8 +2238,8 @@ async function suppClient(id,nom){
 // ONGLET UTILISATEURS
 // ════════════════════════════════════════════════════════════════════════════
 async function renderUsers(){
-  const [du,da]=await Promise.all([api('GET','/admin/users').catch(()=>({users:[]})),api('GET','/admin/audit').catch(()=>({logs:[]}))]);
-  const users=du.users||[], logs=da.logs||[];
+  const du=await api('GET','/admin/users').catch(()=>({users:[]}));
+  const users=du.users||[];
   document.getElementById('content').innerHTML=`
     <div class="card">
       <div class="flex-between"><h3>🔐 Utilisateurs (${users.length})</h3>
@@ -2129,27 +2273,245 @@ async function renderUsers(){
           </td>
         </tr>`).join('')}</tbody>
       </table></div>
-    </div>
-    <div class="card">
-      <h3>📋 Journal de sécurité</h3>
-      <span id="audit-top"></span><div id="audit-liste"></div>
     </div>`;
-  _pgData['audit']=logs; _pg['audit']=0;
-  renderAuditTable();
 }
-function renderAuditTable(){
-  const el=document.getElementById('audit-liste'); if(!el) return;
-  const v=pgView('audit');
-  el.innerHTML=`<div class="table-wrap"><table>
-        <thead><tr><th>Horodatage</th><th>Utilisateur</th><th>Action</th><th>Détail</th><th>IP</th></tr></thead>
-        <tbody>${v.rows.map(l=>`<tr>
-          <td class="muted" style="white-space:nowrap">${l.ts.replace('T',' ').slice(0,19)}</td>
+
+// ════════════════════════════════════════════════════════════════════════════
+// ONGLET JOURNAL D'ACTIVITÉ (audit persistant — sql/journal_activite.sql)
+// ════════════════════════════════════════════════════════════════════════════
+const _journal = { login:'', debut:'', fin:'', q:'', page:1, limite:50, total:0, logs:[] };
+async function renderJournal(){
+  document.getElementById('content').innerHTML=`
+    <div class="card">
+      <div class="flex-between"><h3>📋 Journal d'activité</h3>
+        <button class="btn btn-sm" style="background:#1D6F42;color:#fff" onclick="exportJournalCSV()">📥 Export CSV</button></div>
+      <p class="muted" style="margin-bottom:14px">Chaque action sensible (créations, suppressions, connexions, imports…) est tracée ici, en base, sans limite de durée.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px">
+        <div><label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:4px">Utilisateur</label><input id="j-login" class="inline-sel" style="padding:7px 9px" placeholder="ex: ADMIN" value="${esc(_journal.login)}"></div>
+        <div><label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:4px">Du</label><input id="j-debut" type="date" class="inline-sel" style="padding:6px 8px" value="${_journal.debut}"></div>
+        <div><label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:4px">Au</label><input id="j-fin" type="date" class="inline-sel" style="padding:6px 8px" value="${_journal.fin}"></div>
+        <div style="flex:1;min-width:160px"><label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:4px">Recherche (action, détail…)</label><input id="j-q" class="inline-sel" style="padding:7px 9px;width:100%" placeholder="ex: BL-24871, CREATE_CLIENT…" value="${esc(_journal.q)}"></div>
+        <button class="btn btn-gold btn-sm" onclick="journalFiltrer()">🔍 Filtrer</button>
+        <button class="btn btn-gray btn-sm" onclick="journalReset()">↺ Réinitialiser</button>
+      </div>
+      <div id="journal-liste"></div>
+    </div>`;
+  await chargerJournal();
+}
+async function chargerJournal(){
+  const el=document.getElementById('journal-liste'); if(el) el.innerHTML='<div class="loading"><div class="spin"></div></div>';
+  const p=new URLSearchParams();
+  if(_journal.login) p.set('login',_journal.login);
+  if(_journal.debut) p.set('debut',_journal.debut);
+  if(_journal.fin) p.set('fin',_journal.fin);
+  if(_journal.q) p.set('q',_journal.q);
+  p.set('page',_journal.page); p.set('limite',_journal.limite);
+  const r=await api('GET','/admin/audit?'+p.toString()).catch(()=>null);
+  _journal.logs=(r&&r.logs)||[]; _journal.total=(r&&r.total)||0;
+  renderJournalTable(r&&r.fallback);
+}
+function renderJournalTable(fallback){
+  const el=document.getElementById('journal-liste'); if(!el) return;
+  const rows=_journal.logs;
+  const pages=Math.max(1,Math.ceil(_journal.total/_journal.limite));
+  el.innerHTML=`
+    ${fallback?'<p class="muted" style="background:rgba(230,126,34,.1);padding:8px 10px;border-radius:8px;margin-bottom:10px">⚠️ Journal persistant pas encore actif (migration sql/journal_activite.sql à exécuter) — affichage des dernières actions en mémoire seulement.</p>':''}
+    <div class="table-wrap"><table>
+      <thead><tr><th>Horodatage</th><th>Utilisateur</th><th>Action</th><th>Détail</th><th>Contexte</th></tr></thead>
+      <tbody>${rows.map(l=>{
+        const a=l.action||''; const cls=/FAILED|BLOCKED|DELETE|REFUS/.test(a)?'pill-no':/OK|CREATE|LOGIN_OK/.test(a)?'pill-ok':'pill-wait';
+        const ts=String(l.horodatage||'').replace('T',' ').slice(0,19);
+        return `<tr>
+          <td class="muted" style="white-space:nowrap">${esc(ts)}</td>
           <td style="font-family:monospace;font-size:11px">${esc(l.login)}</td>
-          <td><span class="pill ${l.action.includes('FAILED')||l.action.includes('BLOCKED')?'pill-no':l.action.includes('OK')?'pill-ok':'pill-wait'}">${esc(l.action)}</span></td>
-          <td class="muted">${esc(l.detail||'')}</td><td class="muted">${esc(l.ip||'')}</td>
-        </tr>`).join('')||'<tr><td colspan="5" class="muted" style="text-align:center">Aucune action</td></tr>'}</tbody>
+          <td><span class="pill ${cls}">${esc(a)}</span></td>
+          <td class="muted">${esc(l.detail||'')}</td>
+          <td class="muted">${esc(l.contexte||'')}</td>
+        </tr>`;
+      }).join('')||'<tr><td colspan="5" class="muted" style="text-align:center">Aucune action</td></tr>'}</tbody>
+    </table></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:12px;justify-content:flex-end">
+      <span class="muted">${_journal.total} résultat(s) — page ${_journal.page}/${pages}</span>
+      <button class="btn btn-gray btn-sm" ${_journal.page<=1?'disabled':''} onclick="journalPage(-1)">◀ Précédent</button>
+      <button class="btn btn-gray btn-sm" ${_journal.page>=pages?'disabled':''} onclick="journalPage(1)">Suivant ▶</button>
+    </div>`;
+}
+function journalFiltrer(){
+  _journal.login=document.getElementById('j-login').value.trim();
+  _journal.debut=document.getElementById('j-debut').value;
+  _journal.fin=document.getElementById('j-fin').value;
+  _journal.q=document.getElementById('j-q').value.trim();
+  _journal.page=1;
+  chargerJournal();
+}
+function journalReset(){ Object.assign(_journal,{login:'',debut:'',fin:'',q:'',page:1}); renderJournal(); }
+function journalPage(d){ _journal.page=Math.max(1,_journal.page+d); chargerJournal(); }
+function exportJournalCSV(){
+  const rows=_journal.logs;
+  if(!rows.length){ toast('Rien à exporter sur cette page'); return; }
+  const head=['Horodatage','Utilisateur','Action','Détail','Contexte'];
+  const csv=[head.join(';')].concat(rows.map(l=>[l.horodatage,l.login,l.action,(l.detail||'').replace(/;/g,','),l.contexte||''].map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(';'))).join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='journal_activite.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ONGLET PLANNING (sql/planning_taches.sql) — missions données par le responsable
+// ════════════════════════════════════════════════════════════════════════════
+function _lundiDe(d){ const x=new Date(d); const j=(x.getDay()+6)%7; x.setDate(x.getDate()-j); return x; }
+// Format local (pas toISOString, qui convertit en UTC et peut faire glisser la date d'un jour)
+function _isoJ(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+const _planning={ weekStart:_isoJ(_lundiDe(new Date())), users:null, types:null, items:[] };
+const _JOURS=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+function _joursSemaine(){ const d0=new Date(_planning.weekStart+'T00:00:00'); return Array.from({length:7},(_,i)=>{const d=new Date(d0);d.setDate(d.getDate()+i);return _isoJ(d);}); }
+async function renderPlanning(){
+  document.getElementById('content').innerHTML='<div class="loading"><div class="spin"></div></div>';
+  if(!_planning.users){
+    const [du,dt]=await Promise.all([api('GET','/admin/users').catch(()=>({users:[]})),api('GET','/planning/taches-types').catch(()=>({types:[]}))]);
+    _planning.users=(du.users||[]).filter(u=>u.actif);
+    _planning.types=(dt.types||[]).filter(t=>t.actif!==false);
+    _planning.fallback=!!dt.fallback;
+  }
+  await _chargerSemainePlanning();
+}
+async function _chargerSemainePlanning(){
+  const jours=_joursSemaine();
+  const r=await api('GET','/planning?debut='+jours[0]+'&fin='+jours[6]).catch(()=>({planning:[]}));
+  _planning.items=r.planning||[];
+  if(r.fallback) _planning.fallback=true;
+  _renderPlanningGrille();
+}
+function _semaineLabel(){
+  const jours=_joursSemaine();
+  const f=(iso)=>{const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});};
+  return 'Semaine du '+f(jours[0])+' au '+f(jours[6]);
+}
+function _renderPlanningGrille(){
+  const jours=_joursSemaine();
+  const users=_planning.users;
+  const parPersonneJour={};
+  _planning.items.forEach(it=>{ const k=it.personne+'|'+it.date_jour; (parPersonneJour[k]=parPersonneJour[k]||[]).push(it); });
+  const legende=_planning.types.map(t=>`<span class="muted" style="margin-right:10px">${t.icone} ${esc(t.nom)}</span>`).join('');
+  document.getElementById('content').innerHTML=`
+    <div class="card">
+      <div class="flex-between">
+        <h3 style="margin:0">🗓️ Planning de l'équipe</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-gray btn-sm" onclick="_changerSemainePlanning(-1)">◀</button>
+          <b>${_semaineLabel()}</b>
+          <button class="btn btn-gray btn-sm" onclick="_changerSemainePlanning(1)">▶</button>
+          <button class="btn btn-gray btn-sm" onclick="_changerSemainePlanning(0)">Aujourd'hui</button>
+          <button class="btn btn-gold btn-sm" style="margin-left:10px" onclick="ouvrirPlanning()">➕ Nouvelle mission</button>
+          <button class="btn btn-gray btn-sm" onclick="ouvrirGestionTaches()">⚙️ Types de tâches</button>
+        </div>
+      </div>
+      ${_planning.fallback?'<p class="muted" style="background:rgba(230,126,34,.1);padding:8px 10px;border-radius:8px;margin-top:10px">⚠️ Planning pas encore actif (migration sql/planning_taches.sql à exécuter dans Supabase).</p>':''}
+      <p style="margin-top:10px">${legende||'<span class="muted">Aucun type de tâche actif — clique « ⚙️ Types de tâches » pour en ajouter.</span>'}</p>
+      <div class="table-wrap" style="margin-top:10px"><table>
+        <thead><tr><th style="min-width:130px">Personne</th>${jours.map(j=>{const d=new Date(j+'T00:00:00');return `<th style="min-width:150px">${_JOURS[(d.getDay()+6)%7]}<br><span class="muted" style="font-weight:400">${d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</span></th>`;}).join('')}</tr></thead>
+        <tbody>${users.length?users.map(u=>`<tr>
+          <td><b>${esc(u.prenom)} ${esc(u.nom||'')}</b><br><span class="muted" style="font-size:11px">${esc(u.role)}</span></td>
+          ${jours.map(j=>{
+            const items=parPersonneJour[u.login+'|'+j]||[];
+            return `<td style="vertical-align:top;cursor:pointer" onclick="ouvrirPlanning(null,'${u.login}','${j}')">
+              ${items.map(it=>`<div onclick="event.stopPropagation();ouvrirPlanning('${it.id}')" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 7px;margin-bottom:4px;font-size:11.5px;cursor:pointer" title="Cliquer pour modifier">
+                ${(it.taches_types&&it.taches_types.icone)||'📋'} <b>${(it.taches_types&&esc(it.taches_types.nom))||'?'}</b><br>${it.heure_debut.slice(0,5)}–${it.heure_fin.slice(0,5)}${it.commentaire?'<br><span class="muted">'+esc(it.commentaire)+'</span>':''}
+              </div>`).join('')}
+              <div class="muted" style="font-size:16px;text-align:center;opacity:.4">+</div>
+            </td>`;
+          }).join('')}
+        </tr>`).join(''):'<tr><td colspan="8" class="muted" style="text-align:center">Aucun utilisateur actif</td></tr>'}</tbody>
       </table></div>
-  ${pgBar('audit','renderAuditTable')}`;
+    </div>`;
+}
+function _changerSemainePlanning(delta){
+  if(delta===0){ _planning.weekStart=_isoJ(_lundiDe(new Date())); }
+  else { const d=new Date(_planning.weekStart+'T00:00:00'); d.setDate(d.getDate()+delta*7); _planning.weekStart=_isoJ(d); }
+  _chargerSemainePlanning();
+}
+function ouvrirPlanning(id,personne,date){
+  document.getElementById('plErr').style.display='none';
+  const selP=document.getElementById('pl-personne'), selT=document.getElementById('pl-tache');
+  selP.innerHTML=_planning.users.map(u=>`<option value="${u.login}">${esc(u.prenom)} ${esc(u.nom||'')} (${esc(u.role)})</option>`).join('');
+  selT.innerHTML=_planning.types.map(t=>`<option value="${t.id}">${t.icone} ${esc(t.nom)}</option>`).join('');
+  const item=id?_planning.items.find(x=>String(x.id)===String(id)):null;
+  document.getElementById('modalPlanning').dataset.editId=item?item.id:'';
+  document.getElementById('pl-titre').textContent=item?'✏️ Modifier la mission':'➕ Nouvelle mission';
+  document.getElementById('pl-del').style.display=item?'inline-block':'none';
+  document.getElementById('pl-personne').value=item?item.personne:(personne||(_planning.users[0]&&_planning.users[0].login)||'');
+  document.getElementById('pl-date').value=item?item.date_jour:(date||_joursSemaine()[0]);
+  document.getElementById('pl-debut').value=item?item.heure_debut.slice(0,5):'08:00';
+  document.getElementById('pl-fin').value=item?item.heure_fin.slice(0,5):'12:00';
+  document.getElementById('pl-tache').value=item?item.tache_id:(_planning.types[0]&&_planning.types[0].id)||'';
+  document.getElementById('pl-commentaire').value=item?(item.commentaire||''):'';
+  document.getElementById('modalPlanning').classList.add('active');
+}
+async function enregistrerPlanning(){
+  const err=document.getElementById('plErr'); err.style.display='none';
+  const body={
+    personne:document.getElementById('pl-personne').value,
+    tache_id:document.getElementById('pl-tache').value,
+    date_jour:document.getElementById('pl-date').value,
+    heure_debut:document.getElementById('pl-debut').value,
+    heure_fin:document.getElementById('pl-fin').value,
+    commentaire:document.getElementById('pl-commentaire').value.trim(),
+  };
+  if(!body.date_jour||!body.heure_debut||!body.heure_fin){ err.textContent='Date et horaires requis'; err.style.display='block'; return; }
+  if(body.heure_fin<=body.heure_debut){ err.textContent="L'heure de fin doit être après l'heure de début"; err.style.display='block'; return; }
+  const id=document.getElementById('modalPlanning').dataset.editId;
+  const r=id?await api('PATCH','/planning/'+id,body).catch(e=>({error:e.message})):await api('POST','/planning',body).catch(e=>({error:e.message}));
+  if(r&&(r.success||r.data)){ fermerModal('modalPlanning'); toast('✅ Mission enregistrée'); _chargerSemainePlanning(); }
+  else { err.textContent=(r&&r.error)||'Erreur'; err.style.display='block'; }
+}
+async function supprimerPlanning(){
+  const id=document.getElementById('modalPlanning').dataset.editId; if(!id) return;
+  if(!confirm('Supprimer cette mission ?')) return;
+  const r=await api('DELETE','/planning/'+id).catch(()=>null);
+  if(r&&r.success){ fermerModal('modalPlanning'); toast('🗑️ Mission supprimée'); _chargerSemainePlanning(); }
+  else toast('❌ Erreur');
+}
+
+// ── Référentiel des types de tâches (paramétrable par le responsable) ──
+async function ouvrirGestionTaches(){
+  const r=await api('GET','/planning/taches-types').catch(()=>({types:[]}));
+  _planning.allTypes=r.types||[];
+  document.getElementById('tt-liste').innerHTML=_renderListeTaches();
+  document.getElementById('tt-nom').value=''; document.getElementById('tt-icone').value='📋';
+  document.getElementById('modalTachesTypes').classList.add('active');
+}
+function _renderListeTaches(){
+  const types=_planning.allTypes||[];
+  if(!types.length) return '<p class="muted">Aucun type pour le moment.</p>';
+  return `<div class="table-wrap"><table><thead><tr><th></th><th>Nom</th><th>Statut</th><th></th></tr></thead><tbody>
+    ${types.map(t=>`<tr style="opacity:${t.actif===false?.5:1}">
+      <td style="font-size:18px">${t.icone||'📋'}</td>
+      <td>${esc(t.nom)}</td>
+      <td><span class="pill ${t.actif===false?'pill-no':'pill-ok'}">${t.actif===false?'Inactif':'Actif'}</span></td>
+      <td><button class="btn btn-gray btn-sm" onclick="toggleTypeTache('${t.id}',${t.actif===false})">${t.actif===false?'Réactiver':'Désactiver'}</button></td>
+    </tr>`).join('')}
+  </tbody></table></div>`;
+}
+async function toggleTypeTache(id,actif){
+  const r=await api('PATCH','/planning/taches-types/'+id,{actif}).catch(()=>null);
+  if(r&&r.success){ const t=(_planning.allTypes||[]).find(x=>x.id===id); if(t)t.actif=actif; document.getElementById('tt-liste').innerHTML=_renderListeTaches(); _planning.types=null; }
+  else toast('❌ Erreur');
+}
+async function ajouterTypeTache(){
+  const nom=document.getElementById('tt-nom').value.trim();
+  const icone=document.getElementById('tt-icone').value.trim()||'📋';
+  if(!nom){ toast('Nom requis'); return; }
+  const r=await api('POST','/planning/taches-types',{nom,icone}).catch(()=>null);
+  if(r&&r.success){ document.getElementById('tt-nom').value=''; document.getElementById('tt-icone').value='📋'; ouvrirGestionTaches(); toast('✅ Tâche ajoutée'); }
+  else toast('❌ '+((r&&r.error)||'Erreur'));
+}
+async function fermerGestionTaches(){
+  fermerModal('modalTachesTypes');
+  // Recharge le référentiel actif pour que la grille/le formulaire reflètent les changements
+  const dt=await api('GET','/planning/taches-types').catch(()=>({types:[]}));
+  _planning.types=(dt.types||[]).filter(t=>t.actif!==false);
+  if(S.tab==='planning') renderPlanning();
 }
 
 async function majUser(login,champ,val){
@@ -2583,7 +2945,7 @@ async function chargerKPI(){
       <div class="kpi"><div class="kpi-v" style="color:var(--text2)">${g.attente||0}</div><div class="kpi-l">En attente</div></div>
       <div class="kpi"><div class="kpi-v" style="color:var(--orange)">${g.tauxLivraison||0}%</div><div class="kpi-l">Taux de livraison</div></div>
     </div>
-    <div class="kpi-sec">🧰 PRÉPARATIONS <span style="font-weight:500;color:#8B9EC7">(à la date de préparation réelle)</span></div>
+    <div class="kpi-sec">🧰 PRÉPARATIONS <span style="font-weight:500;color:var(--text2)">(à la date de préparation réelle)</span></div>
     <div class="kpi-grid">
       <div class="kpi"><div class="kpi-v" style="color:var(--gold)">${pr.total||0}</div><div class="kpi-l">BL préparés</div></div>
     </div>
@@ -2726,7 +3088,7 @@ async function renderImportsOdoo(){
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <div style="font-weight:600">📅 ${fmt(im.created_at)}</div>
-        <div style="font-size:22px;font-weight:800;color:${okColor}">${importes}/${recu} <span style="font-size:13px;font-weight:600;color:var(--muted,#8B9EC7)">importés</span></div>
+        <div style="font-size:22px;font-weight:800;color:${okColor}">${importes}/${recu} <span style="font-size:13px;font-weight:600;color:var(--text2)">importés</span></div>
       </div>
       <div class="muted" style="margin-top:6px;font-size:13px">${recu} reçus · ${importes} importés (${im.nouvelles||0} nouvelles, ${im.maj||0} mises à jour) · ${rej} rejetés</div>
       ${detailHtml}
@@ -2822,8 +3184,8 @@ document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) verifie
   function showMaint(msg){
     if(document.getElementById('maint-screen'))return;
     var d=document.createElement('div'); d.id='maint-screen';
-    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#0F1724;color:#F0F4FF;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
-    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#8B9EC7">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#8B9EC7;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
+    d.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#12151B;color:#EDEEF1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+    d.innerHTML='<div style="font-size:60px;margin-bottom:14px">🔧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Application en maintenance</div><div style="font-size:15px;max-width:430px;line-height:1.55;color:#9BA1AC">'+(msg||'Une mise à jour est en cours. Merci de réessayer un peu plus tard.')+'</div><button id="maint-admin" style="margin-top:26px;background:transparent;color:#9BA1AC;border:1px solid rgba(255,255,255,.25);padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer">Accès administrateur</button>';
     document.body.appendChild(d);
     document.getElementById('maint-admin').onclick=function(){ d.remove(); };
   }

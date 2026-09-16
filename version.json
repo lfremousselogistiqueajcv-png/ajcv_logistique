@@ -1,7 +1,122 @@
 {
-  "version": "2026.07.04.36",
+  "version": "2026.07.04.48",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.48",
+      "date": "16/09/2026",
+      "titre": "Livreur : barre d'onglets simplifiée",
+      "notes": [
+        "🧹 L'onglet Carte est retiré (non utilisé par l'équipe) et Planning quitte la barre d'onglets pour devenir un bouton 🗓️ dans l'en-tête, ouvert en fenêtre — il ne s'agit pas d'un statut de tournée, il n'avait pas sa place à côté de Livraisons/Chargement/Effectuées.",
+        "✅ Barre d'onglets réduite à l'essentiel : Livraisons, Chargement, Effectuées."
+      ]
+    },
+    {
+      "v": "2026.07.04.47",
+      "date": "16/09/2026",
+      "titre": "Planning : gestion des tâches + vue salarié",
+      "notes": [
+        "⚙️ Administration : bouton « Types de tâches » dans l'onglet Planning pour ajouter, désactiver ou réactiver une mission du référentiel — le responsable n'est plus limité aux 6 tâches de départ.",
+        "🗓️ Livreur : nouvel onglet « Planning » (à côté de Livraisons/Chargement/Carte/Effectuées) — chaque livreur voit ses propres missions de la semaine, jour par jour.",
+        "🗓️ Préparateur : nouveau bouton 🗓️ dans la barre du haut — même vue « Mon planning » en fenêtre, sans quitter l'écran de préparation.",
+        "🔒 Lecture seule côté salarié : seul le responsable (Administration) peut créer ou modifier une mission."
+      ]
+    },
+    {
+      "v": "2026.07.04.46",
+      "date": "16/09/2026",
+      "titre": "Retours &amp; Préparateur CBD : nouvelle palette — toutes les applis à jour",
+      "notes": [
+        "🎨 Dernières applis alignées sur la nouvelle identité : Retours client (palette, statuts Déclaré/Reçu/Remplacé/Livré/Refusé recolorés) et l'écran de transition de l'appli Préparateur CBD.",
+        "🐛 Corrigé au passage : le bouton principal de l'appli Retours utilisait du texte blanc sur fond ambre, illisible — texte foncé rétabli.",
+        "✅ Les 6 applis (portail, Administration, Livreur, Préparateur, Production CBD, Retours) partagent désormais la même palette. Seule la carte des livraisons n'a pas été retouchée, à la demande de Laurent."
+      ]
+    },
+    {
+      "v": "2026.07.04.45",
+      "date": "16/09/2026",
+      "titre": "Production CBD : nouvelle palette + correctifs de cohérence",
+      "notes": [
+        "🎨 Couleurs affinées sur la console Production CBD (fond, cartes, badges) — même identité que le reste de la suite.",
+        "🐛 L'écran « Application en maintenance » utilisait encore l'ancien bleu marine sur toutes les applis (y compris celles déjà refaites) — corrigé partout (portail, Administration, Livreur, Préparateur, Production CBD).",
+        "🐛 Deux textes gris de la console Administration (KPI Préparations, imports Odoo) ne s'adaptaient pas au thème clair — corrigés."
+      ]
+    },
+    {
+      "v": "2026.07.04.44",
+      "date": "16/09/2026",
+      "titre": "Préparateur : nouvelle palette (cohérente avec le portail)",
+      "notes": [
+        "🎨 Couleurs affinées sur toute l'appli préparateur (fond, cartes, badges, bouton photo) — même identité que le portail, l'appli livreur et la console Administration. Aucun changement de fonctionnement."
+      ]
+    },
+    {
+      "v": "2026.07.04.43",
+      "date": "16/09/2026",
+      "titre": "Administration : planning des tâches de l'équipe",
+      "notes": [
+        "🗓️ Nouvel onglet « Planning » : le responsable donne une mission à une personne (tâche, date, créneau horaire, commentaire), vue par semaine avec navigation, une ligne par personne active et une colonne par jour.",
+        "🏷️ Référentiel de tâches réutilisé (Préparation commandes, Atelier CBD, Livraison, Nettoyage, Réception, Inventaire).",
+        "🐛 Correctif : après une session expirée dans la console Administration, la reconnexion pouvait rester bloquée sur un écran vide (incohérence introduite par le nouveau menu latéral).",
+        "⚠️ Nécessite d'exécuter sql/planning_taches.sql dans Supabase (test, puis prod à la promotion)."
+      ]
+    },
+    {
+      "v": "2026.07.04.42",
+      "date": "16/09/2026",
+      "titre": "Administration : journal d'activité persistant",
+      "notes": [
+        "📋 Nouvel onglet « Journal d'activité » : toutes les actions sensibles (créations, suppressions, connexions, imports, affectations…) sont désormais conservées en base sans limite de durée, filtrables par utilisateur, période et recherche libre, avec export CSV.",
+        "🐛 Avant, ce journal ne vivait qu'en mémoire sur le serveur et s'effaçait à chaque redémarrage/déploiement du backend.",
+        "➕ Traçage ajouté sur la création/suppression de livraisons et de clients (jusqu'ici non enregistrées).",
+        "⚠️ Nécessite d'exécuter sql/journal_activite.sql dans Supabase (test, puis prod à la promotion) — en attendant, l'onglet affiche les dernières actions en mémoire pour ne rien casser."
+      ]
+    },
+    {
+      "v": "2026.07.04.41",
+      "date": "16/09/2026",
+      "titre": "Livreur : nouvelle palette (cohérente avec le portail)",
+      "notes": [
+        "🎨 Couleurs affinées sur toute l'appli livreur (fond, cartes, badges, carte des tournées) — même identité que le nouveau portail et la console Administration. Aucun changement de fonctionnement.",
+        "🐛 Le bandeau orange « Environnement test » ne recouvre plus les boutons du haut sur aucune appli — il pousse maintenant le contenu au lieu de le chevaucher."
+      ]
+    },
+    {
+      "v": "2026.07.04.40",
+      "date": "16/09/2026",
+      "titre": "Administration : nouveau menu + écran d'accueil",
+      "notes": [
+        "🗂️ Les onglets empilés en haut sont remplacés par un menu latéral repliable, groupé par thème (Exploitation, Catalogue, Imports, Pilotage, Administration) — comme un vrai logiciel de gestion.",
+        "🏠 Nouvel écran d'Accueil : chaque module en tuile avec une courte description, pour retrouver plus vite ce qu'on cherche.",
+        "🎨 Palette affinée (claire et sombre) : moins voyante, plus lisible, cohérente avec le nouveau portail.",
+        "📱 Sur petit écran, le menu se replie automatiquement et se referme après un choix."
+      ]
+    },
+    {
+      "v": "2026.07.04.39",
+      "date": "16/09/2026",
+      "titre": "Portail : nouveau design (menu d'accueil)",
+      "notes": [
+        "🎨 Nouvelle page d'accueil : fond sombre épuré, icônes dessinées sur-mesure en dégradé (une couleur par appli, du corail au violet), sections Logistique / Production CBD / Pilotage. Première étape du nouveau design de toute la suite AJCV — la console Administration (menu + accueil) suit ensuite."
+      ]
+    },
+    {
+      "v": "2026.07.04.38",
+      "date": "16/09/2026",
+      "titre": "Plan de tournée : correctifs livraisons « Non livré » et verrou réaffectation",
+      "notes": [
+        "🐞 Le plan de tournée, le compteur « Livrées », le bouton ✅ de l'onglet Livraisons et la simulation de répartition confondaient à tort « ❌ Non livré » avec « ✅ Livré » (le mot « livré » apparaît dans les deux). Conséquence : une tentative ratée disparaissait du plan au lieu d'y rester pour être réaffectée, et le bouton ✅ pouvait la remettre par erreur « À livrer » en effaçant sa trace.",
+        "🔒 Une livraison déjà marquée « ✅ Livré » ne peut plus changer de livreur (affectation à l'unité, par zone, par sélection ou simulation) — fini les livraisons terminées qui réapparaissaient comme « à faire » sur le planning d'un autre livreur."
+      ]
+    },
+    {
+      "v": "2026.07.04.37",
+      "date": "16/09/2026",
+      "titre": "Préparateur : correctif blocage prise de photo (A17)",
+      "notes": [
+        "📷 Le bouton « Prendre une photo » se désactive pendant le traitement d'une photo et ne se réactive qu'une fois celle-ci vraiment terminée. Avant, retaper trop vite pendant le traitement (sur les téléphones plus lents comme le A17) relançait l'appareil photo par-dessus la prise précédente non terminée, provoquant le message Android « opération précédente » et obligeant à recommencer plusieurs fois."
+      ]
+    },
     {
       "v": "2026.07.04.36",
       "date": "15/09/2026",
