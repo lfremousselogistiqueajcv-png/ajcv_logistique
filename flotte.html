@@ -28,7 +28,10 @@ button,input,select,textarea{font-family:inherit}
 /* ── LOGIN ─────────────────────────────────────── */
 #login{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:var(--dark)}
 #login.active{display:flex}
-.login-logo{margin-bottom:12px;font-size:40px}
+.login-logo{margin-bottom:22px;text-align:center}
+.login-logo img{width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:10px}
+.login-logo .t{font-size:22px;font-weight:800;letter-spacing:.5px;color:var(--text)}
+.login-logo .s{font-size:13px;color:var(--gold);margin-top:4px;letter-spacing:2px;font-weight:600}
 .login-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px}
 .login-sub{font-size:13px;color:var(--text2);margin-bottom:28px;text-align:center}
 .login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;width:100%;max-width:340px}
@@ -47,25 +50,28 @@ button,input,select,textarea{font-family:inherit}
 /* ── APP ───────────────────────────────────────── */
 #app{display:none;min-height:100vh;flex-direction:column;padding-bottom:70px}
 #app.on{display:flex}
-header{position:sticky;top:0;z-index:20;background:var(--navy);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:10px}
-header .av{width:36px;height:36px;border-radius:50%;background:var(--navy2);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold);flex:none}
+header{position:sticky;top:0;z-index:20;background:var(--navy);border-bottom:2px solid var(--gold);padding:12px 16px;display:flex;align-items:center;gap:10px}
+header .av{width:36px;height:36px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--navy);flex:none}
 header .who{flex:1;min-width:0}
 header .who b{display:block;font-size:14px}
 header .who span{font-size:11px;color:var(--text2)}
-header button{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:6px}
+header .verbadge{font-size:11px;color:var(--text2);cursor:pointer;border:1px solid var(--border);border-radius:999px;padding:3px 8px;background:none}
+header button.iconbtn{background:rgba(255,255,255,.08);border:none;border-radius:var(--rs);color:var(--text);font-size:15px;cursor:pointer;padding:8px 10px}
 main{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px}
 .card h2{font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .muted{color:var(--text2);font-size:12.5px}
 label.lbl{font-size:12px;color:var(--text2);font-weight:600;margin:10px 0 6px;display:block}
 label.lbl:first-child{margin-top:0}
-.veh-list{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto}
-.veh-opt{display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--border);border-radius:var(--rs);cursor:pointer;background:var(--surface2)}
+.veh-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;max-height:340px;overflow-y:auto;padding:2px 2px 4px}
+.veh-opt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;aspect-ratio:1;padding:12px 8px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;background:var(--surface2);text-align:center;transition:transform .12s,border-color .12s}
+.veh-opt:active{transform:scale(.96)}
+.veh-opt .ico{font-size:28px;line-height:1}
 .veh-opt.sel{border-color:var(--gold);background:rgba(232,166,60,.08)}
 .veh-opt.dispo-non{opacity:.45;pointer-events:none}
-.veh-opt .plaque{font-weight:700;font-size:14px}
-.veh-opt .desc{font-size:12px;color:var(--text2)}
-.veh-opt .badge{margin-left:auto;font-size:11px;padding:3px 8px;border-radius:20px;background:rgba(240,85,90,.15);color:var(--red)}
+.veh-opt .plaque{font-weight:700;font-size:13.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.veh-opt .desc{font-size:10.5px;color:var(--text2);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.veh-opt .badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(240,85,90,.15);color:var(--red);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .type-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px}
 .type-opt{padding:10px 4px;text-align:center;border:2px solid var(--border);border-radius:var(--rs);cursor:pointer;font-size:12.5px;font-weight:600;color:var(--text2);background:var(--surface2)}
 .type-opt.sel-pro{border-color:var(--green);color:var(--green);background:rgba(51,196,129,.1)}
@@ -101,13 +107,24 @@ nav.tabs button .ic{font-size:19px}
 .modal-sheet h3 button{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer}
 textarea.field{resize:vertical;min-height:64px}
 .check-row{display:flex;align-items:center;gap:8px;margin:10px 0;font-size:13px;color:var(--text2)}
+
+/* MODE CLAIR (accessibilité — cohérent avec les autres applis AJCV) */
+html[data-theme="light"]{
+  --dark:#F4F5F7; --surface:#FFFFFF; --surface2:#EDEEF2; --surface3:#E3E5EA;
+  --navy:#EDEEF2; --navy2:#E3E5EA; --gold:#0B6B57; --gold2:#0E8069;
+  --text:#1B1F27; --text2:#666B76; --text3:#8A8F99;
+  --border:rgba(15,23,42,0.10);
+}
+#theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#theme-btn:active{transform:scale(.94)}
 </style>
+<script>try{var _t=localStorage.getItem('ajcv_theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 </head>
 <body>
+<button id="theme-btn" title="Mode clair / sombre (accessibilité)" aria-label="Basculer le mode clair ou sombre">☀️</button>
 
 <div id="login" class="active">
-  <div class="login-logo">🚚</div>
-  <div class="login-title">AJCV Flotte</div>
+  <div class="login-logo"><img src="logo-512.png" alt="AJCV"><div class="t">AJCV</div><div class="s">FLOTTE</div></div>
   <div class="login-sub">Registre d'utilisation des véhicules<br>et de la carte carburant</div>
   <div class="login-card">
     <label class="login-label">Identifiant</label>
@@ -123,8 +140,9 @@ textarea.field{resize:vertical;min-height:64px}
   <header>
     <div class="av" id="hAvatar">–</div>
     <div class="who"><b id="hNom">–</b><span>AJCV Flotte</span></div>
-    <button onclick="rafraichir()" title="Rafraîchir">🔄</button>
-    <button onclick="deconnexion()" title="Déconnexion">⏻</button>
+    <span class="verbadge" id="verBadge" onclick="ouvrirNouveautes()" title="Nouveautés">v…</span>
+    <button class="iconbtn" onclick="rafraichir()" title="Rafraîchir">🔄</button>
+    <button class="iconbtn" onclick="deconnexion()" title="Déconnexion">⏻</button>
   </header>
   <main id="main"></main>
   <nav class="tabs">
@@ -177,6 +195,16 @@ textarea.field{resize:vertical;min-height:64px}
 <div class="toast" id="toast"></div>
 
 <a href="index.html" title="Menu AJCV" style="position:fixed;bottom:16px;right:16px;z-index:9999;width:44px;height:44px;border-radius:50%;background:rgba(30,41,66,.88);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:20px;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.35);backdrop-filter:blur(6px)">🏠</a>
+
+<div id="nouveautesModal" style="display:none;position:fixed;inset:0;z-index:9600;background:rgba(0,0,0,.6);align-items:flex-end;justify-content:center" onclick="if(event.target===this)fermerNouveautes()">
+  <div style="background:var(--surface);width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:18px 18px 28px;max-height:80vh;overflow:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:17px;font-weight:700;color:var(--text)">✨ Nouveautés</div>
+      <button onclick="fermerNouveautes()" style="background:var(--surface2);border:none;color:var(--text);border-radius:8px;padding:6px 12px;font-size:14px;cursor:pointer">Fermer</button>
+    </div>
+    <div id="nouveautesCorps"></div>
+  </div>
+</div>
 
 <script>
 // ── CONFIG (seule différence test/prod — cf. scripts/build.js) ─────────────
@@ -264,8 +292,10 @@ function renderPrise(){
   const options = state.vehicules.map(v=>{
     const label = [v.marque,v.modele].filter(Boolean).join(' ') || v.description || '';
     return `<div class="veh-opt ${state.vehiculeChoisi===v.id?'sel':''} ${v.disponible?'':'dispo-non'}" onclick="${v.disponible?`choisirVehicule(${v.id})`:''}">
-      <div><div class="plaque">${esc(v.plaque)}</div><div class="desc">${esc(label)}</div></div>
-      ${!v.disponible?`<span class="badge">pris par ${esc(v.pris_par||'?')}</span>`:''}
+      <div class="ico">🚐</div>
+      <div class="plaque">${esc(v.plaque)}</div>
+      ${label?`<div class="desc">${esc(label)}</div>`:''}
+      ${!v.disponible?`<span class="badge">👤 ${esc(v.pris_par||'?')}</span>`:''}
     </div>`;
   }).join('') || '<p class="muted">Aucun véhicule actif enregistré.</p>';
 
@@ -471,6 +501,40 @@ async function envoyerRetour(){
   fermerModal('modalRetour');
   await rafraichir();
 }
+
+// ── THEME CLAIR / SOMBRE ─────────────────────────────────────────────────
+(function(){
+  function ap(t){ document.documentElement.setAttribute('data-theme',t); const b=document.getElementById('theme-btn'); if(b) b.textContent=(t==='light'?'🌙':'☀️'); }
+  function tg(){ const c=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark'; const n=c==='light'?'dark':'light'; try{ localStorage.setItem('ajcv_theme',n); }catch(_){} ap(n); }
+  ap(document.documentElement.getAttribute('data-theme')||'dark');
+  const b=document.getElementById('theme-btn'); if(b) b.onclick=tg;
+})();
+
+// ── VERSION / NOUVEAUTÉS ─────────────────────────────────────────────────
+let _verInfo = null;
+async function verifierVersion(){
+  try{
+    const r = await fetch('version.json?t='+Date.now(), { cache:'no-store' });
+    if(!r.ok) return;
+    const info = await r.json();
+    if(!info || !info.version) return;
+    _verInfo = info;
+    const badge = document.getElementById('verBadge'); if(badge) badge.textContent = 'v'+info.version;
+  }catch(_){}
+}
+function ouvrirNouveautes(){
+  const wrap = document.getElementById('nouveautesModal'); if(!wrap) return;
+  const hist = (_verInfo && _verInfo.historique) || [];
+  document.getElementById('nouveautesCorps').innerHTML = hist.length ? hist.map(h=>`
+    <div style="margin-bottom:16px">
+      <div style="font-weight:700;color:var(--gold);font-size:14px">v${h.v}${h.date?' · '+h.date:''}</div>
+      ${h.titre?`<div style="font-weight:600;margin:2px 0 6px;color:var(--text)">${h.titre}</div>`:''}
+      <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.65;color:var(--text2)">${(h.notes||[]).map(n=>`<li>${n}</li>`).join('')}</ul>
+    </div>`).join('') : '<div style="opacity:.7">Aucune information.</div>';
+  wrap.style.display = 'flex';
+}
+function fermerNouveautes(){ const w=document.getElementById('nouveautesModal'); if(w) w.style.display='none'; }
+verifierVersion();
 
 // ── DÉMARRAGE ────────────────────────────────────────────────────────────
 if(!restoreSession()){ document.getElementById('login').classList.add('active'); }

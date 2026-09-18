@@ -1,7 +1,24 @@
 {
-  "version": "2026.07.04.57",
+  "version": "2026.07.04.59",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.59",
+      "date": "19/09/2026",
+      "titre": "Flotte : sélection du véhicule en tuiles carrées",
+      "notes": [
+        "🚐 Écran « Prendre un véhicule » : les véhicules disponibles s'affichent désormais en tuiles carrées (icône, plaque, modèle) plutôt qu'en liste, comme dans les autres applis à sélection par carte."
+      ]
+    },
+    {
+      "v": "2026.07.04.58",
+      "date": "19/09/2026",
+      "titre": "Flotte : design harmonisé avec le reste de la suite AJCV",
+      "notes": [
+        "🎨 Écran de connexion avec le vrai logo AJCV (au lieu d'une icône provisoire), mode clair/sombre (bouton en bas à gauche) et badge de version avec « Nouveautés » — comme les applis Livreur et Préparateur.",
+        "🖼️ En-tête retravaillé (avatar, boutons) pour une présentation plus soignée. Aucun changement de fonctionnement."
+      ]
+    },
     {
       "v": "2026.07.04.57",
       "date": "19/09/2026",
