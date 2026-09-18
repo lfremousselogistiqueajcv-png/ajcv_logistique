@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.56",
+  "version": "2026.07.04.57",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.57",
+      "date": "19/09/2026",
+      "titre": "Flotte : bouton retour au menu AJCV",
+      "notes": [
+        "🏠 Correctif : l'appli Flotte n'avait pas le bouton flottant de retour au menu AJCV, présent sur toutes les autres applis."
+      ]
+    },
     {
       "v": "2026.07.04.56",
       "date": "18/09/2026",
