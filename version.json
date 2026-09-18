@@ -1,7 +1,63 @@
 {
-  "version": "2026.07.04.51",
+  "version": "2026.07.04.56",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.56",
+      "date": "18/09/2026",
+      "titre": "Géocodage : les clients sans adresse précise (code postal seul) ont maintenant un GPS",
+      "notes": [
+        "🐞 Correctif important : un client avec uniquement un code postal (pas d'adresse ni de ville) ne recevait jamais de GPS — la zone n'était pas non plus détectée. Bloquant pour l'optimisation de tournée sur ces clients.",
+        "📍 Nouveau repli : quand l'adresse précise est absente ou introuvable, le client est placé au centre de sa commune (les ~40 codes postaux réunionnais sont tous couverts) plutôt que de n'avoir aucun GPS — approximatif mais largement suffisant pour l'optimisation, qui groupe déjà les arrêts par commune.",
+        "🔁 « Re-géocoder GPS manquants » (admin → Clients) traite désormais aussi ces cas et signale ceux en approximation, pour affiner plus tard si une vraie adresse est ajoutée."
+      ]
+    },
+    {
+      "v": "2026.07.04.55",
+      "date": "17/09/2026",
+      "titre": "Retours client : refonte design + suivi fournisseur pour remboursement",
+      "notes": [
+        "🎨 Nouvelle interface façon Odoo (menu latéral, thème clair/sombre) au lieu de l'empilement de cartes.",
+        "📦 Nouveau : dossiers d'envoi fournisseur — regroupe plusieurs fiches reçues au dépôt vers un même fournisseur, avec statut (brouillon → envoyé → remboursé) et date de transmission. Fini de se demander \"j'ai transmis ou pas\".",
+        "🏢 Nouvel onglet Fournisseurs (fiche contact) + rattachement d'un fournisseur par défaut à chaque article du catalogue (import CSV avec colonne fournisseur optionnelle).",
+        "🔗 Le panier de déclaration regroupe désormais automatiquement les quantités si le même article est ajouté deux fois, au lieu de créer deux lignes.",
+        "📊 Reporting enrichi : vues par client et par commercial (en plus de par article), et indicateur \"transmis au fournisseur\" sur chaque fiche.",
+        "🐞 Documentation rétroactive de la table ret_commerciaux (jamais versionnée en SQL depuis sa création).",
+        "🐞 Correctif important : l'ajout/import d'articles au catalogue était bloqué depuis toujours (règle de sécurité de la base mal configurée) — jamais testé jusqu'ici car le catalogue initial avait été chargé autrement.",
+        "🐞 Correctif : le montant \"Remboursé à date\" de l'accueil ne comptait pas les dossiers entièrement remboursés."
+      ]
+    },
+    {
+      "v": "2026.07.04.54",
+      "date": "17/09/2026",
+      "titre": "Nouveau module Flotte : registre véhicules & carte carburant",
+      "notes": [
+        "🚗 Nouvelle appli conducteur (flotte.html) : prise/retour de véhicule avec kilométrage, déclaration de plein avec photo de ticket obligatoire (bucket privé), distinction trajet professionnel/mixte/personnel.",
+        "🛡️ Console admin — module Flotte enrichi : dashboard, historique des utilisations, suivi carburant (montants/litres/photos), gestion des cartes carburant, alertes anti-fraude, configuration des seuils.",
+        "🔒 Module désactivé par défaut (RGPD) : à activer explicitement dans Flotte → Configuration une fois l'information des salariés (et le CSE si applicable) faite.",
+        "⚠️ Nécessite d'exécuter sql/flotte_registre.sql dans Supabase (test) avant utilisation — voir le message de livraison pour le détail."
+      ]
+    },
+    {
+      "v": "2026.07.04.53",
+      "date": "17/09/2026",
+      "titre": "Zones géographiques à 4 secteurs + correctif fuseau horaire",
+      "notes": [
+        "📍 Les zones de livraison sont maintenant purement géographiques : Nord, Sud, Est et Ouest (au lieu de 3 zones \"Nord-Est\" combinées) — tous les livreurs peuvent couvrir n'importe quelle zone, elles ne sont plus liées à un livreur fixe.",
+        "🗺️ Carte des zones, filtres (livraisons, clients, comptes), simulation de répartition et KPI par zone mis à jour partout avec les 4 nouveaux secteurs.",
+        "🐞 Correctif : les filtres par date (livraisons, journal d'activité, signatures, rotation des zones...) pouvaient renvoyer 0 résultat selon le fuseau horaire de la machine qui exécute le serveur — corrigé définitivement."
+      ]
+    },
+    {
+      "v": "2026.07.04.52",
+      "date": "17/09/2026",
+      "titre": "Tournée : optimisation IA (fin de Google Maps pour le calcul)",
+      "notes": [
+        "🤖 Appli livreur : après « Optimiser », l'IA vérifie le plan par rapport aux horaires, contraintes (SUR RDV, AVANT 9H, hayon...) et priorités de chaque client, et ajuste l'ordre si besoin — avec une courte explication.",
+        "🤖 Plan de tournée (admin) : nouveau panneau « Tournée optimisée (IA) » pour générer le plan d'un livreur à une date donnée.",
+        "🗺️ Le calcul de l'ordre de tournée n'utilise plus Google Maps (OSRM, gratuit) — nécessite une clé Anthropic (variable ANTHROPIC_KEY) pour activer la vérification IA ; sans clé, le plan géographique reste utilisé normalement."
+      ]
+    },
     {
       "v": "2026.07.04.51",
       "date": "16/09/2026",

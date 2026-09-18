@@ -1,124 +1,203 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>↩️ AJCV — Retours client</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>AJCV — Retours client</title>
 <link rel="icon" href="logo-32.png" type="image/png">
 <link rel="apple-touch-icon" href="logo-192.png">
 <style>
-  :root{--bg:#12151B;--card:#181C23;--bd:#2A3038;--txt:#EDEEF1;--mut:#9BA1AC;--ok:#33C481;--err:#F0555A;--acc:#E8A63C}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-  header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--bd)}
-  header h1{font-size:17px;margin:0;flex:1}
-  .badge-v{color:var(--mut);font-size:11px}
-  main{max-width:920px;margin:0 auto;padding:16px}
-  .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:14px}
-  h3{margin:0 0 10px;font-size:15px}
-  .fld{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:#14171D;color:var(--txt);font-size:15px}
-  .btn{padding:10px 16px;border-radius:10px;border:none;background:var(--acc);color:#181C23;font-weight:700;cursor:pointer;font-size:14px}
-  .btn:disabled{opacity:.5}
-  .muted{color:var(--mut);font-size:13px}
-  table{width:100%;border-collapse:collapse;font-size:13.5px}
-  th,td{padding:8px;border-bottom:1px solid var(--bd);text-align:left}
-  .pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700}
-  .ok{background:rgba(51,196,129,.15);color:#4ADE80}.err{background:rgba(240,85,90,.15);color:#F87171}
-  #login-view{max-width:380px;margin:12vh auto;padding:0 16px}
-  .toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%);background:#20252E;border:1px solid var(--bd);color:var(--txt);padding:10px 18px;border-radius:10px;font-size:14px;z-index:9998;box-shadow:0 6px 20px rgba(0,0,0,.4)}
-  input[type=file]{display:none}
-  .lbl-file{display:inline-block;padding:10px 16px;border-radius:10px;background:#20252E;color:#fff;border:1px solid var(--bd);cursor:pointer;font-weight:700;font-size:14px}
+:root{--gold:#E8A63C;--blue:#4E8BF0;--bg:#12151B;--surface:#181C23;--surface2:#20252E;--border:rgba(255,255,255,.08);--text:#EDEEF1;--text2:#9BA1AC;--text3:#6E7480;--green:#33C481;--red:#F0555A;--orange:#E39A3D;--purple:#8B6CF2}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+input,select,button,textarea{font-family:inherit}
+a{color:var(--gold)}
+/* LOGIN */
+#login{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:380px}
+.login-card h1{font-size:20px;font-weight:700;color:var(--gold);text-align:center;margin-bottom:4px}
+.login-card .sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:24px}
+label{font-size:12px;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;margin-top:14px}
+input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+.btn{padding:11px 18px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+.btn-gold{background:var(--gold);color:#0F1724}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+.btn-gray{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-purple{background:var(--purple);color:#fff}
+.btn-full{width:100%;margin-top:18px}
+.btn-sm{padding:6px 10px;font-size:12px;border-radius:6px}
+.btn:disabled{opacity:.5;pointer-events:none}
+.err{display:none;color:var(--red);font-size:13px;margin-top:12px}
+/* APP */
+#app{display:none}
+#app.on{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:224px;flex:none;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:width .16s ease;overflow:hidden}
+#app.collapsed .sidebar{width:60px}
+.side-brand{display:flex;align-items:center;gap:10px;padding:16px 14px;white-space:nowrap;flex:none}
+.side-mark{width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none}
+.side-name{font-weight:800;font-size:14px;color:var(--text)}
+#app.collapsed .side-name{display:none}
+.side-nav{flex:1;overflow-y:auto;padding:4px 10px 16px}
+.side-group{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);padding:14px 8px 6px;white-space:nowrap}
+#app.collapsed .side-group{display:none}
+.nav-tab{padding:9px 10px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:11px;border-radius:8px;margin-bottom:1px}
+.nav-tab.active{color:var(--gold);background:rgba(232,166,60,.12);font-weight:700}
+.nav-tab:hover{color:var(--text);background:var(--surface2)}
+#app.collapsed .nav-tab{justify-content:center}
+#app.collapsed .nav-tab span{display:none}
+.main-col{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.topbar2{flex:none;display:flex;align-items:center;gap:12px;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface)}
+.icon-btn{background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:5px 9px;border-radius:7px;line-height:1}
+.icon-btn:hover{background:var(--surface2);color:var(--text)}
+.topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.content-wrap{flex:1;overflow-y:auto;max-width:1300px;margin:0 auto;padding:20px 16px;width:100%}
+@media(max-width:720px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200}
+  #app:not(.collapsed) .sidebar{box-shadow:0 0 0 100vw rgba(0,0,0,.45)}
+  #app.collapsed .sidebar{width:0;border:none}
+}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+.card h3{font-size:16px;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.muted{color:var(--text2);font-size:12px}
+.table-wrap{overflow-x:auto;border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--surface2);padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.02)}
+.pill{display:inline-block;font-size:11px;padding:3px 9px;border-radius:10px;white-space:nowrap;font-weight:700}
+.pill-ok{background:rgba(51,196,129,.15);color:var(--green)}
+.pill-no{background:rgba(240,85,90,.15);color:var(--red)}
+.pill-wait{background:rgba(227,154,61,.15);color:var(--orange)}
+.pill-info{background:rgba(78,139,240,.15);color:var(--blue)}
+.inline-sel{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 6px;color:var(--text);font-size:11px;cursor:pointer}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.form-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;flex-wrap:wrap}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+.kpi-v{font-size:22px;font-weight:800}
+.kpi-l{font-size:11px;color:var(--text2);margin-top:4px}
+.subtab{padding:7px 13px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer}
+.subtab.active{background:var(--gold);color:#1a1a1a;border-color:var(--gold)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.modal-bg.active{display:flex}
+.modal{background:var(--surface);border-radius:14px;padding:24px;width:100%;max-width:560px;margin:auto}
+.modal h3{font-size:17px;color:var(--gold);margin-bottom:16px}
+.loading{text-align:center;padding:40px;color:var(--text2)}
+.spin{display:inline-block;width:32px;height:32px;border:3px solid var(--surface2);border-top-color:var(--gold);border-radius:50%;animation:s 1s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--gold);border-radius:10px;padding:12px 20px;font-size:14px;z-index:9999;opacity:0;pointer-events:none;transition:.3s;max-width:90%}
+.toast.show{opacity:1}
+input[type=file]{display:none}
+.lbl-file{display:inline-block;padding:9px 14px;border-radius:8px;background:var(--surface2);color:var(--text);border:1px solid var(--border);cursor:pointer;font-weight:700;font-size:13px}
+.ligne-art{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--surface2)}
+.art-res-item{padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:4px;cursor:pointer;background:var(--surface)}
+.art-res-item:hover{border-color:var(--gold)}
+html[data-theme="light"]{
+  --gold:#0B6B57; --bg:#F4F5F7; --surface:#FFFFFF; --surface2:#EDEEF2;
+  --text:#1B1F27; --text2:#666B76; --text3:#8A8F99;
+  --border:rgba(15,23,42,0.10);
+  --green:#1E8E5A; --red:#C0392B; --orange:#B9791F; --blue:#2D6FE0; --purple:#7C3AED;
+}
+#theme-btn{position:fixed;bottom:20px;left:20px;z-index:10001;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#theme-btn:active{transform:scale(.94)}
+/* Visionneuse photos plein écran */
+#lb-overlay{display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.93);align-items:center;justify-content:center}
+#lb-overlay.open{display:flex}
+#lb-img{max-width:92vw;max-height:86vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+#lb-close{position:fixed;top:14px;right:18px;color:#fff;font-size:30px;cursor:pointer;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.14)}
+.lb-nav{position:fixed;top:50%;transform:translateY(-50%);color:#fff;font-size:40px;cursor:pointer;width:52px;height:78px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.10);border-radius:10px}
+#lb-prev{left:12px}#lb-next{right:12px}
+#lb-count{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;font:600 14px -apple-system,sans-serif;background:rgba(0,0,0,.5);padding:6px 14px;border-radius:20px}
 </style>
 </head>
 <body>
-<div id="login-view">
-  <div class="card">
-    <h3>↩️ Retours client — connexion</h3>
-    <input class="fld" id="lg-user" placeholder="Identifiant" autocomplete="username" style="margin-bottom:8px">
-    <input class="fld" id="lg-pass" type="password" placeholder="Mot de passe" autocomplete="current-password" style="margin-bottom:12px" onkeydown="if(event.key==='Enter')seConnecter()">
-    <button class="btn" style="width:100%" onclick="seConnecter()">Se connecter</button>
-    <div class="muted" id="lg-msg" style="margin-top:8px"></div>
+<button id="theme-btn" title="Mode clair / sombre">☀️</button>
+
+<div id="login">
+  <div class="login-card">
+    <h1>↩️ Retours client</h1>
+    <div class="sub">AJCV SARL — La Réunion</div>
+    <label>Identifiant</label>
+    <input id="lg-user" placeholder="Identifiant" autocomplete="username">
+    <label>Mot de passe</label>
+    <input id="lg-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')seConnecter()">
+    <div class="err" id="lg-msg"></div>
+    <button class="btn btn-gold btn-full" onclick="seConnecter()">Se connecter</button>
   </div>
 </div>
-<div id="app-view" style="display:none">
-  <header><h1>↩️ Retours client</h1><span class="badge-v" id="vbadge"></span><span class="muted" id="qui"></span><button class="btn" style="background:#20252E;color:#fff" onclick="deconnexion()">Quitter</button></header>
-  <main>
-    <div class="card">
-      <h3>➕ Déclarer un retour</h3>
-      <select class="fld" id="rc-commercial" style="margin-bottom:8px"><option value="">— Commercial (qui a récupéré le produit) —</option></select>
-      <input class="fld" id="rc-client" placeholder="Nom du client" list="rc-clients" style="margin-bottom:10px"><datalist id="rc-clients"></datalist>
-      <div id="rc-lignes"></div>
-      <button class="btn" style="background:#20252E;color:#fff;margin-top:6px" onclick="ajouterLigne()">+ Ajouter un article</button>
-      <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
-        <button class="btn" id="rc-env" onclick="envoyerRetour()">📤 Envoyer le retour</button>
-        <span class="muted" id="rc-msg"></span>
+
+<div id="app">
+  <aside class="sidebar">
+    <div class="side-brand"><img class="side-mark" src="logo-192.png" alt="AJCV"><span class="side-name">Retours</span></div>
+    <nav class="side-nav">
+      <div class="nav-tab active" data-tab="accueil" onclick="go('accueil')">🏠<span>Accueil</span></div>
+      <div class="side-group">Déclaration</div>
+      <div class="nav-tab" data-tab="declarer" onclick="go('declarer')">➕<span>Déclarer un retour</span></div>
+      <div class="nav-tab" data-tab="mes" onclick="go('mes')">📋<span>Mes fiches</span></div>
+      <div class="side-group admin-only">Traitement</div>
+      <div class="nav-tab admin-only" data-tab="reception" onclick="go('reception')">🏭<span>Réception dépôt</span></div>
+      <div class="nav-tab admin-only" data-tab="reporting" onclick="go('reporting')">📊<span>Reporting</span></div>
+      <div class="side-group admin-only">Fournisseurs</div>
+      <div class="nav-tab admin-only" data-tab="dossiers" onclick="go('dossiers')">📦<span>Dossiers d'envoi</span></div>
+      <div class="nav-tab admin-only" data-tab="fournisseurs" onclick="go('fournisseurs')">🏢<span>Fournisseurs</span></div>
+      <div class="side-group admin-only">Catalogue</div>
+      <div class="nav-tab admin-only" data-tab="articles" onclick="go('articles')">📚<span>Articles</span></div>
+      <div class="side-group admin-only">Équipe</div>
+      <div class="nav-tab admin-only" data-tab="commerciaux" onclick="go('commerciaux')">🧑‍💼<span>Commerciaux</span></div>
+      <div class="nav-tab admin-only" data-tab="droits" onclick="go('droits')">👥<span>Droits</span></div>
+    </nav>
+  </aside>
+  <div class="main-col">
+    <div class="topbar2">
+      <button class="icon-btn" onclick="toggleSidebar()" title="Replier/déplier le menu">☰</button>
+      <div class="topbar-right">
+        <span id="vbadge" class="muted"></span>
+        <span id="qui" style="font-size:12px;color:var(--gold)"></span>
+        <button class="btn btn-gray btn-sm" onclick="deconnexion()">Quitter</button>
       </div>
     </div>
-    <div class="card">
-      <h3>📋 Mes fiches</h3>
-      <div id="mes-fiches" class="muted">Chargement…</div>
-    </div>
-    <div class="card admin-only">
-      <h3>🏭 Réception dépôt <span class="muted" id="rd-count"></span></h3>
-      <div class="muted" style="margin-bottom:8px">Les produits défectueux en attente d'arrivée au dépôt. ✅ = reçu · ❌ = refusé (motif obligatoire).</div>
-      <div id="rd-liste">Chargement…</div>
-    </div>
-    <div class="card admin-only">
-      <h3>📊 Reporting défectueux</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-        <input class="fld" type="date" id="rp-deb" style="max-width:160px" onchange="chargerReporting()">
-        <input class="fld" type="date" id="rp-fin" style="max-width:160px" onchange="chargerReporting()">
-        <select class="fld" id="rp-st" style="max-width:170px" onchange="chargerReporting()">
-          <option value="">Tous statuts</option><option value="declare">Déclaré</option><option value="recu_depot">Reçu dépôt</option>
-          <option value="remplace">Remplacé</option><option value="livre">Livré</option><option value="refuse">Refusé</option>
-        </select>
-        <select class="fld" id="rp-art" style="max-width:240px" onchange="renderReporting()"><option value="">Tous les produits</option></select>
-        <input class="fld" id="rp-q" placeholder="Filtrer client / commercial / facture / n° RET…" style="flex:1;min-width:180px" oninput="renderReporting()">
-        <button class="btn" style="background:#20252E;color:#fff" onclick="exportReporting()">⬇️ CSV</button>
-      </div>
-      <div id="rp-synthese"></div>
-      <div id="rp-detail" style="margin-top:12px"></div>
-    </div>
-    <div class="card admin-only">
-      <h3>📚 Catalogue articles <span class="muted" id="cat-count"></span></h3>
-      <div class="muted" style="margin-bottom:10px">Import CSV (séparateur ; ou ,) — colonnes : ref_odoo · libelle · code_barre · categorie · prix_achat. Import en mise à jour : une référence existante est actualisée, jamais doublée.</div>
-      <label class="lbl-file">📥 Importer un CSV<input type="file" id="csv-file" accept=".csv,text/csv" onchange="importerCSV(this)"></label>
-      <span id="imp-res" class="muted" style="margin-left:10px"></span>
-      <div style="border-top:1px solid var(--bd);margin-top:12px;padding-top:12px">
-        <div class="muted" style="margin-bottom:6px"><b style="color:var(--txt)">➕ Ajouter un article manuellement</b> (référence existante = mise à jour)</div>
-        <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px">
-          <input class="fld" id="na-ref" placeholder="Réf. Odoo *">
-          <input class="fld" id="na-lib" placeholder="Libellé *">
-          <input class="fld" id="na-cb" placeholder="Code-barres (douchette)">
-          <input class="fld" id="na-cat" placeholder="Catégorie">
-          <input class="fld" id="na-px" placeholder="Prix d'achat (ex: 4,50)">
-          <button class="btn" onclick="ajouterArticle()">➕ Ajouter au catalogue</button>
-        </div>
-      </div>
-    </div>
-    <div class="card admin-only">
-      <h3>🔎 Recherche (libellé, référence ou douchette)</h3>
-      <input class="fld" id="rech" placeholder="Scanne un code-barres ou tape un libellé…" oninput="rechDebounce()" autofocus>
-      <div id="rech-res" style="margin-top:10px"></div>
-    </div>
-    <div class="card admin-only">
-      <h3>🧑‍💼 Mes commerciaux</h3>
-      <div class="muted" style="margin-bottom:8px">La liste proposée à la déclaration d'un défectueux.</div>
-      <div style="display:flex;gap:8px;margin-bottom:8px"><input class="fld" id="cm-nom" placeholder="Nom du commercial" style="max-width:260px" onkeydown="if(event.key==='Enter')ajouterCommercial()"><button class="btn" onclick="ajouterCommercial()">+ Ajouter</button></div>
-      <div id="cm-liste" class="muted">Chargement…</div>
-    </div>
-    <div class="card admin-only">
-      <h3>👥 Qui peut déclarer un retour</h3>
-      <div class="muted" style="margin-bottom:8px">Admin et Dépôt y ont accès d'office. Coche les autres comptes autorisés.</div>
-      <div id="droits-liste" class="muted">Chargement…</div>
-    </div>
-  </main>
+    <div class="content-wrap" id="content"></div>
+  </div>
 </div>
+
+<div class="toast" id="toast"></div>
+
+<!-- MODALE : nouveau dossier fournisseur -->
+<div class="modal-bg" id="modalNouveauDossier">
+  <div class="modal">
+    <h3>📦 Nouveau dossier d'envoi</h3>
+    <label>Fournisseur</label>
+    <select id="nd-fournisseur" onchange="chargerCandidatsDossier()"></select>
+    <div id="nd-candidats" style="margin-top:14px"></div>
+    <div class="form-actions">
+      <button class="btn btn-gray" onclick="fermerModal('modalNouveauDossier')">Annuler</button>
+      <button class="btn btn-gold" onclick="creerDossier()">✅ Créer le dossier</button>
+    </div>
+  </div>
+</div>
+
+<div id="lb-overlay" onclick="if(event.target===this)lbClose()">
+  <span id="lb-close" onclick="lbClose()">✕</span>
+  <span id="lb-prev" class="lb-nav" onclick="lbNav(-1)">‹</span>
+  <img id="lb-img" src="" alt="Photo">
+  <span id="lb-next" class="lb-nav" onclick="lbNav(1)">›</span>
+  <div id="lb-count"></div>
+</div>
+
+<a href="index.html" title="Menu AJCV" style="position:fixed;bottom:16px;right:16px;z-index:9999;width:44px;height:44px;border-radius:50%;background:rgba(30,41,66,.88);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:20px;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.35)">🏠</a>
+
 <script>
 const API='https://ajcvbackend-production.up.railway.app';
 const S={token:'',login:'',role:''};
 function $(id){return document.getElementById(id)}
 function esc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(window._toastTO);window._toastTO=setTimeout(()=>t.classList.remove('show'),2800)}
+function fermerModal(id){$(id).classList.remove('active')}
 async function api(method,path,body){
   const o={method,headers:{'Authorization':'Bearer '+S.token}};
   if(body){o.headers['Content-Type']='application/json';o.body=JSON.stringify(body)}
@@ -126,84 +205,173 @@ async function api(method,path,body){
   if(r.status===401){deconnexion();throw new Error('401')}
   return r.json();
 }
+
+// ── Thème clair/sombre ──
+(function(){
+  try{var t=localStorage.getItem('ajcvret_theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');document.documentElement.setAttribute('data-theme',t);}catch(e){}
+  function ap(t){document.documentElement.setAttribute('data-theme',t);var b=$('theme-btn');if(b)b.textContent=(t==='light'?'🌙':'☀️');}
+  function tg(){var c=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';var n=c==='light'?'dark':'light';try{localStorage.setItem('ajcvret_theme',n);}catch(_){}ap(n);}
+  ap(document.documentElement.getAttribute('data-theme')||'dark');
+  var b=$('theme-btn'); if(b) b.onclick=tg;
+})();
+
+// ── Connexion ──
 async function seConnecter(){
-  $('lg-msg').textContent='Connexion…';
+  const err=$('lg-msg'); err.style.display='none';
+  const login=$('lg-user').value.trim(), mdp=$('lg-pass').value;
+  if(!login||!mdp){err.textContent='Identifiant et mot de passe requis';err.style.display='block';return}
   try{
-    const r=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login:$('lg-user').value.trim(),mdp:$('lg-pass').value})});
+    const r=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login,mdp,app:'retours'})});
     const d=await r.json();
-    if(!d.token){$('lg-msg').textContent='❌ '+(d.error||'Identifiants invalides');return}
-    S.token=d.token;S.login=d.login||$('lg-user').value.trim();S.role=d.role||'';
+    if(!d.token){err.textContent=d.error||'Identifiants invalides';err.style.display='block';return}
+    S.token=d.token;S.login=d.login||login;S.role=d.role||'';
     sessionStorage.setItem('ajcvret',JSON.stringify(S));
     demarrer();
-  }catch(e){$('lg-msg').textContent='❌ Erreur réseau'}
+  }catch(e){err.textContent='Erreur réseau';err.style.display='block'}
 }
 function deconnexion(){sessionStorage.removeItem('ajcvret');location.reload()}
 function demarrer(){
-  $('login-view').style.display='none';$('app-view').style.display='';
+  $('login').style.display='none';
+  $('app').classList.add('on');
+  if(window.innerWidth<=720) $('app').classList.add('collapsed');
   $('qui').textContent=S.login+' ('+S.role+')';
   fetch('version.json').then(r=>r.json()).then(v=>{$('vbadge').textContent='v'+v.version}).catch(()=>{});
   const estAdmin=['Admin','Depot'].includes(S.role);
   document.querySelectorAll('.admin-only').forEach(el=>{ el.style.display=estAdmin?'':'none'; });
-  if(estAdmin){ chargerDroits();rechercher('');const d=new Date();$('rp-fin').value=d.toISOString().split('T')[0];d.setDate(d.getDate()-30);$('rp-deb').value=d.toISOString().split('T')[0];chargerReporting();chargerReception(); }
-  ajouterLigne();chargerMes();
-  const majClients=()=>api('GET','/retours/clients').then(d=>{const dl=$('rc-clients');if(dl&&d.clients&&d.clients.length)dl.innerHTML=d.clients.map(c=>`<option value="${esc(c)}">`).join('');else if(d&&d.error)toast('⚠️ Clients : '+d.error)}).catch(()=>{});
-  majClients();chargerCommerciaux();
-  const rcC=$('rc-client'); if(rcC) rcC.onfocus=majClients;
-  api('GET','/retours/clients').then(d=>{const dl=$('rc-clients');if(dl&&d.clients)dl.innerHTML=d.clients.map(c=>`<option value="${esc(c)}">`).join('')}).catch(()=>{});
+  go('accueil');
 }
-// ── Référentiel commerciaux ──
-async function chargerCommerciaux(){
-  try{
-    const d=await api('GET','/retours/commerciaux');
-    const L=d.commerciaux||[];
-    const sel=$('rc-commercial');
-    if(sel){const cur=sel.value;sel.innerHTML='<option value="">— Commercial (qui a récupéré le produit) —</option>'+L.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');if(cur&&L.includes(cur))sel.value=cur;}
-    const zone=$('cm-liste');
-    if(zone)zone.innerHTML=L.length?L.map(n=>`<span style="display:inline-flex;align-items:center;gap:6px;background:#14171D;border:1px solid var(--bd);border-radius:99px;padding:5px 12px;margin:3px;color:var(--txt)">${esc(n)}<b style="cursor:pointer;color:#F87171" onclick="retirerCommercial('${esc(n)}')">✕</b></span>`).join(''):'Aucun commercial — ajoute-les ci-dessus.';
-  }catch(_){}
+function toggleSidebar(){ $('app').classList.toggle('collapsed'); }
+
+// ── Navigation ──
+const RENDERERS={accueil:renderAccueil,declarer:renderDeclarer,mes:renderMes,reception:renderReception,reporting:renderReporting,dossiers:renderDossiers,fournisseurs:renderFournisseurs,articles:renderArticles,commerciaux:renderCommerciaux,droits:renderDroits};
+function go(tab){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  if(window.innerWidth<=720) $('app').classList.add('collapsed');
+  $('content').innerHTML='<div class="loading"><div class="spin"></div></div>';
+  (RENDERERS[tab]||renderAccueil)();
 }
-async function ajouterCommercial(){
-  const n=$('cm-nom').value.trim();if(!n){toast('Nom requis');return}
-  const r=await api('POST','/retours/commerciaux',{nom:n});
-  if(r.error){toast('❌ '+r.error);return}
-  $('cm-nom').value='';toast('✅ '+n+' ajouté');chargerCommerciaux();
+
+// ── Référentiels partagés (chargés une fois, réutilisés partout) ──
+let _commerciaux=[], _fournisseurs=[], _clients=[];
+async function chargerReferentiels(){
+  const [c,f,cl]=await Promise.all([
+    api('GET','/retours/commerciaux').catch(()=>({commerciaux:[]})),
+    api('GET','/retours/fournisseurs').catch(()=>({fournisseurs:[]})),
+    api('GET','/retours/clients').catch(()=>({clients:[]})),
+  ]);
+  _commerciaux=c.commerciaux||[]; _fournisseurs=f.fournisseurs||[]; _clients=cl.clients||[];
 }
-async function retirerCommercial(n){
-  if(!confirm('Retirer '+n+' de la liste ?'))return;
-  const r=await api('POST','/retours/commerciaux',{nom:n,actif:false});
-  if(r.error){toast('❌ '+r.error);return}
-  toast('🚫 '+n+' retiré');chargerCommerciaux();
+
+// ════════════════════════════════════════════════════════════════════════════
+// ACCUEIL — vue d'ensemble
+// ════════════════════════════════════════════════════════════════════════════
+async function renderAccueil(){
+  const estAdmin=['Admin','Depot'].includes(S.role);
+  $('content').innerHTML=`
+    <div class="card">
+      <h3>👋 Bonjour ${esc(S.login)}</h3>
+      <p class="muted">Déclare un retour, suis tes fiches, ${estAdmin?'et pilote le traitement et les remboursements fournisseurs.':'et suis leur traitement.'}</p>
+    </div>
+    <div id="acc-kpis"></div>`;
+  await chargerReferentiels();
+  if(!estAdmin){
+    const d=await api('GET','/retours/mes').catch(()=>({fiches:[]}));
+    const F=d.fiches||[];
+    const enCours=F.filter(f=>!['livre','refuse'].includes(f.statut)).length;
+    $('acc-kpis').innerHTML=`<div class="card"><div class="kpi-grid">
+      ${kpiTuile(F.length,'Fiches déclarées')}${kpiTuile(enCours,'En cours','var(--blue)')}
+    </div></div>`;
+    return;
+  }
+  const [d,al]=await Promise.all([
+    api('GET','/retours/reporting').catch(()=>({fiches:[]})),
+    api('GET','/retours/dossiers-fournisseur').catch(()=>({dossiers:[]})),
+  ]);
+  const F=d.fiches||[]; const dossiers=al.dossiers||[];
+  const enAttenteReception=F.filter(f=>(f.qte_recue||0)<f.qte&&!['refuse'].includes(f.statut)).length;
+  const nonTransmis=F.filter(f=>f.recu_le&&!f.dossier_numero&&f.statut!=='refuse').length;
+  const dossiersOuverts=dossiers.filter(d=>d.statut!=='clos'&&d.statut!=='rembourse_total').length;
+  const montantAttendu=dossiers.filter(d=>['rembourse_partiel','rembourse_total'].includes(d.statut)).reduce((s,d)=>s+(d.montant_rembourse||0),0);
+  $('acc-kpis').innerHTML=`<div class="card"><div class="kpi-grid">
+    ${kpiTuile(F.length,'Fiches (total)')}
+    ${kpiTuile(enAttenteReception,'En attente dépôt',enAttenteReception?'var(--orange)':'var(--green)')}
+    ${kpiTuile(nonTransmis,'Reçues, pas encore transmises',nonTransmis?'var(--red)':'var(--green)')}
+    ${kpiTuile(dossiersOuverts,'Dossiers en cours','var(--blue)')}
+    ${kpiTuile(montantAttendu.toFixed(0)+' €','Remboursé à date','var(--gold)')}
+  </div></div>
+  ${nonTransmis?`<div class="card" style="border-color:var(--red)">
+    <h3 style="color:var(--red)">⚠️ ${nonTransmis} fiche(s) reçue(s) au dépôt jamais transmise(s) à un fournisseur</h3>
+    <p class="muted" style="margin-bottom:10px">Elles sont prêtes à être regroupées dans un dossier d'envoi.</p>
+    <button class="btn btn-purple" onclick="go('dossiers')">📦 Aller aux dossiers fournisseurs</button>
+  </div>`:''}`;
 }
-// ── Déclaration (panier multi-articles, photos envoyées dès la prise) ──
+function kpiTuile(v,l,c){return `<div class="kpi"><div class="kpi-v" style="color:${c||'var(--text)'}">${v}</div><div class="kpi-l">${l}</div></div>`;}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DÉCLARER UN RETOUR (panier multi-articles, regroupement auto par article)
+// ════════════════════════════════════════════════════════════════════════════
 const MOTIFS={fuite:'Fuite',ne_s_allume_pas:"Ne s'allume pas",gout:'Goût',dlc:'DLC',casse:'Casse',autre:'Autre'};
 const STATUTS={declare:['Déclaré','#E8A63C'],recu_depot:['Reçu dépôt','#4E8BF0'],remplace:['Remplacé','#8B6CF2'],livre:['Livré','#33C481'],refuse:['Refusé','#F0555A']};
 let P={lignes:[]};
+async function renderDeclarer(){
+  await chargerReferentiels();
+  P={lignes:P.lignes.length?P.lignes:[]};
+  $('content').innerHTML=`
+    <div class="card">
+      <h3>➕ Déclarer un retour</h3>
+      <div class="form-grid">
+        <div><label>Commercial (qui a récupéré le produit)</label><select id="rc-commercial"><option value="">— Commercial —</option>${_commerciaux.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('')}</select></div>
+        <div><label>Client</label><input id="rc-client" placeholder="Nom du client" list="rc-clients"><datalist id="rc-clients">${_clients.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>
+      </div>
+      <div id="rc-lignes" style="margin-top:14px"></div>
+      <button class="btn btn-gray" onclick="ajouterLigne()">+ Ajouter un article</button>
+      <div class="form-actions" style="justify-content:flex-start;align-items:center">
+        <button class="btn btn-gold" id="rc-env" onclick="envoyerRetour()">📤 Envoyer le retour</button>
+        <span class="muted" id="rc-msg"></span>
+      </div>
+    </div>`;
+  if(!P.lignes.length) ajouterLigne(); else renderLignes();
+}
 function ajouterLigne(){P.lignes.push({article:null,qte:1,motif:'fuite',commentaire:'',facture_origine:'',photos:[],up:0});renderLignes()}
 function retirerLigne(i){P.lignes.splice(i,1);renderLignes()}
 function renderLignes(){
-  $('rc-lignes').innerHTML=P.lignes.map((l,i)=>`
-  <div style="border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Article ${i+1}</b><button class="btn" style="background:#5C2429;color:#fff;padding:4px 10px" onclick="retirerLigne(${i})">✕</button></div>
-    ${l.article?`<div style="margin-bottom:8px">✅ <b>${esc(l.article.ref_odoo)}</b> — ${esc(l.article.libelle)} <button class="btn" style="background:#20252E;color:#fff;padding:3px 9px;font-size:12px" onclick="P.lignes[${i}].article=null;renderLignes()">changer</button></div>`
-      :`<input class="fld" placeholder="Article : libellé, réf ou douchette…" style="margin-bottom:6px" oninput="chercherArt(${i},this.value)"><div id="art-res-${i}"></div>`}
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <input class="fld" type="number" min="1" value="${l.qte}" style="max-width:90px" onchange="P.lignes[${i}].qte=parseInt(this.value)||1" placeholder="Qté">
-      <select class="fld" onchange="P.lignes[${i}].motif=this.value">${Object.entries(MOTIFS).map(([k,v])=>`<option value="${k}" ${l.motif===k?'selected':''}>${v}</option>`).join('')}</select>
+  const z=$('rc-lignes'); if(!z) return;
+  z.innerHTML=P.lignes.map((l,i)=>`
+  <div class="ligne-art">
+    <div class="flex-between" style="margin-bottom:8px"><b>Article ${i+1}</b><button class="btn btn-red btn-sm" onclick="retirerLigne(${i})">✕</button></div>
+    ${l.article?`<div style="margin-bottom:8px">✅ <b>${esc(l.article.ref_odoo)}</b> — ${esc(l.article.libelle)} <button class="btn btn-gray btn-sm" onclick="P.lignes[${i}].article=null;renderLignes()">changer</button></div>`
+      :`<input placeholder="Article : libellé, réf ou douchette…" style="margin-bottom:6px" oninput="chercherArt(${i},this.value)"><div id="art-res-${i}"></div>`}
+    <div class="form-grid" style="margin-bottom:8px">
+      <input type="number" min="1" value="${l.qte}" onchange="P.lignes[${i}].qte=parseInt(this.value)||1" placeholder="Quantité">
+      <select onchange="P.lignes[${i}].motif=this.value">${Object.entries(MOTIFS).map(([k,v])=>`<option value="${k}" ${l.motif===k?'selected':''}>${v}</option>`).join('')}</select>
     </div>
-    <input class="fld" placeholder="Facture d'origine (optionnel)" value="${esc(l.facture_origine)}" style="margin-bottom:6px" onchange="P.lignes[${i}].facture_origine=this.value">
-    <input class="fld" placeholder="Commentaire (optionnel)" value="${esc(l.commentaire)}" style="margin-bottom:8px" onchange="P.lignes[${i}].commentaire=this.value">
+    <input placeholder="Facture d'origine (optionnel)" value="${esc(l.facture_origine)}" style="margin-bottom:8px" onchange="P.lignes[${i}].facture_origine=this.value">
+    <input placeholder="Commentaire (optionnel)" value="${esc(l.commentaire)}" style="margin-bottom:8px" onchange="P.lignes[${i}].commentaire=this.value">
     <label class="lbl-file">📷 Photo du produit<input type="file" accept="image/*" capture="environment" onchange="photoRetour(${i},this)"></label>
-    <span style="margin-left:8px">${l.photos.map(()=>'<span class="pill ok" style="margin-right:4px">✓</span>').join('')}${l.up?'<span class="muted">⏳ envoi…</span>':''}</span>
+    <span style="margin-left:8px">${l.photos.map(()=>'<span class="pill pill-ok" style="margin-right:4px">✓</span>').join('')}${l.up?'<span class="muted">⏳ envoi…</span>':''}</span>
     <span class="muted" style="margin-left:6px">${l.photos.length} photo(s) en sécurité</span>
-  </div>`).join('')||'<div class="muted">Ajoute au moins un article.</div>';
+  </div>`).join('')||'<p class="muted">Ajoute au moins un article.</p>';
 }
 let _ta=null;
 function chercherArt(i,q){clearTimeout(_ta);_ta=setTimeout(async()=>{
   if(!q||q.length<2){$('art-res-'+i).innerHTML='';return}
   const d=await api('GET','/retours/articles?q='+encodeURIComponent(q));
-  $('art-res-'+i).innerHTML=(d.articles||[]).slice(0,6).map(a=>`<div style="padding:7px 10px;border:1px solid var(--bd);border-radius:8px;margin-bottom:4px;cursor:pointer" onclick='choisirArt(${i},${JSON.stringify({id:a.id,ref_odoo:a.ref_odoo,libelle:a.libelle}).replace(/'/g,"&#39;")})'><b>${esc(a.ref_odoo)}</b> — ${esc(a.libelle)}</div>`).join('')||'<span class="muted">Aucun article.</span>';
+  $('art-res-'+i).innerHTML=(d.articles||[]).slice(0,6).map(a=>`<div class="art-res-item" onclick='choisirArt(${i},${JSON.stringify({id:a.id,ref_odoo:a.ref_odoo,libelle:a.libelle}).replace(/'/g,"&#39;")})'><b>${esc(a.ref_odoo)}</b> — ${esc(a.libelle)}</div>`).join('')||'<span class="muted">Aucun article.</span>';
 },250)}
-function choisirArt(i,a){P.lignes[i].article=a;renderLignes()}
+// Regroupement : si l'article est déjà présent sur une autre ligne, on cumule la quantité
+// au lieu de créer une seconde ligne pour le même article (demande explicite de Laurent).
+function choisirArt(i,a){
+  const autre=P.lignes.findIndex((l,idx)=>idx!==i&&l.article&&l.article.id===a.id);
+  if(autre>-1){
+    P.lignes[autre].qte=(parseInt(P.lignes[autre].qte)||1)+(parseInt(P.lignes[i].qte)||1);
+    P.lignes[autre].photos=P.lignes[autre].photos.concat(P.lignes[i].photos||[]);
+    P.lignes.splice(i,1);
+    toast('🔗 Article déjà présent — quantités regroupées');
+  }else{
+    P.lignes[i].article=a;
+  }
+  renderLignes();
+}
 function compresser(file,maxDim,q){return new Promise((res,rej)=>{
   const img=new Image();const u=URL.createObjectURL(file);
   img.onload=()=>{const r=Math.min(1,maxDim/Math.max(img.width,img.height));
@@ -227,7 +395,7 @@ async function envoyerRetour(){
   const selC=$('rc-commercial');const commercial_nom=selC?selC.value:'';
   if(selC&&selC.options.length>1&&!commercial_nom){toast('Choisis le commercial');return}
   for(const l of P.lignes){
-    if(!l.article){toast('Un article n\u2019est pas choisi');return}
+    if(!l.article){toast('Un article n’est pas choisi');return}
     if(!l.photos.length){toast('Au moins une photo par article');return}
   }
   const b=$('rc-env');b.disabled=true;$('rc-msg').textContent='Envoi…';
@@ -235,176 +403,446 @@ async function envoyerRetour(){
   b.disabled=false;
   if(r.error){$('rc-msg').textContent='❌ '+r.error;return}
   $('rc-msg').textContent='';toast('✅ '+r.numeros.join(', ')+' créé(s)');
-  P={lignes:[]};$('rc-client').value='';renderLignes();chargerMes();
+  P={lignes:[]};go('mes');
 }
-async function chargerMes(){
-  const d=await api('GET','/retours/mes');
-  if(d.error){$('mes-fiches').textContent='❌ '+d.error;return}
-  const F=d.fiches||[];
 
-  $('mes-fiches').innerHTML=F.length?'<table><thead><tr><th>N°</th><th>Client</th><th>Article</th><th>Qté</th><th>Motif</th><th>Statut</th><th></th></tr></thead><tbody>'+
+// ════════════════════════════════════════════════════════════════════════════
+// MES FICHES
+// ════════════════════════════════════════════════════════════════════════════
+async function renderMes(){
+  $('content').innerHTML=`<div class="card"><h3>📋 Mes fiches</h3><div id="mes-fiches"><div class="loading"><div class="spin"></div></div></div></div>`;
+  const d=await api('GET','/retours/mes');
+  if(d.error){$('mes-fiches').innerHTML='<p class="err" style="display:block">'+esc(d.error)+'</p>';return}
+  const F=d.fiches||[];
+  $('mes-fiches').innerHTML=F.length?'<div class="table-wrap"><table><thead><tr><th>N°</th><th>Client</th><th>Article</th><th>Qté</th><th>Motif</th><th>Statut</th><th></th></tr></thead><tbody>'+
     F.map(f=>{const st=STATUTS[f.statut]||[f.statut,'#888'];
       const admin=['Admin','Depot'].includes(S.role);
-      const actL=(admin&&f.statut==='remplace'&&f.recu_le)?`<button class="btn" style="padding:5px 10px;font-size:12px;background:#1F5C41;color:#fff" onclick="livrerFiche('${f.id}','${esc(f.numero)}')">🚚 Livré</button> `:'';
-      const act=actL+(['declare','recu_depot'].includes(f.statut)?`<button class="btn" style="padding:5px 10px;font-size:12px" onclick="saisirFacture('${f.id}','${esc(f.numero)}')">💶 Facture + date</button>`:'');
-      return `<tr><td><b style="cursor:pointer;text-decoration:underline" onclick="ouvrirDetail('${f.id}')">${esc(f.numero)}</b></td><td>${esc(f.client_nom)}</td><td>${f.article?esc(f.article.ref_odoo)+' <span class=muted>'+esc(f.article.libelle)+'</span>':'—'}</td><td>${f.qte}</td><td>${MOTIFS[f.motif]||f.motif}</td><td><span class="pill" style="background:${st[1]}22;color:${st[1]}">${st[0]}</span></td><td>${act}</td></tr>`}).join('')+
-    '</tbody></table>':'Aucune fiche.';
+      const actL=(admin&&f.statut==='remplace'&&f.recu_le)?`<button class="btn btn-green btn-sm" onclick="livrerFiche('${f.id}','${esc(f.numero)}')">🚚 Livré</button> `:'';
+      const act=actL+(['declare','recu_depot'].includes(f.statut)?`<button class="btn btn-gray btn-sm" onclick="saisirFacture('${f.id}','${esc(f.numero)}')">💶 Facture + date</button>`:'');
+      return `<tr><td><b style="cursor:pointer;text-decoration:underline" onclick="ouvrirDetail('${f.id}')">${esc(f.numero)}</b></td><td>${esc(f.client_nom)}</td><td>${f.article?esc(f.article.ref_odoo)+' <span class="muted">'+esc(f.article.libelle)+'</span>':'—'}</td><td>${f.qte}</td><td>${MOTIFS[f.motif]||f.motif}</td><td><span class="pill" style="background:${st[1]}22;color:${st[1]}">${st[0]}</span></td><td>${act}</td></tr>`}).join('')+
+    '</tbody></table></div>':'<p class="muted">Aucune fiche.</p>';
 }
-// ── Réception dépôt ──
+
+// ════════════════════════════════════════════════════════════════════════════
+// RÉCEPTION DÉPÔT
+// ════════════════════════════════════════════════════════════════════════════
+async function renderReception(){
+  $('content').innerHTML=`<div class="card"><h3>🏭 Réception dépôt <span class="muted" id="rd-count"></span></h3><p class="muted" style="margin-bottom:10px">Produits défectueux en attente d'arrivée au dépôt. ✅ = reçu · ❌ = refusé (motif obligatoire).</p><div id="rd-liste"><div class="loading"><div class="spin"></div></div></div></div>`;
+  chargerReception();
+}
 async function chargerReception(){
   const d=await api('GET','/retours/mes');
-  if(d.error){$('rd-liste').innerHTML='<span class="muted">❌ '+esc(d.error)+'</span>';return}
+  if(d.error){$('rd-liste').innerHTML='<p class="err" style="display:block">'+esc(d.error)+'</p>';return}
   const F=(d.fiches||[]).filter(f=>((parseInt(f.qte_recue)||0)<f.qte)&&['declare','remplace','recu_depot'].includes(f.statut));
   $('rd-count').textContent=F.length?'· '+F.length+' en attente':'';
-  $('rd-liste').innerHTML=F.length?'<table><thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Article</th><th>Qté</th><th>Reçu</th><th>Motif</th><th>Factures</th><th>Commercial</th><th></th></tr></thead><tbody>'+
-    F.map(f=>`<tr><td><b style="cursor:pointer;text-decoration:underline" onclick="ouvrirDetail('${f.id}')">${esc(f.numero)}</b></td><td>${new Date(f.created_at).toLocaleDateString('fr-FR')}</td><td>${esc(f.client_nom)}</td><td>${f.article?esc(f.article.ref_odoo):'—'}</td><td>${f.qte}</td><td><b>${parseInt(f.qte_recue)||0}/${f.qte}</b></td><td>${MOTIFS[f.motif]||f.motif}</td><td class="small">${f.facture_origine?'orig. '+esc(f.facture_origine):''}${f.facture_remplacement?(f.facture_origine?' · ':'')+'rempl. <b>'+esc(f.facture_remplacement)+'</b>':''}${(!f.facture_origine&&!f.facture_remplacement)?'—':''}</td><td>${esc(f.commercial_nom||f.commercial)}</td>
-      <td style="white-space:nowrap"><button class="btn" style="padding:5px 10px;font-size:12px;background:#1F5C41;color:#fff" onclick="recevoirFiche('${f.id}','${esc(f.numero)}',${f.qte-(parseInt(f.qte_recue)||0)})">✅ Reçu</button>
-      <button class="btn" style="padding:5px 10px;font-size:12px;background:#5C2429;color:#fff;margin-left:5px" onclick="refuserFiche('${f.id}','${esc(f.numero)}')">❌ Refuser</button></td></tr>`).join('')+
-    '</tbody></table>':'<span class="muted">Rien en attente — tout est reçu. ✅</span>';
+  $('rd-liste').innerHTML=F.length?'<div class="table-wrap"><table><thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Article</th><th>Qté</th><th>Reçu</th><th>Motif</th><th>Commercial</th><th></th></tr></thead><tbody>'+
+    F.map(f=>`<tr><td><b style="cursor:pointer;text-decoration:underline" onclick="ouvrirDetail('${f.id}')">${esc(f.numero)}</b></td><td class="muted">${new Date(f.created_at).toLocaleDateString('fr-FR')}</td><td>${esc(f.client_nom)}</td><td>${f.article?esc(f.article.ref_odoo):'—'}</td><td>${f.qte}</td><td><b>${parseInt(f.qte_recue)||0}/${f.qte}</b></td><td>${MOTIFS[f.motif]||f.motif}</td><td class="muted">${esc(f.commercial_nom||f.commercial)}</td>
+      <td style="white-space:nowrap"><button class="btn btn-green btn-sm" onclick="recevoirFiche('${f.id}','${esc(f.numero)}',${f.qte-(parseInt(f.qte_recue)||0)})">✅ Reçu</button>
+      <button class="btn btn-red btn-sm" onclick="refuserFiche('${f.id}','${esc(f.numero)}')">❌ Refuser</button></td></tr>`).join('')+
+    '</tbody></table></div>':'<p class="muted">Rien en attente — tout est reçu. ✅</p>';
 }
 async function recevoirFiche(id,num,restant){
   const q=prompt('Quantité reçue pour '+num+' ('+restant+' attendu(s)) :',restant);
   if(q===null)return; const n=parseInt(q); if(!n||n<1){toast('Quantité invalide');return}
   const r=await api('PATCH','/retours/'+id+'/recevoir',{qte:n});
   if(r.error){toast('❌ '+r.error);return}
-  toast('✅ '+num+' reçu au dépôt');chargerReception();chargerMes();chargerReporting();
+  toast('✅ '+num+' reçu au dépôt');chargerReception();
 }
 async function refuserFiche(id,num){
   const m=prompt('Motif du refus de '+num+' (obligatoire) :');
   if(m===null)return; if(!m.trim()){toast('Motif obligatoire');return}
   const r=await api('PATCH','/retours/'+id+'/refuser',{motif_refus:m.trim()});
   if(r.error){toast('❌ '+r.error);return}
-  toast('❌ '+num+' refusé');chargerReception();chargerMes();chargerReporting();
+  toast('❌ '+num+' refusé');chargerReception();
 }
 async function livrerFiche(id,num){
   const r=await api('PATCH','/retours/'+id+'/livrer',{});
   if(r.error){toast('❌ '+r.error);return}
-  toast('🚚 '+num+' → Livré');chargerReception();chargerMes();chargerReporting();
+  toast('🚚 '+num+' → Livré');go('mes');
 }
-// ── Reporting admin ──
-let _rp=[];
+
+// ════════════════════════════════════════════════════════════════════════════
+// REPORTING — par article / par client / par commercial
+// ════════════════════════════════════════════════════════════════════════════
+let _rp=[], _rpSous='article';
+async function renderReporting(){
+  $('content').innerHTML=`
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:10px">
+        <h3 style="margin:0">📊 Reporting défectueux</h3>
+        <button class="btn btn-green btn-sm" onclick="exportReporting()">⬇️ Export CSV</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="date" id="rp-deb" style="max-width:160px" onchange="chargerReporting()">
+        <input type="date" id="rp-fin" style="max-width:160px" onchange="chargerReporting()">
+        <select id="rp-st" style="max-width:170px" onchange="chargerReporting()">
+          <option value="">Tous statuts</option><option value="declare">Déclaré</option><option value="recu_depot">Reçu dépôt</option>
+          <option value="remplace">Remplacé</option><option value="livre">Livré</option><option value="refuse">Refusé</option>
+        </select>
+        <input id="rp-q" placeholder="Filtrer client / commercial / facture / n° RET…" style="flex:1;min-width:200px" oninput="renderReportingCorps()">
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="subtab ${_rpSous==='article'?'active':''}" onclick="_rpSous='article';renderReportingCorps()">Par article</button>
+        <button class="subtab ${_rpSous==='client'?'active':''}" onclick="_rpSous='client';renderReportingCorps()">Par client</button>
+        <button class="subtab ${_rpSous==='commercial'?'active':''}" onclick="_rpSous='commercial';renderReportingCorps()">Par commercial</button>
+      </div>
+      <div id="rp-synthese"></div>
+      <div id="rp-detail" style="margin-top:12px"></div>
+    </div>`;
+  const d=new Date();$('rp-fin').value=d.toISOString().split('T')[0];d.setDate(d.getDate()-30);$('rp-deb').value=d.toISOString().split('T')[0];
+  chargerReporting();
+}
 async function chargerReporting(){
   const p=new URLSearchParams();
   if($('rp-deb').value)p.set('debut',$('rp-deb').value);
   if($('rp-fin').value)p.set('fin',$('rp-fin').value);
   if($('rp-st').value)p.set('statut',$('rp-st').value);
   const d=await api('GET','/retours/reporting?'+p.toString());
-  if(d.error){$('rp-synthese').innerHTML='<span class="muted">❌ '+esc(d.error)+'</span>';return}
+  if(d.error){$('rp-synthese').innerHTML='<p class="err" style="display:block">'+esc(d.error)+'</p>';return}
   _rp=d.fiches||[];
-  const sel=$('rp-art');const cur=sel.value;
-  const arts=[...new Map(_rp.map(f=>[f.ref,f.article])).entries()].sort((a,b)=>String(a[1]).localeCompare(String(b[1])));
-  sel.innerHTML='<option value="">Tous les produits</option>'+arts.map(([r,l])=>`<option value="${esc(r)}">${esc(r)} — ${esc(l)}</option>`).join('');
-  sel.value=cur&&arts.some(([r])=>r===cur)?cur:'';
-  renderReporting();
+  renderReportingCorps();
 }
 function _rpFiltre(){
-  const q=($('rp-q').value||'').toLowerCase();
-  const art=$('rp-art')?$('rp-art').value:'';
-  let L=art?_rp.filter(f=>f.ref===art):_rp;
-  return q?L.filter(f=>[f.article,f.ref,f.client,f.commercial,f.numero,f.facture_origine,f.facture_remplacement].join(' ').toLowerCase().includes(q)):L;
+  const q=($('rp-q')?.value||'').toLowerCase();
+  return q?_rp.filter(f=>[f.article,f.ref,f.client,f.commercial,f.numero,f.facture_origine,f.facture_remplacement,f.fournisseur].join(' ').toLowerCase().includes(q)):_rp;
 }
-function renderReporting(){
+function renderReportingCorps(){
+  document.querySelectorAll('.subtab').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(_rpSous)));
   const F=_rpFiltre();
-  const agg={};let qT=0,cT=0;
-  F.forEach(f=>{const k=f.ref||f.article;agg[k]=agg[k]||{ref:f.ref,article:f.article,fiches:0,qte:0,cout:0};
-    agg[k].recu=(agg[k].recu||0)+(f.qte_recue||0);agg[k].fiches++;agg[k].qte+=f.qte;qT+=f.qte;if(f.cout!=null){agg[k].cout+=f.cout;cT+=f.cout}});
+  if(!F.length){$('rp-synthese').innerHTML='<p class="muted">Aucune fiche sur la période.</p>';$('rp-detail').innerHTML='';return}
+  const cle=_rpSous==='article'?f=>f.ref||f.article:_rpSous==='client'?f=>f.client:f=>f.commercial;
+  const libelle=_rpSous==='article'?f=>(f.ref?f.ref+' — ':'')+f.article:_rpSous==='commercial'?f=>f.commercial:f=>f.client;
+  const agg={};let qT=0,cT=0,transmisT=0;
+  F.forEach(f=>{const k=cle(f)||'—';agg[k]=agg[k]||{lib:libelle(f)||'—',fiches:0,qte:0,cout:0,recu:0,transmis:0};
+    agg[k].fiches++;agg[k].qte+=f.qte;qT+=f.qte;agg[k].recu+=(f.qte_recue||0);
+    if(f.cout!=null){agg[k].cout+=f.cout;cT+=f.cout}
+    if(f.dossier_transmis){agg[k].transmis++;transmisT++}});
   const A=Object.values(agg).sort((a,b)=>b.qte-a.qte);
-  const parStatut={},parMotif={};let dRec=[],retard=0;
-  F.forEach(f=>{parStatut[f.statut]=(parStatut[f.statut]||0)+1;parMotif[f.motif]=(parMotif[f.motif]||0)+f.qte;
-    if(f.recu_le)dRec.push((new Date(f.recu_le)-new Date(f.date))/86400000);
-    if(f.date_livraison_prevue&&f.statut!=='livre'&&f.statut!=='refuse'&&new Date(f.date_livraison_prevue)<new Date())retard++});
-  const dMoy=dRec.length?(dRec.reduce((a,b)=>a+b,0)/dRec.length):null;
-  const tuile=(v,l,c)=>`<div style="flex:1;min-width:105px;background:#14171D;border:1px solid var(--bd);border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:${c||'var(--txt)'}">${v}</div><div class="muted" style="font-size:11px">${l}</div></div>`;
-  $('rp-synthese').innerHTML=A.length?`
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-    ${tuile(F.length,'Fiches')}${tuile(qT,'Produits déf.','#F87171')}${tuile(cT.toFixed(0)+' €','Coût gestes','#FBBF24')}
-    ${tuile(dMoy!=null?dMoy.toFixed(1)+' j':'—','Délai moy. réception')}${tuile(retard,'En retard',retard?'#F87171':'#4ADE80')}
-    ${tuile((parStatut.refuse||0),'Refusées')}
+  const tuile=(v,l,c)=>`<div class="kpi"><div class="kpi-v" style="color:${c||'var(--text)'}">${v}</div><div class="kpi-l">${l}</div></div>`;
+  $('rp-synthese').innerHTML=`
+  <div class="kpi-grid">
+    ${tuile(F.length,'Fiches')}${tuile(qT,'Produits déf.','var(--red)')}${tuile(cT.toFixed(0)+' €','Coût gestes','var(--gold)')}
+    ${tuile(transmisT+'/'+F.length,'Transmises fournisseur',transmisT<F.length?'var(--orange)':'var(--green)')}
   </div>
-  <div class="muted" style="margin-bottom:6px">Par motif : ${Object.entries(parMotif).sort((a,b)=>b[1]-a[1]).map(([m,q])=>(MOTIFS[m]||m)+' <b style="color:var(--txt)">'+q+'</b>').join(' · ')||'—'}
-   <button class="btn" style="padding:5px 12px;font-size:12px;margin-left:10px;background:#1F5C41;color:#fff" onclick="dossierFournisseur()">📦 Dossier fournisseur (photos)</button></div>
-    <table><thead><tr><th>Réf.</th><th>Article</th><th>Fiches</th><th>Qté déf.</th><th>Reçu dépôt</th><th>Coût</th></tr></thead><tbody>
-    ${A.map(a=>`<tr><td><b>${esc(a.ref)}</b></td><td>${esc(a.article)}</td><td>${a.fiches}</td><td><b>${a.qte}</b></td><td>${a.recu||0}/${a.qte}${(a.recu||0)<a.qte?' <span class="pill err">incomplet</span>':' <span class="pill ok">✓</span>'}</td><td>${a.cout?a.cout.toFixed(2)+' €':'—'}</td></tr>`).join('')}</tbody></table>`:'<span class="muted">Aucune fiche sur la période.</span>';
-  $('rp-detail').innerHTML=F.length?`<details><summary class="muted" style="cursor:pointer">Détail des ${F.length} fiches</summary>
-    <table style="margin-top:8px"><thead><tr><th>N°</th><th>Date</th><th>Commercial</th><th>Client</th><th>Article</th><th>Qté</th><th>Reçu</th><th>Reçu le</th><th>Motif</th><th>Fact. orig.</th><th>Fact. rempl.</th><th>Livr. prévue</th><th>Statut</th></tr></thead><tbody>
-    ${F.map(f=>`<tr><td>${esc(f.numero)}</td><td>${new Date(f.date).toLocaleDateString('fr-FR')}</td><td>${esc(f.commercial_nom||f.commercial)}</td><td>${esc(f.client)}</td><td>${esc(f.ref)} <span class="muted">${esc(f.article)}</span></td><td>${f.qte}</td><td>${f.qte_recue||0}/${f.qte}</td><td>${f.recu_le?new Date(f.recu_le).toLocaleDateString('fr-FR'):'—'}</td><td>${MOTIFS[f.motif]||f.motif}</td><td>${esc(f.facture_origine||'—')}</td><td><b>${esc(f.facture_remplacement||'—')}</b></td><td>${f.date_livraison_prevue?new Date(f.date_livraison_prevue).toLocaleDateString('fr-FR'):'—'}</td><td>${(STATUTS[f.statut]||[f.statut])[0]}</td></tr>`).join('')}</tbody></table></details>`:'';
-}
-function dossierFournisseur(){
-  const F=_rpFiltre();
-  if(!F.length){toast('Rien dans la sélection');return}
-  if(F.length>40){toast('Affine tes filtres : 40 fiches max par dossier (là : '+F.length+')');return}
-  toast('📦 Génération du dossier ('+F.length+' fiches)…');
-  window.open(API+'/retours/dossier?ids='+F.map(f=>f.id).join(',')+'&t='+encodeURIComponent(S.token),'_blank');
+  <div class="table-wrap"><table><thead><tr><th>${_rpSous==='article'?'Article':_rpSous==='client'?'Client':'Commercial'}</th><th>Fiches</th><th>Qté déf.</th><th>Reçu dépôt</th><th>Transmis fourn.</th><th>Coût</th></tr></thead><tbody>
+    ${A.map(a=>`<tr><td><b>${esc(a.lib)}</b></td><td>${a.fiches}</td><td><b>${a.qte}</b></td><td>${a.recu}/${a.qte}${a.recu<a.qte?' <span class="pill pill-no">incomplet</span>':' <span class="pill pill-ok">✓</span>'}</td><td>${a.transmis}/${a.fiches}${a.transmis<a.fiches?' <span class="pill pill-wait">à transmettre</span>':' <span class="pill pill-ok">✓</span>'}</td><td>${a.cout?a.cout.toFixed(2)+' €':'—'}</td></tr>`).join('')}
+  </tbody></table></div>`;
+  $('rp-detail').innerHTML=`<details><summary class="muted" style="cursor:pointer">Détail des ${F.length} fiches</summary>
+    <div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>N°</th><th>Date</th><th>Commercial</th><th>Client</th><th>Article</th><th>Fournisseur</th><th>Qté</th><th>Statut</th><th>Envoi fourn.</th></tr></thead><tbody>
+    ${F.map(f=>`<tr><td>${esc(f.numero)}</td><td class="muted">${new Date(f.date).toLocaleDateString('fr-FR')}</td><td>${esc(f.commercial)}</td><td>${esc(f.client)}</td><td>${esc(f.ref)} <span class="muted">${esc(f.article)}</span></td><td class="muted">${esc(f.fournisseur||'—')}</td><td>${f.qte}</td><td>${(STATUTS[f.statut]||[f.statut])[0]}</td><td>${f.dossier_numero?'<span class="pill pill-ok">'+esc(f.dossier_numero)+'</span>':(f.recu_le?'<span class="pill pill-wait">à transmettre</span>':'<span class="muted">—</span>')}</td></tr>`).join('')}
+    </tbody></table></div></details>`;
 }
 function exportReporting(){
   const F=_rpFiltre();if(!F.length){toast('Rien à exporter');return}
-  const cols=['numero','date','recu_le','date_livraison_prevue','date_livraison_reelle','commercial','client','ref','article','qte','qte_recue','motif','statut','facture_origine','facture_remplacement','cout'];
+  const cols=['numero','date','recu_le','date_livraison_prevue','date_livraison_reelle','commercial','client','ref','article','fournisseur','qte','qte_recue','motif','statut','facture_origine','facture_remplacement','cout','dossier_numero'];
   const cell=v=>{if(v==null)return'';const s=String(v).replace(/"/g,'""');return /[;"\n]/.test(s)?'"'+s+'"':s};
-  const csv='\ufeff'+cols.join(';')+'\n'+F.map(f=>cols.map(c=>cell(f[c])).join(';')).join('\n');
+  const csv='﻿'+cols.join(';')+'\n'+F.map(f=>cols.map(c=>cell(f[c])).join(';')).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download='retours_defectueux_'+new Date().toISOString().split('T')[0]+'.csv';a.click();URL.revokeObjectURL(a.href);
   toast('⬇️ Export : '+F.length+' fiches');
 }
-// ── Visionneuse photos plein écran (fleches / swipe / fermer) ──
-let _vp={urls:[],i:0};
-function voirPhotos(urls,i){
-  _vp={urls:urls,i:i||0};
-  let bg=document.getElementById('visPh');if(bg)bg.remove();
-  bg=document.createElement('div');bg.id='visPh';
-  bg.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.93);display:flex;align-items:center;justify-content:center';
-  bg.innerHTML=`
-    <img id="visImg" style="max-width:94vw;max-height:88vh;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.6)">
-    <button onclick="fermerVis()" style="position:fixed;top:14px;right:14px;width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:20px;cursor:pointer">✕</button>
-    <button id="visPrev" onclick="navVis(-1)" style="position:fixed;left:10px;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:22px;cursor:pointer">‹</button>
-    <button id="visNext" onclick="navVis(1)" style="position:fixed;right:10px;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:22px;cursor:pointer">›</button>
-    <div id="visCpt" style="position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;font-size:13px;background:rgba(255,255,255,.12);padding:4px 12px;border-radius:99px"></div>`;
-  bg.onmousedown=e=>{if(e.target===bg)fermerVis()};
-  let tx=null;
-  bg.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
-  bg.addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>45)navVis(dx<0?1:-1);tx=null},{passive:true});
-  document.addEventListener('keydown',visClavier);
+
+// ════════════════════════════════════════════════════════════════════════════
+// DOSSIERS FOURNISSEUR — savoir ce qui est transmis, suivre le remboursement
+// ════════════════════════════════════════════════════════════════════════════
+const STDOSS={brouillon:['Brouillon','#9BA1AC'],envoye:['Envoyé','#4E8BF0'],rembourse_partiel:['Remboursé partiel','#E39A3D'],rembourse_total:['Remboursé total','#33C481'],clos:['Clos','#6E7480']};
+async function renderDossiers(){
+  await chargerReferentiels();
+  $('content').innerHTML=`
+    <div class="card">
+      <div class="flex-between"><h3 style="margin:0">📦 Dossiers d'envoi fournisseur</h3>
+        <button class="btn btn-gold btn-sm" onclick="ouvrirNouveauDossier()">➕ Nouveau dossier</button></div>
+      <p class="muted" style="margin-top:8px">Un dossier regroupe plusieurs fiches reçues au dépôt vers un même fournisseur, pour demander leur remboursement. Tant qu'un dossier n'est pas "Envoyé", rien n'a été transmis.</p>
+    </div>
+    <div class="card"><div id="doss-liste"><div class="loading"><div class="spin"></div></div></div></div>`;
+  chargerDossiers();
+}
+async function chargerDossiers(){
+  const d=await api('GET','/retours/dossiers-fournisseur');
+  if(d.error){$('doss-liste').innerHTML='<p class="err" style="display:block">'+esc(d.error)+'</p>';return}
+  const L=d.dossiers||[];
+  $('doss-liste').innerHTML=L.length?'<div class="table-wrap"><table><thead><tr><th>N°</th><th>Fournisseur</th><th>Créé le</th><th>Transmis le</th><th>Statut</th><th>Remboursé</th><th></th></tr></thead><tbody>'+
+    L.map(d=>{const st=STDOSS[d.statut]||[d.statut,'#888'];
+      return `<tr><td><b style="cursor:pointer;text-decoration:underline" onclick="ouvrirDossierDetail(${d.id})">${esc(d.numero)}</b></td><td>${esc(d.fournisseurs?d.fournisseurs.nom:'—')}</td><td class="muted">${new Date(d.date_creation).toLocaleDateString('fr-FR')}</td><td class="muted">${d.date_envoi?new Date(d.date_envoi).toLocaleDateString('fr-FR'):'—'}</td><td><span class="pill" style="background:${st[1]}22;color:${st[1]}">${st[0]}</span></td><td>${d.montant_rembourse!=null?d.montant_rembourse.toFixed(2)+' €':'—'}</td><td><button class="btn btn-gray btn-sm" onclick="ouvrirDossierDetail(${d.id})">Ouvrir</button></td></tr>`}).join('')+
+    '</tbody></table></div>':'<p class="muted">Aucun dossier créé pour l’instant.</p>';
+}
+function ouvrirNouveauDossier(){
+  $('nd-fournisseur').innerHTML=_fournisseurs.map(f=>`<option value="${f.id}">${esc(f.nom)}</option>`).join('')||'<option value="">Aucun fournisseur — ajoute-le dans l’onglet Fournisseurs</option>';
+  $('nd-candidats').innerHTML='';
+  $('modalNouveauDossier').classList.add('active');
+  if(_fournisseurs.length) chargerCandidatsDossier();
+}
+async function chargerCandidatsDossier(){
+  const fid=$('nd-fournisseur').value; if(!fid){$('nd-candidats').innerHTML='';return}
+  $('nd-candidats').innerHTML='<div class="loading"><div class="spin"></div></div>';
+  const d=await api('GET','/retours/dossiers-fournisseur/candidats?fournisseur_id='+fid);
+  const F=d.fiches||[];
+  if(!F.length){$('nd-candidats').innerHTML='<p class="muted">Aucune fiche reçue au dépôt en attente pour ce fournisseur.</p>';return}
+  $('nd-candidats').innerHTML=`<p class="muted" style="margin-bottom:8px">${F.length} fiche(s) disponible(s) — coche celles à inclure :</p>
+    <div style="max-height:280px;overflow-y:auto">${F.map(f=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <input type="checkbox" class="nd-cb" value="${f.id}" checked>
+      <span><b>${esc(f.numero)}</b> — ${f.article?esc(f.article.ref_odoo)+' '+esc(f.article.libelle):'—'} · Qté ${f.qte} · ${esc(f.client_nom)}</span>
+    </label>`).join('')}</div>`;
+}
+async function creerDossier(){
+  const fid=$('nd-fournisseur').value; if(!fid){toast('Choisis un fournisseur');return}
+  const ids=[...document.querySelectorAll('.nd-cb:checked')].map(c=>c.value);
+  if(!ids.length){toast('Coche au moins une fiche');return}
+  const r=await api('POST','/retours/dossiers-fournisseur',{fournisseur_id:fid,retour_ids:ids});
+  if(r.error){toast('❌ '+r.error);return}
+  toast('✅ Dossier '+r.dossier.numero+' créé ('+ids.length+' fiches)');
+  fermerModal('modalNouveauDossier');chargerDossiers();
+}
+async function ouvrirDossierDetail(id){
+  const d=await api('GET','/retours/dossiers-fournisseur/'+id);
+  if(d.error){toast('❌ '+d.error);return}
+  const dos=d.dossier, st=STDOSS[dos.statut]||[dos.statut,'#888'];
+  let bg=document.getElementById('dossDet');if(bg)bg.remove();
+  bg=document.createElement('div');bg.id='dossDet';bg.className='modal-bg active';
+  bg.innerHTML=`<div class="modal" style="max-width:640px">
+    <div class="flex-between"><h3 style="margin:0">${esc(dos.numero)} <span class="pill" style="background:${st[1]}22;color:${st[1]}">${st[0]}</span></h3><button class="btn btn-gray btn-sm" onclick="document.getElementById('dossDet').remove()">✕</button></div>
+    <p class="muted" style="margin:10px 0">Fournisseur : <b style="color:var(--text)">${esc(dos.fournisseurs?dos.fournisseurs.nom:'—')}</b>${dos.fournisseurs&&dos.fournisseurs.contact_email?' · '+esc(dos.fournisseurs.contact_email):''}${dos.date_envoi?' · Transmis le '+new Date(dos.date_envoi).toLocaleDateString('fr-FR')+' par '+esc(dos.envoye_par||''):' · Pas encore transmis'}</p>
+    <h4 style="font-size:13px;color:var(--gold);margin-bottom:8px">Regroupement par article</h4>
+    <div class="table-wrap"><table><thead><tr><th>Réf.</th><th>Article</th><th>Qté totale</th><th>Fiches</th></tr></thead><tbody>
+      ${(d.regroupement||[]).map(a=>`<tr><td><b>${esc(a.ref_odoo)}</b></td><td>${esc(a.libelle)}</td><td><b>${a.qte}</b></td><td class="muted">${a.fiches.map(esc).join(', ')}</td></tr>`).join('')}
+    </tbody></table></div>
+    <div id="dossActions" style="margin-top:16px"></div>
+  </div>`;
   document.body.appendChild(bg);
-  majVis();
+  const zone=document.getElementById('dossActions');
+  if(!dos.date_envoi){
+    zone.innerHTML=`<button class="btn btn-blue" onclick="marquerEnvoye(${dos.id})">📤 Marquer comme transmis au fournisseur</button>`;
+  }else if(dos.statut!=='clos'){
+    zone.innerHTML=`<div class="form-grid">
+      <input id="dr-montant" type="number" step="0.01" placeholder="Montant remboursé (€)" value="${dos.montant_rembourse||''}">
+      <input id="dr-ref" placeholder="Référence avoir fournisseur" value="${esc(dos.reference_fournisseur||'')}">
+    </div>
+    <div class="form-actions" style="justify-content:flex-start">
+      <button class="btn btn-orange" style="background:var(--orange);color:#1a1a1a" onclick="saisirRemboursement(${dos.id},false)">💶 Remboursement partiel</button>
+      <button class="btn btn-green" onclick="saisirRemboursement(${dos.id},true)">✅ Remboursement total</button>
+      <button class="btn btn-gray" onclick="cloturerDossier(${dos.id})">🔒 Clôturer</button>
+    </div>`;
+  }
 }
-function visClavier(e){if(e.key==='Escape')fermerVis();if(e.key==='ArrowLeft')navVis(-1);if(e.key==='ArrowRight')navVis(1)}
-function navVis(d){const n=_vp.urls.length;if(!n)return;_vp.i=(_vp.i+d+n)%n;majVis()}
-function majVis(){
-  const img=document.getElementById('visImg');if(!img)return;
-  img.src=_vp.urls[_vp.i];
-  document.getElementById('visCpt').textContent=(_vp.i+1)+' / '+_vp.urls.length;
-  const un=_vp.urls.length<2;
-  document.getElementById('visPrev').style.display=un?'none':'';
-  document.getElementById('visNext').style.display=un?'none':'';
+async function marquerEnvoye(id){
+  if(!confirm('Confirmer la transmission de ce dossier au fournisseur ?'))return;
+  const r=await api('PATCH','/retours/dossiers-fournisseur/'+id+'/envoyer',{});
+  if(r.error){toast('❌ '+r.error);return}
+  toast('📤 Dossier transmis');document.getElementById('dossDet').remove();chargerDossiers();ouvrirDossierDetail(id);
 }
-function fermerVis(){const b=document.getElementById('visPh');if(b)b.remove();document.removeEventListener('keydown',visClavier)}
+async function saisirRemboursement(id,total){
+  const montant_rembourse=document.getElementById('dr-montant').value;
+  const reference_fournisseur=document.getElementById('dr-ref').value;
+  const r=await api('PATCH','/retours/dossiers-fournisseur/'+id+'/remboursement',{montant_rembourse,reference_fournisseur,total});
+  if(r.error){toast('❌ '+r.error);return}
+  toast('💾 Remboursement enregistré');document.getElementById('dossDet').remove();chargerDossiers();ouvrirDossierDetail(id);
+}
+async function cloturerDossier(id){
+  if(!confirm('Clôturer ce dossier ?'))return;
+  const r=await api('PATCH','/retours/dossiers-fournisseur/'+id+'/cloturer',{});
+  if(r.error){toast('❌ '+r.error);return}
+  toast('🔒 Dossier clos');document.getElementById('dossDet').remove();chargerDossiers();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FOURNISSEURS
+// ════════════════════════════════════════════════════════════════════════════
+async function renderFournisseurs(){
+  $('content').innerHTML=`
+    <div class="card">
+      <h3>🏢 Fournisseurs</h3>
+      <div class="form-grid">
+        <input id="fo-nom" placeholder="Nom du fournisseur *">
+        <input id="fo-contact" placeholder="Contact (nom)">
+        <input id="fo-email" type="email" placeholder="Email">
+        <input id="fo-tel" placeholder="Téléphone">
+      </div>
+      <div class="form-actions" style="justify-content:flex-start"><button class="btn btn-gold" onclick="ajouterFournisseur()">➕ Ajouter</button></div>
+    </div>
+    <div class="card"><div id="fo-liste"><div class="loading"><div class="spin"></div></div></div></div>`;
+  chargerFournisseursListe();
+}
+async function chargerFournisseursListe(){
+  const d=await api('GET','/retours/fournisseurs');
+  const L=d.fournisseurs||[]; _fournisseurs=L;
+  $('fo-liste').innerHTML=L.length?'<div class="table-wrap"><table><thead><tr><th>Nom</th><th>Contact</th><th>Email</th><th>Téléphone</th><th></th></tr></thead><tbody>'+
+    L.map(f=>`<tr><td><b>${esc(f.nom)}</b></td><td class="muted">${esc(f.contact_nom||'—')}</td><td class="muted">${esc(f.contact_email||'—')}</td><td class="muted">${esc(f.contact_tel||'—')}</td><td><button class="btn btn-red btn-sm" onclick="desactiverFournisseur(${f.id},'${esc(f.nom)}')">Désactiver</button></td></tr>`).join('')+
+    '</tbody></table></div>':'<p class="muted">Aucun fournisseur — ajoute-en un ci-dessus.</p>';
+}
+async function ajouterFournisseur(){
+  const nom=$('fo-nom').value.trim(); if(!nom){toast('Nom requis');return}
+  const r=await api('POST','/retours/fournisseurs',{nom,contact_nom:$('fo-contact').value.trim(),contact_email:$('fo-email').value.trim(),contact_tel:$('fo-tel').value.trim()});
+  if(r.error){toast('❌ '+r.error);return}
+  toast('✅ '+nom+' ajouté');['fo-nom','fo-contact','fo-email','fo-tel'].forEach(id=>$(id).value='');
+  chargerFournisseursListe();
+}
+async function desactiverFournisseur(id,nom){
+  if(!confirm('Désactiver '+nom+' ?'))return;
+  const r=await api('PATCH','/retours/fournisseurs/'+id,{actif:false});
+  if(r.error){toast('❌ '+r.error);return}
+  toast('🚫 '+nom+' désactivé');chargerFournisseursListe();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// CATALOGUE ARTICLES (+ fournisseur par défaut, import CSV, recherche)
+// ════════════════════════════════════════════════════════════════════════════
+async function renderArticles(){
+  await chargerReferentiels();
+  $('content').innerHTML=`
+    <div class="card">
+      <h3>📚 Import catalogue</h3>
+      <p class="muted" style="margin-bottom:10px">Import CSV (séparateur ; ou ,) — colonnes : ref_odoo · libelle · code_barre · categorie · prix_achat · fournisseur (optionnel, créé automatiquement s'il est inconnu). Import en mise à jour : une référence existante est actualisée, jamais doublée.</p>
+      <label class="lbl-file">📥 Importer un CSV<input type="file" id="csv-file" accept=".csv,text/csv" onchange="importerCSV(this)"></label>
+      <span id="imp-res" class="muted" style="margin-left:10px"></span>
+    </div>
+    <div class="card">
+      <h3>➕ Ajouter un article manuellement</h3>
+      <div class="form-grid">
+        <input id="na-ref" placeholder="Réf. Odoo *">
+        <input id="na-lib" placeholder="Libellé *">
+        <input id="na-cb" placeholder="Code-barres (douchette)">
+        <input id="na-cat" placeholder="Catégorie">
+        <input id="na-px" placeholder="Prix d'achat (ex: 4,50)">
+        <select id="na-fourn"><option value="">— Fournisseur —</option>${_fournisseurs.map(f=>`<option value="${f.id}">${esc(f.nom)}</option>`).join('')}</select>
+      </div>
+      <div class="form-actions" style="justify-content:flex-start"><button class="btn btn-gold" onclick="ajouterArticle()">➕ Ajouter au catalogue</button></div>
+    </div>
+    <div class="card">
+      <h3>🔎 Recherche</h3>
+      <input id="rech" placeholder="Scanne un code-barres ou tape un libellé…" oninput="rechDebounce()">
+      <div id="rech-res" style="margin-top:10px"></div>
+    </div>`;
+  rechercher('');
+}
+async function ajouterArticle(){
+  const g=x=>$(x).value.trim();
+  const ref=g('na-ref'),lib=g('na-lib');
+  if(!ref||!lib){toast('Référence et libellé obligatoires');return}
+  const fournId=$('na-fourn').value;
+  const fournNom=fournId?(_fournisseurs.find(f=>String(f.id)===fournId)||{}).nom:'';
+  const r=await api('POST','/retours/articles/import',{lignes:[{ref_odoo:ref,libelle:lib,code_barre:g('na-cb'),categorie:g('na-cat'),prix_achat:g('na-px'),fournisseur:fournNom}]});
+  if(r.error){toast('❌ '+r.error);return}
+  toast(r.crees?'✅ '+ref+' créé':'🔁 '+ref+' mis à jour');
+  ['na-ref','na-lib','na-cb','na-cat','na-px'].forEach(x=>$(x).value='');
+  $('na-fourn').value='';
+  rechercher($('rech').value);
+}
+function importerCSV(input){
+  const f=input.files&&input.files[0]; if(!f)return;
+  const rd=new FileReader();
+  rd.onload=async()=>{
+    const txt=String(rd.result||'');
+    const lignesBrutes=txt.split(/\r?\n/).filter(l=>l.trim());
+    if(lignesBrutes.length<2){toast('CSV vide');return}
+    const sep=lignesBrutes[0].includes(';')?';':',';
+    const heads=lignesBrutes[0].split(sep).map(h=>h.trim().toLowerCase());
+    const lignes=lignesBrutes.slice(1).map(l=>{const c=l.split(sep);const o={};heads.forEach((h,i)=>o[h]=(c[i]||'').trim());return o;});
+    $('imp-res').textContent='Import de '+lignes.length+' lignes…';
+    try{
+      const r=await api('POST','/retours/articles/import',{lignes});
+      if(r.error){$('imp-res').textContent='❌ '+r.error;return}
+      $('imp-res').innerHTML='<span class="pill pill-ok">'+r.crees+' créés</span> <span class="pill pill-ok">'+r.maj+' mis à jour</span>'+(r.erreurs?' <span class="pill pill-no">'+r.erreurs+' en erreur</span>':'');
+      rechercher($('rech').value);
+    }catch(e){$('imp-res').textContent='❌ Erreur réseau'}
+  };
+  rd.readAsText(f,'utf-8');input.value='';
+}
+let _t=null;
+function rechDebounce(){clearTimeout(_t);_t=setTimeout(()=>rechercher($('rech').value),250)}
+async function rechercher(q){
+  try{
+    const d=await api('GET','/retours/articles?q='+encodeURIComponent(q||''));
+    if(d.error){$('rech-res').innerHTML='<p class="err" style="display:block">'+esc(d.error)+'</p>';return}
+    const A=d.articles||[];
+    $('rech-res').innerHTML=A.length?'<div class="table-wrap"><table><thead><tr><th>Réf.</th><th>Libellé</th><th>Code-barres</th><th>Catégorie</th><th>PA</th><th>Fournisseur</th></tr></thead><tbody>'+
+      A.map(a=>'<tr><td><b>'+esc(a.ref_odoo)+'</b></td><td>'+esc(a.libelle)+'</td><td>'+esc(a.code_barre||'—')+'</td><td>'+esc(a.categorie||'—')+'</td><td>'+(a.prix_achat!=null?Number(a.prix_achat).toFixed(2)+' €':'—')+'</td><td>'+esc(a.fournisseurs?a.fournisseurs.nom:'—')+'</td></tr>').join('')+
+      '</tbody></table></div>':'<p class="muted">Aucun article'+(q?' pour « '+esc(q)+' »':' — importe ton CSV ci-dessus')+'.</p>';
+  }catch(e){}
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// COMMERCIAUX
+// ════════════════════════════════════════════════════════════════════════════
+async function renderCommerciaux(){
+  $('content').innerHTML=`
+    <div class="card">
+      <h3>🧑‍💼 Mes commerciaux</h3>
+      <p class="muted" style="margin-bottom:10px">La liste proposée à la déclaration d'un retour.</p>
+      <div style="display:flex;gap:8px;margin-bottom:12px"><input id="cm-nom" placeholder="Nom du commercial" style="max-width:280px" onkeydown="if(event.key==='Enter')ajouterCommercial()"><button class="btn btn-gold" onclick="ajouterCommercial()">+ Ajouter</button></div>
+      <div id="cm-liste" class="muted">Chargement…</div>
+    </div>`;
+  chargerCommerciauxListe();
+}
+async function chargerCommerciauxListe(){
+  const d=await api('GET','/retours/commerciaux');
+  const L=d.commerciaux||[]; _commerciaux=L;
+  $('cm-liste').innerHTML=L.length?L.map(n=>`<span style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:6px 14px;margin:3px;color:var(--text)">${esc(n)}<b style="cursor:pointer;color:var(--red)" onclick="retirerCommercial('${esc(n)}')">✕</b></span>`).join(''):'Aucun commercial — ajoute-les ci-dessus.';
+}
+async function ajouterCommercial(){
+  const n=$('cm-nom').value.trim();if(!n){toast('Nom requis');return}
+  const r=await api('POST','/retours/commerciaux',{nom:n});
+  if(r.error){toast('❌ '+r.error);return}
+  $('cm-nom').value='';toast('✅ '+n+' ajouté');chargerCommerciauxListe();
+}
+async function retirerCommercial(n){
+  if(!confirm('Retirer '+n+' de la liste ?'))return;
+  const r=await api('POST','/retours/commerciaux',{nom:n,actif:false});
+  if(r.error){toast('❌ '+r.error);return}
+  toast('🚫 '+n+' retiré');chargerCommerciauxListe();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DROITS
+// ════════════════════════════════════════════════════════════════════════════
+async function renderDroits(){
+  $('content').innerHTML=`<div class="card"><h3>👥 Qui peut déclarer un retour</h3><p class="muted" style="margin-bottom:10px">Admin et Dépôt y ont accès d'office. Coche les autres comptes autorisés.</p><div id="droits-liste" class="muted">Chargement…</div></div>`;
+  try{
+    const d=await api('GET','/retours/droits');
+    if(d.error){$('droits-liste').textContent='❌ '+d.error;return}
+    const droits=new Set(d.droits||[]);
+    $('droits-liste').innerHTML=(d.utilisateurs||[])
+      .filter(u=>u.role!=='Admin'&&u.role!=='Depot')
+      .map(u=>'<label style="display:inline-flex;align-items:center;gap:6px;margin:4px 14px 4px 0;color:var(--text)"><input type="checkbox" '+(droits.has(u.login)?'checked':'')+' onchange="majDroit(\''+esc(u.login)+'\',this.checked)"> '+esc(u.prenom||u.login)+' <span class="muted">('+esc(u.role)+')</span></label>')
+      .join('')||'<span class="muted">Aucun autre compte.</span>';
+  }catch(e){}
+}
+async function majDroit(login,actif){
+  const r=await api('POST','/retours/droits',{login,actif});
+  if(r.error){toast('❌ '+r.error);renderDroits();return}
+  toast(actif?'✅ '+login+' peut déclarer des retours':'🚫 '+login+' retiré');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DÉTAIL D'UNE FICHE (modale) — inchangé fonctionnellement, réhabillé
+// ════════════════════════════════════════════════════════════════════════════
 async function ouvrirDetail(id){
   const d=await api('GET','/retours/'+id+'/detail');
   if(d.error){toast('❌ '+d.error);return}
   const f=d.fiche;const st=STATUTS[f.statut]||[f.statut,'#888'];
   let bg=document.getElementById('retDet');if(bg)bg.remove();
-  bg=document.createElement('div');bg.id='retDet';
-  bg.style.cssText='position:fixed;inset:0;z-index:9996;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:14px';
-  bg.innerHTML=`<div style="background:var(--card);border:1px solid var(--bd);border-radius:14px;max-width:600px;width:100%;max-height:85vh;overflow:auto;padding:18px;color:var(--txt)">
-    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">${esc(f.numero)} <span class="pill" style="background:${st[1]}22;color:${st[1]}">${st[0]}</span></h3><button class="btn" style="background:#20252E;color:#fff;padding:5px 12px" onclick="document.getElementById('retDet').remove()">✕</button></div>
+  bg=document.createElement('div');bg.id='retDet';bg.className='modal-bg active';
+  bg.innerHTML=`<div class="modal">
+    <div class="flex-between"><h3 style="margin:0">${esc(f.numero)} <span class="pill" style="background:${st[1]}22;color:${st[1]}">${st[0]}</span></h3><button class="btn btn-gray btn-sm" onclick="document.getElementById('retDet').remove()">✕</button></div>
     <div style="margin:10px 0">${d.article?'<b>'+esc(d.article.ref_odoo)+'</b> — '+esc(d.article.libelle):'—'} · x${f.qte} · ${MOTIFS[f.motif]||f.motif}<br>
       <span class="muted">Client : ${esc(f.client_nom)} · Commercial : ${esc(f.commercial_nom||f.commercial)}${f.facture_origine?' · Fact. origine : '+esc(f.facture_origine):''}${f.facture_remplacement?' · Fact. rempl. : <b>'+esc(f.facture_remplacement)+'</b>':''}${f.date_livraison_prevue?' · Livraison prévue : '+esc(f.date_livraison_prevue):''}</span></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${(d.photos||[]).map((p,ix)=>`<img src="${p.url}" onclick='voirPhotos(${JSON.stringify((d.photos||[]).map(x=>x.url)).replace(/'/g,"&#39;")},${ix})' style="width:92px;height:92px;object-fit:cover;border-radius:10px;border:1px solid var(--bd);cursor:pointer">`).join('')||'<span class="muted">Aucune photo.</span>'}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${(d.photos||[]).map((p,ix)=>`<img src="${p.url}" onclick='lbOpen(${JSON.stringify((d.photos||[]).map(x=>x.url)).replace(/'/g,"&#39;")},${ix})' style="width:92px;height:92px;object-fit:cover;border-radius:10px;border:1px solid var(--border);cursor:pointer">`).join('')||'<span class="muted">Aucune photo.</span>'}</div>
     <div id="det-outils"></div>
-    <h3 style="font-size:14px">🕐 Historique</h3>
-    ${(d.historique||[]).map(h=>`<div class="muted" style="padding:4px 0;border-bottom:1px solid var(--bd)">${new Date(h.created_at).toLocaleString('fr-FR')} · <b style="color:var(--txt)">${(STATUTS[h.nouveau_statut]||[h.nouveau_statut])[0]}</b> par ${esc(h.user_login)}${h.commentaire?' — '+esc(h.commentaire):''}</div>`).join('')||'<span class="muted">—</span>'}
+    <h4 style="font-size:13px;color:var(--gold)">🕐 Historique</h4>
+    ${(d.historique||[]).map(h=>`<div class="muted" style="padding:4px 0;border-bottom:1px solid var(--border)">${new Date(h.created_at).toLocaleString('fr-FR')} · <b style="color:var(--text)">${(STATUTS[h.nouveau_statut]||[h.nouveau_statut])[0]}</b> par ${esc(h.user_login)}${h.commentaire?' — '+esc(h.commentaire):''}</div>`).join('')||'<span class="muted">—</span>'}
   </div>`;
-  bg.onmousedown=e=>{if(e.target===bg)bg.remove()};
   document.body.appendChild(bg);
   const adm=['Admin','Depot'].includes(S.role);
   const zone=document.getElementById('det-outils');
   if(zone){
-    zone.innerHTML=`<div style="border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <label class="lbl-file" style="padding:7px 12px;font-size:13px">📷 Ajouter une photo<input type="file" accept="image/*" capture="environment" onchange="ajouterPhotoFiche('${f.id}',this)"></label>
-      ${adm?`<select class="fld" id="cor-st" style="max-width:150px;padding:7px">${Object.entries(STATUTS).map(([k,v])=>`<option value="${k}" ${f.statut===k?'selected':''}>${v[0]}</option>`).join('')}</select>
-      <input class="fld" id="cor-qr" type="number" min="0" max="${f.qte}" value="${parseInt(f.qte_recue)||0}" style="max-width:90px;padding:7px" title="Quantité reçue">
+    zone.innerHTML=`<div style="border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <label class="lbl-file">📷 Ajouter une photo<input type="file" accept="image/*" capture="environment" onchange="ajouterPhotoFiche('${f.id}',this)"></label>
+      ${adm?`<select class="inline-sel" id="cor-st" style="padding:7px">${Object.entries(STATUTS).map(([k,v])=>`<option value="${k}" ${f.statut===k?'selected':''}>${v[0]}</option>`).join('')}</select>
+      <input class="inline-sel" id="cor-qr" type="number" min="0" max="${f.qte}" value="${parseInt(f.qte_recue)||0}" style="max-width:70px" title="Quantité reçue">
       <span class="muted">/${f.qte} reçu</span>
-      <button class="btn" style="padding:7px 14px;font-size:13px" onclick="corrigerFiche('${f.id}','${esc(f.numero)}')">💾 Corriger</button>
-      <button class="btn" style="padding:7px 14px;font-size:13px;background:#20252E;color:#fff" onclick="modifierFiche('${f.id}')">✏️ Modifier la fiche</button>`:''}
+      <button class="btn btn-gray btn-sm" onclick="corrigerFiche('${f.id}','${esc(f.numero)}')">💾 Corriger</button>
+      <button class="btn btn-gray btn-sm" onclick="modifierFiche('${f.id}')">✏️ Modifier la fiche</button>`:''}
     </div>`;
   }
 }
@@ -413,22 +851,21 @@ async function modifierFiche(id){
   if(d.error){toast('❌ '+d.error);return}
   const f=d.fiche;
   const zone=document.getElementById('det-outils');if(!zone)return;
-  const cms=Array.from(($('rc-commercial')||{options:[]}).options).map(o=>o.value).filter(Boolean);
-  zone.innerHTML=`<div style="border:1px solid var(--acc);border-radius:10px;padding:12px;margin-bottom:12px">
+  zone.innerHTML=`<div style="border:1px solid var(--gold);border-radius:10px;padding:12px;margin-bottom:12px">
     <b>✏️ Modification de ${esc(f.numero)}</b>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-      <input class="fld" id="md-client" value="${esc(f.client_nom)}" placeholder="Client" list="rc-clients">
-      <select class="fld" id="md-com">${'<option value="">— Commercial —</option>'+cms.map(n=>`<option ${f.commercial_nom===n?'selected':''}>${esc(n)}</option>`).join('')}</select>
-      <input class="fld" id="md-qte" type="number" min="1" value="${f.qte}" placeholder="Qté">
-      <select class="fld" id="md-motif">${Object.entries(MOTIFS).map(([k,v])=>`<option value="${k}" ${f.motif===k?'selected':''}>${v}</option>`).join('')}</select>
-      <input class="fld" id="md-fo" value="${esc(f.facture_origine||'')}" placeholder="Facture d'origine">
-      <input class="fld" id="md-fr" value="${esc(f.facture_remplacement||'')}" placeholder="Facture de remplacement">
-      <input class="fld" id="md-dp" type="date" value="${f.date_livraison_prevue||''}">
-      <input class="fld" id="md-comm" value="${esc(f.commentaire||'')}" placeholder="Commentaire">
+    <div class="form-grid" style="margin-top:8px">
+      <input id="md-client" value="${esc(f.client_nom)}" placeholder="Client" list="rc-clients">
+      <select id="md-com">${'<option value="">— Commercial —</option>'+_commerciaux.map(n=>`<option ${f.commercial_nom===n?'selected':''}>${esc(n)}</option>`).join('')}</select>
+      <input id="md-qte" type="number" min="1" value="${f.qte}" placeholder="Qté">
+      <select id="md-motif">${Object.entries(MOTIFS).map(([k,v])=>`<option value="${k}" ${f.motif===k?'selected':''}>${v}</option>`).join('')}</select>
+      <input id="md-fo" value="${esc(f.facture_origine||'')}" placeholder="Facture d'origine">
+      <input id="md-fr" value="${esc(f.facture_remplacement||'')}" placeholder="Facture de remplacement">
+      <input id="md-dp" type="date" value="${f.date_livraison_prevue||''}">
+      <input id="md-comm" value="${esc(f.commentaire||'')}" placeholder="Commentaire">
     </div>
-    <div style="margin-top:10px;display:flex;gap:8px">
-      <button class="btn" onclick="enregistrerModif('${f.id}','${esc(f.numero)}')">💾 Enregistrer</button>
-      <button class="btn" style="background:#20252E;color:#fff" onclick="document.getElementById('retDet').remove();ouvrirDetail('${f.id}')">Annuler</button>
+    <div class="form-actions" style="justify-content:flex-start">
+      <button class="btn btn-gold" onclick="enregistrerModif('${f.id}','${esc(f.numero)}')">💾 Enregistrer</button>
+      <button class="btn btn-gray" onclick="document.getElementById('retDet').remove();ouvrirDetail('${f.id}')">Annuler</button>
     </div></div>`;
 }
 async function enregistrerModif(id,num){
@@ -436,13 +873,12 @@ async function enregistrerModif(id,num){
   const r=await api('PATCH','/retours/'+id+'/modifier',{client_nom:g('md-client'),commercial_nom:g('md-com'),qte:parseInt(g('md-qte')),motif:g('md-motif'),facture_origine:g('md-fo'),facture_remplacement:g('md-fr'),date_livraison_prevue:g('md-dp'),commentaire:g('md-comm')});
   if(r.error){toast('❌ '+r.error);return}
   toast(r.rien?'Aucun changement':'💾 '+num+' modifié');
-  document.getElementById('retDet').remove();chargerMes();chargerReception();chargerReporting();ouvrirDetail(id);
+  document.getElementById('retDet').remove();ouvrirDetail(id);
 }
 async function corrigerFiche(id,num){
   const r=await api('PATCH','/retours/'+id+'/corriger',{statut:document.getElementById('cor-st').value,qte_recue:parseInt(document.getElementById('cor-qr').value)});
   if(r.error){toast('❌ '+r.error);return}
-  toast('💾 '+num+' corrigé');document.getElementById('retDet').remove();
-  chargerMes();chargerReception();chargerReporting();ouvrirDetail(id);
+  toast('💾 '+num+' corrigé');document.getElementById('retDet').remove();ouvrirDetail(id);
 }
 async function ajouterPhotoFiche(id,input){
   const file=input.files&&input.files[0];input.value='';if(!file)return;
@@ -461,77 +897,26 @@ async function saisirFacture(id,num){
   const dt=prompt('Date de livraison prévue (AAAA-MM-JJ) :',new Date().toISOString().split('T')[0]);if(dt===null||!dt.trim())return;
   const r=await api('PATCH','/retours/'+id+'/facture',{facture_remplacement:fac.trim(),date_livraison_prevue:dt.trim()});
   if(r.error){toast('❌ '+r.error);return}
-  toast('✅ '+num+' → Remplacé');chargerMes();
+  toast('✅ '+num+' → Remplacé');go('mes');
 }
-async function ajouterArticle(){
-  const g=x=>$(x).value.trim();
-  const ref=g('na-ref'),lib=g('na-lib');
-  if(!ref||!lib){toast('Référence et libellé obligatoires');return}
-  const r=await api('POST','/retours/articles/import',{lignes:[{ref_odoo:ref,libelle:lib,code_barre:g('na-cb'),categorie:g('na-cat'),prix_achat:g('na-px')}]});
-  if(r.error){toast('❌ '+r.error);return}
-  toast(r.crees?'✅ '+ref+' créé':'🔁 '+ref+' mis à jour');
-  ['na-ref','na-lib','na-cb','na-cat','na-px'].forEach(x=>$(x).value='');
-  $('na-ref').focus();rechercher($('rech').value);
+
+// ── Visionneuse photos plein écran ──
+let _lb={urls:[],i:0};
+function lbOpen(urls,i){_lb={urls,i:i||0};$('lb-overlay').classList.add('open');lbMaj();document.addEventListener('keydown',lbClavier)}
+function lbClose(){$('lb-overlay').classList.remove('open');document.removeEventListener('keydown',lbClavier)}
+function lbNav(d){const n=_lb.urls.length;if(!n)return;_lb.i=(_lb.i+d+n)%n;lbMaj()}
+function lbClavier(e){if(e.key==='Escape')lbClose();if(e.key==='ArrowLeft')lbNav(-1);if(e.key==='ArrowRight')lbNav(1)}
+function lbMaj(){
+  $('lb-img').src=_lb.urls[_lb.i];
+  $('lb-count').textContent=(_lb.i+1)+' / '+_lb.urls.length;
+  const un=_lb.urls.length<2;
+  $('lb-prev').style.display=un?'none':'';$('lb-next').style.display=un?'none':'';
 }
-// ── Import CSV ──
-function importerCSV(input){
-  const f=input.files&&input.files[0]; if(!f)return;
-  const rd=new FileReader();
-  rd.onload=async()=>{
-    const txt=String(rd.result||'');
-    const lignesBrutes=txt.split(/\r?\n/).filter(l=>l.trim());
-    if(lignesBrutes.length<2){toast('CSV vide');return}
-    const sep=lignesBrutes[0].includes(';')?';':',';
-    const heads=lignesBrutes[0].split(sep).map(h=>h.trim().toLowerCase());
-    const lignes=lignesBrutes.slice(1).map(l=>{
-      const c=l.split(sep);const o={};heads.forEach((h,i)=>o[h]=(c[i]||'').trim());return o;
-    });
-    $('imp-res').textContent='Import de '+lignes.length+' lignes…';
-    try{
-      const r=await api('POST','/retours/articles/import',{lignes});
-      if(r.error){$('imp-res').textContent='❌ '+r.error;return}
-      $('imp-res').innerHTML='<span class="pill ok">'+r.crees+' créés</span> <span class="pill ok">'+r.maj+' mis à jour</span>'+(r.erreurs?' <span class="pill err">'+r.erreurs+' en erreur</span>':'');
-      rechercher($('rech').value);
-    }catch(e){$('imp-res').textContent='❌ Erreur réseau'}
-  };
-  rd.readAsText(f,'utf-8');input.value='';
-}
-// ── Recherche ──
-let _t=null;
-function rechDebounce(){clearTimeout(_t);_t=setTimeout(()=>rechercher($('rech').value),250)}
-async function rechercher(q){
-  try{
-    const d=await api('GET','/retours/articles?q='+encodeURIComponent(q||''));
-    if(d.error){$('rech-res').innerHTML='<span class="muted">❌ '+esc(d.error)+'</span>';return}
-    const A=d.articles||[];
-    $('cat-count').textContent=q?'':'';
-    $('rech-res').innerHTML=A.length?'<table><thead><tr><th>Réf.</th><th>Libellé</th><th>Code-barres</th><th>Catégorie</th><th>PA</th></tr></thead><tbody>'+
-      A.map(a=>'<tr><td><b>'+esc(a.ref_odoo)+'</b></td><td>'+esc(a.libelle)+'</td><td>'+esc(a.code_barre||'—')+'</td><td>'+esc(a.categorie||'—')+'</td><td>'+(a.prix_achat!=null?Number(a.prix_achat).toFixed(2)+' €':'—')+'</td></tr>').join('')+
-      '</tbody></table>':'<span class="muted">Aucun article'+(q?' pour « '+esc(q)+' »':' — importe ton CSV ci-dessus')+'.</span>';
-  }catch(e){}
-}
-// ── Droits ──
-async function chargerDroits(){
-  try{
-    const d=await api('GET','/retours/droits');
-    if(d.error){$('droits-liste').textContent='❌ '+d.error;return}
-    const droits=new Set(d.droits||[]);
-    $('droits-liste').innerHTML=(d.utilisateurs||[])
-      .filter(u=>u.role!=='Admin'&&u.role!=='Depot')
-      .map(u=>'<label style="display:inline-flex;align-items:center;gap:6px;margin:4px 12px 4px 0;color:var(--txt)"><input type="checkbox" '+(droits.has(u.login)?'checked':'')+' onchange="majDroit(\''+esc(u.login)+'\',this.checked)"> '+esc(u.prenom||u.login)+' <span class="muted">('+esc(u.role)+')</span></label>')
-      .join('')||'<span class="muted">Aucun autre compte.</span>';
-  }catch(e){}
-}
-async function majDroit(login,actif){
-  const r=await api('POST','/retours/droits',{login,actif});
-  if(r.error){toast('❌ '+r.error);chargerDroits();return}
-  toast(actif?'✅ '+login+' peut déclarer des retours':'🚫 '+login+' retiré');
-}
+
 // ── Boot ──
 (function(){
   try{const s=JSON.parse(sessionStorage.getItem('ajcvret')||'null');if(s&&s.token){Object.assign(S,s);demarrer();return}}catch(_){}
 })();
 </script>
-<a href="index.html" title="Menu AJCV" style="position:fixed;bottom:16px;right:16px;z-index:9999;width:44px;height:44px;border-radius:50%;background:rgba(30,41,66,.88);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:20px;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.35)">🏠</a>
 </body>
 </html>

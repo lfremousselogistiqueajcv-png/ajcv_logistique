@@ -668,15 +668,19 @@ function afficherSelecteurZone() {
         <div style="font-size:15px;font-weight:700;color:var(--text)">Choisissez votre zone</div>
         <div style="font-size:12px;color:var(--text2);margin-top:4px">Bonjour ${state.prenom} — Sélectionnez votre zone du jour</div>
       </div>
-      <button onclick="choisirZone('${Z1}')"
+      <button onclick="choisirZone('${ZN}')"
+        style="width:100%;padding:14px;background:#e3f2fd;border:2px solid #1565C0;border-radius:10px;font-size:14px;font-weight:700;color:#1565C0;cursor:pointer;margin-bottom:10px">
+        🔵 Nord
+      </button>
+      <button onclick="choisirZone('${ZE}')"
+        style="width:100%;padding:14px;background:#f3e8ff;border:2px solid #7c3aed;border-radius:10px;font-size:14px;font-weight:700;color:#7c3aed;cursor:pointer;margin-bottom:10px">
+        🟣 Est
+      </button>
+      <button onclick="choisirZone('${ZS}')"
         style="width:100%;padding:14px;background:#e8f5e9;border:2px solid #2e7d32;border-radius:10px;font-size:14px;font-weight:700;color:#2e7d32;cursor:pointer;margin-bottom:10px">
         🟢 Sud
       </button>
-      <button onclick="choisirZone('${Z2}')"
-        style="width:100%;padding:14px;background:#e3f2fd;border:2px solid #1565C0;border-radius:10px;font-size:14px;font-weight:700;color:#1565C0;cursor:pointer;margin-bottom:10px">
-        🔵 Nord-Est
-      </button>
-      <button onclick="choisirZone('${Z3}')"
+      <button onclick="choisirZone('${ZO}')"
         style="width:100%;padding:14px;background:#fff3e0;border:2px solid #e65100;border-radius:10px;font-size:14px;font-weight:700;color:#e65100;cursor:pointer;margin-bottom:10px">
         🟠 Ouest
       </button>
@@ -692,9 +696,10 @@ function afficherSelecteurZone() {
   loginDiv.classList.add('active');
 }
 
-const Z1 = '🟢 Zone 1 — Livreur 1';
-const Z2 = '🔵 Zone 2 — Livreur 2';
-const Z3 = '🟠 Zone 3 — Livreur 3';
+const ZN = '🔵 Zone Nord';
+const ZE = '🟣 Zone Est';
+const ZS = '🟢 Zone Sud';
+const ZO = '🟠 Zone Ouest';
 
 function choisirZone(zone) {
   state.zone = zone;
@@ -734,7 +739,7 @@ async function demanderPlaque() {
   } catch(_) {}
 
   const loginDiv = document.getElementById('login');
-  const zoneLbl = state.touteIle ? "🏝️ Toute l'île" : (state.zone === Z1 ? '🟢 Sud' : state.zone === Z2 ? '🔵 Nord-Est' : state.zone === Z3 ? '🟠 Ouest' : state.zone);
+  const zoneLbl = state.touteIle ? "🏝️ Toute l'île" : (state.zone === ZN ? '🔵 Nord' : state.zone === ZE ? '🟣 Est' : state.zone === ZS ? '🟢 Sud' : state.zone === ZO ? '🟠 Ouest' : state.zone);
 
   // Champ de sélection : liste déroulante si camions enregistrés, sinon saisie texte
   let champPlaque;
@@ -938,9 +943,10 @@ function majLabelZone() {
     el.style.color = '#81d4fa';
     el.style.fontWeight = '700';
   } else {
-    const z = state.zone === '🟢 Zone 1 — Livreur 1' ? 'Sud' :
-              state.zone === '🔵 Zone 2 — Livreur 2' ? 'Nord-Est' :
-              state.zone === '🟠 Zone 3 — Livreur 3' ? 'Ouest' :
+    const z = state.zone === '🔵 Zone Nord' ? 'Nord' :
+              state.zone === '🟣 Zone Est' ? 'Est' :
+              state.zone === '🟢 Zone Sud' ? 'Sud' :
+              state.zone === '🟠 Zone Ouest' ? 'Ouest' :
               state.zone || state.role || '';
     el.textContent = (z ? z + ' (repli)' : 'Aucune affectation') + '';
     el.style.color = '';
@@ -1719,8 +1725,8 @@ function renderLivraisons(showDone) {
         </select>
       </div>
       <button onclick="rafraichirMaintenant()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:8px 10px;font-size:14px;cursor:pointer;margin-right:6px" title="Rafraîchir les données">🔄</button>
-      <button class="btn-optimize" id="btnOptimize" onclick="optimiserTournee()" title="Calculer l'ordre optimal des livraisons">
-        ✨ Optimiser
+      <button class="btn-optimize" id="btnOptimize" onclick="optimiserTournee()" title="Calculer l'ordre optimal des livraisons, puis vérification par l'IA">
+        🤖 Optimiser (IA)
       </button>
     </div>`;
   }
@@ -2419,14 +2425,37 @@ async function optimiserTournee() {
       renderLivraisons(false);
       if (state.activeTab === 'carte') { setTimeout(() => updateMapMarkers(), 300); }
       showToast(`✅ ${result.totalKm} km · ${result.totalMin} min — tournée sauvegardée`, 'success');
+      demanderAjustementIA();
     } else {
       showToast('❌ Optimisation impossible', 'error');
     }
   } catch(err) {
     showToast('❌ Erreur : ' + (err.message||'réseau'), 'error');
   }
-  if (btn) { btn.classList.remove('loading'); btn.textContent = '✨ Optimiser'; }
+  if (btn) { btn.classList.remove('loading'); btn.textContent = '🤖 Optimiser (IA)'; }
   if (state.activeTab === 'carte') updateMapMarkers();
+}
+
+// Demande à l'IA de vérifier/ajuster l'ordre géographique selon horaires, contraintes et priorité
+// des clients (SUR RDV, AVANT 9H, PRIORITAIRE...). N'échoue jamais bruyamment : si l'IA n'est pas
+// disponible ou ne trouve rien à changer, l'ordre géographique (déjà bon) reste tel quel.
+async function demanderAjustementIA() {
+  try {
+    const heureDepart = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const resp = await fetch(`${CFG.API_URL}/tournee/ia-ajuster`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.token || ''}` },
+      body: JSON.stringify({ ordre: state.ordreOptimise, heureDepart })
+    });
+    const data = await resp.json();
+    if (data.success && data.ajuste && Array.isArray(data.ordre) && data.ordre.length) {
+      state.ordreOptimise = data.ordre;
+      sauvegarderOptimCache(state.ordreOptimise, state.routeInfo);
+      renderLivraisons(false);
+      if (state.activeTab === 'carte') updateMapMarkers();
+      showToast('🤖 ' + (data.note || 'Plan ajusté selon les contraintes'), 'success');
+    }
+  } catch (e) { console.warn('IA ajuster:', e.message); }
 }
 
 function ouvrirMaps() {

@@ -255,7 +255,7 @@ html[data-theme="light"]{
           <label style="display:inline-flex;align-items:center;gap:7px;font-weight:600;cursor:pointer"><input type="checkbox" id="nu-preparer" style="width:17px;height:17px"> 🧰 Préparateur</label>
         </div>
       </div>
-      <div><label>Zone</label><select id="nu-zone"><option value="">Toutes</option><option value="🟢 Zone 1 — Livreur 1">🟢 Zone 1</option><option value="🔵 Zone 2 — Livreur 2">🔵 Zone 2</option><option value="🟠 Zone 3 — Livreur 3">🟠 Zone 3</option></select></div>
+      <div><label>Zone</label><select id="nu-zone"><option value="">Toutes</option><option value="🔵 Zone Nord">🔵 Nord</option><option value="🟣 Zone Est">🟣 Est</option><option value="🟢 Zone Sud">🟢 Sud</option><option value="🟠 Zone Ouest">🟠 Ouest</option></select></div>
       <div><label>📧 Email</label><input id="nu-email" type="email"></div>
       <div><label>📱 Téléphone</label><input id="nu-tel" type="tel"></div>
     </div>
@@ -342,7 +342,7 @@ html[data-theme="light"]{
       <div><label>Code postal</label><input id="fl-cp"></div>
       <div style="grid-column:1/-1"><label>Adresse</label><input id="fl-adresse"></div>
       <div><label>N° Bon de Livraison (BLV)</label><input id="fl-bl" placeholder="Ex: BLV231574" onblur="verifierBL()"><div id="fl-bl-warn" style="font-size:12px;margin-top:4px"></div></div>
-      <div><label>Zone (modifiable)</label><select id="fl-zone"><option value="🟢 Zone 1 — Livreur 1">🟢 Sud</option><option value="🔵 Zone 2 — Livreur 2">🔵 Nord-Est</option><option value="🟠 Zone 3 — Livreur 3">🟠 Ouest</option></select></div>
+      <div><label>Zone (modifiable)</label><select id="fl-zone"><option value="🔵 Zone Nord">🔵 Nord</option><option value="🟣 Zone Est">🟣 Est</option><option value="🟢 Zone Sud">🟢 Sud</option><option value="🟠 Zone Ouest">🟠 Ouest</option></select></div>
       <div><label>Date de livraison</label><input id="fl-date" type="date"></div>
       <div><label>Téléphone</label><input id="fl-tel"></div>
       <div><label>Colis</label><input id="fl-colis" type="number" value="1"></div>
@@ -462,8 +462,10 @@ let _acMatches = [];       // matches autocomplete
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 function togglePwd(){const i=document.getElementById('iMdp'),e=document.getElementById('eye');i.type=i.type==='password'?'text':'password';e.textContent=i.type==='password'?'👁':'🙈';}
 function fermerModal(id){document.getElementById(id).classList.remove('active');}
-function zNum(z){const m=String(z||'').match(/[1-3]/);return m?m[0]:'';}
-function zLabel(z){const n=zNum(z);return n==='1'?'🟢 Sud':n==='2'?'🔵 Nord-Est':n==='3'?'🟠 Ouest':'—';}
+// Extrait le secteur cardinal (NORD/SUD/EST/OUEST) d'un libellé de zone. \b = mot entier uniquement,
+// sinon "OUEST" matcherait aussi "EST" (sous-chaîne). Conserve le nom zNum pour limiter les changements.
+function zNum(z){const m=String(z||'').toUpperCase().match(/\b(NORD|SUD|EST|OUEST)\b/);return m?m[1]:'';}
+function zLabel(z){const n=zNum(z);return n==='NORD'?'🔵 Nord':n==='SUD'?'🟢 Sud':n==='EST'?'🟣 Est':n==='OUEST'?'🟠 Ouest':'—';}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // ── API avec gestion 401 ─────────────────────────────────────────────────────
@@ -567,7 +569,7 @@ function renderAccueil(){
     {label:'Administration', items:[
       ['🔐','Utilisateurs','users','Comptes, rôles, casquettes'],
       ['📋','Journal d’activité','journal','Historique des actions, filtrable'],
-      ['🚐','Flotte','flotte','Véhicules et affectations'],
+      ['🚐','Flotte','flotte','Véhicules, registre d’utilisation, carburant, alertes'],
       ['🔧','Maintenance','maint','Mise en pause des applis'],
     ]},
   ];
@@ -675,11 +677,11 @@ async function renderChargements(){
 // Libellés communes = cosmétique d'affichage ; l'affectation vient de /zones.
 // ════════════════════════════════════════════════════════════════════════════
 const CP_COMMUNE = {
-  // Zone 1 — Sud
+  // Secteur Sud
   '97410':'Saint-Pierre','97432':'Ravine des Cabris','97430':'Le Tampon','97418':'La Plaine des Cafres','97414':'Entre-Deux','97413':'Cilaos','97450':'Saint-Louis','97421':'La Rivière / Les Makes','97429':'Petite-Île','97425':'Les Avirons','97427':'L’Étang-Salé','97480':'Saint-Joseph','97442':'Saint-Philippe',
-  // Zone 2 — Nord + Est
+  // Secteur Nord + Est
   '97400':'Saint-Denis','97417':'La Montagne / St-Bernard','97490':'Sainte-Clotilde','97438':'Sainte-Marie','97441':'Sainte-Suzanne','97487':'Saint-Denis CEDEX','97495':'Sainte-Clotilde CEDEX','97440':'Saint-André','97412':'Bras-Panon','97470':'Saint-Benoît','97437':'Sainte-Anne','97431':'La Plaine des Palmistes','97439':'Sainte-Rose','97433':'Salazie',
-  // Zone 3 — Ouest
+  // Secteur Ouest
   '97460':'Saint-Paul','97411':'Bois de Nèfles St-Paul','97422':'La Saline','97434':'Saint-Gilles-les-Bains','97435':'Saint-Gilles-les-Hauts','97423':'Le Guillaume','97419':'La Possession','97420':'Le Port','97426':'Les Trois-Bassins','97436':'Saint-Leu','97416':'La Chaloupe','97424':'Piton Saint-Leu','97415':'Saint-Paul CEDEX',
 };
 // ════════════════════════════════════════════════════════════════════════════
@@ -688,7 +690,8 @@ const CP_COMMUNE = {
 const REUNION_GEO = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.386,-21.1859],[55.387,-21.1769],[55.379,-21.1903],[55.3783,-21.2016],[55.3706,-21.2129],[55.3539,-21.2232],[55.3524,-21.2312],[55.3578,-21.2343],[55.3531,-21.2528],[55.3545,-21.2587],[55.348,-21.2528],[55.3252,-21.2468],[55.3201,-21.2527],[55.3252,-21.2373],[55.3354,-21.2239],[55.3374,-21.212],[55.3819,-21.1689],[55.389,-21.1576],[55.3956,-21.1549],[55.4055,-21.1445],[55.3997,-21.1644],[55.3906,-21.1711],[55.386,-21.1859]]]},"properties":{"nom":"Avirons"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.5522,-21.073],[55.5617,-21.0638],[55.5609,-21.0442],[55.5541,-21.0365],[55.5587,-21.0246],[55.572,-21.0108],[55.5847,-21.0054],[55.585,-21.0014],[55.6013,-21.0021],[55.6118,-20.9972],[55.6152,-20.9907],[55.6239,-20.9917],[55.6425,-20.9778],[55.6553,-20.9789],[55.6727,-20.9852],[55.6872,-20.9797],[55.7007,-20.9786],[55.7007,-21.0059],[55.6925,-21.0059],[55.6741,-21.0134],[55.6738,-21.0184],[55.6692,-21.0193],[55.6725,-21.0293],[55.6687,-21.0325],[55.6592,-21.0355],[55.643,-21.0337],[55.6317,-21.0409],[55.619,-21.041],[55.6118,-21.0558],[55.5924,-21.0751],[55.5876,-21.0856],[55.577,-21.0834],[55.5595,-21.0731],[55.5522,-21.073]]]},"properties":{"nom":"Bras-Panon"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.4623,-21.1952],[55.4708,-21.1893],[55.4842,-21.1863],[55.4949,-21.1783],[55.5018,-21.1592],[55.5018,-21.1471],[55.5068,-21.1398],[55.527,-21.1358],[55.5237,-21.1397],[55.525,-21.1424],[55.5212,-21.1435],[55.5316,-21.1743],[55.5307,-21.1839],[55.5302,-21.1861],[55.5238,-21.1828],[55.5164,-21.1854],[55.5156,-21.2012],[55.5068,-21.2057],[55.5139,-21.2141],[55.5117,-21.2271],[55.5011,-21.2318],[55.4975,-21.2386],[55.4881,-21.2388],[55.4904,-21.2463],[55.4711,-21.2577],[55.4706,-21.2695],[55.4555,-21.286],[55.4605,-21.2745],[55.457,-21.2713],[55.4616,-21.2682],[55.4644,-21.2567],[55.4593,-21.2349],[55.4635,-21.2157],[55.4623,-21.1952]]]},"properties":{"nom":"Entre-Deux"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.3912,-21.2926],[55.3636,-21.2839],[55.3395,-21.281],[55.3322,-21.273],[55.3346,-21.2701],[55.3306,-21.2587],[55.3222,-21.2531],[55.3252,-21.2468],[55.348,-21.2528],[55.3545,-21.2587],[55.3531,-21.2528],[55.3578,-21.2343],[55.3524,-21.2312],[55.3539,-21.2232],[55.3706,-21.2129],[55.3783,-21.2016],[55.379,-21.1903],[55.387,-21.1769],[55.3859,-21.1901],[55.3817,-21.1964],[55.3912,-21.2123],[55.3879,-21.2341],[55.3928,-21.2584],[55.3888,-21.2643],[55.3891,-21.2698],[55.3805,-21.2818],[55.3912,-21.2926]]]},"properties":{"nom":"Étang-Salé"}},{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[55.5831,-21.3726],[55.572,-21.376],[55.5555,-21.3712],[55.5511,-21.3745],[55.5461,-21.3678],[55.5361,-21.363],[55.5451,-21.3326],[55.5438,-21.3268],[55.5538,-21.3188],[55.5681,-21.3166],[55.5792,-21.3111],[55.5824,-21.3038],[55.5923,-21.296],[55.5937,-21.2903],[55.6043,-21.2882],[55.6055,-21.2976],[55.6004,-21.3063],[55.5881,-21.3165],[55.5851,-21.3319],[55.5899,-21.3363],[55.5898,-21.3585],[55.5832,-21.3641],[55.5831,-21.3726]]],[[[55.5689,-21.3767],[55.5684,-21.3774],[55.5673,-21.3773],[55.5682,-21.3759],[55.5689,-21.3767]]]]},"properties":{"nom":"Petite-Île"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.6607,-21.2032],[55.6377,-21.167],[55.6296,-21.1705],[55.6235,-21.1816],[55.6165,-21.1829],[55.6031,-21.18],[55.6004,-21.174],[55.5913,-21.1732],[55.587,-21.1637],[55.5899,-21.1574],[55.5873,-21.1505],[55.58,-21.1451],[55.5819,-21.1393],[55.5751,-21.1363],[55.5736,-21.131],[55.587,-21.1248],[55.5957,-21.1304],[55.6,-21.1299],[55.6031,-21.1256],[55.6098,-21.1269],[55.6183,-21.1198],[55.6304,-21.1176],[55.6379,-21.105],[55.6454,-21.1026],[55.6555,-21.1053],[55.7157,-21.1724],[55.7064,-21.1757],[55.6949,-21.186],[55.6796,-21.185],[55.6607,-21.2032]]]},"properties":{"nom":"Plaine-des-Palmistes"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.2775,-20.9577],[55.2815,-20.937],[55.284,-20.9376],[55.282,-20.9453],[55.2842,-20.9385],[55.2875,-20.9387],[55.2882,-20.9307],[55.2857,-20.9305],[55.2863,-20.9359],[55.2833,-20.9355],[55.2835,-20.9269],[55.2872,-20.9238],[55.3043,-20.9291],[55.3183,-20.9283],[55.3194,-20.9312],[55.3145,-20.9331],[55.3227,-20.9353],[55.3251,-20.935],[55.3234,-20.9285],[55.3305,-20.9279],[55.3253,-20.9371],[55.3302,-20.9409],[55.3191,-20.9692],[55.307,-20.9595],[55.2853,-20.9562],[55.2775,-20.9577]]]},"properties":{"nom":"Port"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.4611,-21.0151],[55.4621,-21.0265],[55.4539,-21.0317],[55.4543,-21.0579],[55.444,-21.0666],[55.4644,-21.0857],[55.4486,-21.084],[55.4418,-21.0862],[55.4422,-21.0901],[55.4385,-21.0926],[55.4286,-21.0915],[55.4219,-21.0971],[55.4182,-21.0954],[55.4036,-21.0843],[55.4176,-21.0658],[55.4021,-21.05],[55.4033,-21.037],[55.3975,-21.0279],[55.4045,-21.0208],[55.4001,-21.0089],[55.3843,-20.998],[55.3766,-20.9988],[55.3712,-20.9886],[55.3545,-20.9755],[55.3191,-20.9692],[55.3302,-20.9409],[55.3253,-20.9371],[55.3305,-20.9279],[55.3445,-20.9222],[55.3521,-20.9114],[55.3759,-20.8961],[55.3788,-20.9112],[55.3895,-20.9233],[55.392,-20.9386],[55.4072,-20.9567],[55.403,-20.9835],[55.4194,-20.9833],[55.4287,-20.9893],[55.4383,-20.9906],[55.4527,-21.0022],[55.4611,-21.0151]]]},"properties":{"nom":"Possession"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.7007,-20.9786],[55.6872,-20.9797],[55.6727,-20.9852],[55.6553,-20.9789],[55.6425,-20.9778],[55.6239,-20.9917],[55.6152,-20.9907],[55.6118,-20.9972],[55.5991,-21.0026],[55.5867,-21.0023],[55.5742,-20.9936],[55.5959,-20.9694],[55.6103,-20.964],[55.6238,-20.9529],[55.627,-20.9558],[55.6341,-20.9537],[55.64,-20.9432],[55.6452,-20.9426],[55.6463,-20.9367],[55.6415,-20.93],[55.6297,-20.925],[55.6308,-20.9121],[55.6287,-20.9106],[55.6477,-20.9156],[55.6661,-20.9265],[55.6832,-20.9443],[55.6968,-20.9658],[55.7007,-20.9786]]]},"properties":{"nom":"Saint-André"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.4954,-21.1114],[55.5028,-21.1003],[55.5187,-21.0913],[55.524,-21.0798],[55.5296,-21.0838],[55.5385,-21.0769],[55.5595,-21.0731],[55.577,-21.0834],[55.5876,-21.0856],[55.5924,-21.0751],[55.6118,-21.0558],[55.619,-21.041],[55.6317,-21.0409],[55.643,-21.0337],[55.6592,-21.0355],[55.6687,-21.0325],[55.6725,-21.0293],[55.6692,-21.0193],[55.6738,-21.0184],[55.6741,-21.0134],[55.699,-21.005],[55.7068,-21.0269],[55.7183,-21.0323],[55.7312,-21.0483],[55.7322,-21.062],[55.7673,-21.1036],[55.7506,-21.1177],[55.7415,-21.1304],[55.7431,-21.1359],[55.7401,-21.1388],[55.7466,-21.1444],[55.7422,-21.148],[55.7437,-21.1513],[55.74,-21.156],[55.7359,-21.156],[55.7363,-21.1618],[55.731,-21.1682],[55.7157,-21.1724],[55.6555,-21.1053],[55.6507,-21.1033],[55.6379,-21.105],[55.6304,-21.1176],[55.6183,-21.1198],[55.6118,-21.1262],[55.6031,-21.1256],[55.5968,-21.1307],[55.5916,-21.1261],[55.5827,-21.1255],[55.5677,-21.1365],[55.5554,-21.1387],[55.5467,-21.1341],[55.5068,-21.1398],[55.5042,-21.1228],[55.4954,-21.1114]]]},"properties":{"nom":"Saint-Benoît"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.4611,-21.0151],[55.4527,-21.0022],[55.4383,-20.9906],[55.4287,-20.9893],[55.4194,-20.9833],[55.403,-20.9835],[55.4072,-20.9567],[55.392,-20.9386],[55.3895,-20.9233],[55.3788,-20.9112],[55.3758,-20.8987],[55.3792,-20.8929],[55.3951,-20.8818],[55.4211,-20.8744],[55.4404,-20.8766],[55.4512,-20.8717],[55.4696,-20.8843],[55.4896,-20.8857],[55.5021,-20.8823],[55.5063,-20.9102],[55.513,-20.9234],[55.5009,-20.9362],[55.4999,-20.9444],[55.4931,-20.9559],[55.4946,-20.9611],[55.4904,-20.9627],[55.4919,-20.9769],[55.4893,-20.9836],[55.4925,-20.9872],[55.4801,-20.993],[55.4777,-21.0022],[55.4611,-21.0151]]]},"properties":{"nom":"Saint-Denis"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.6019,-21.2725],[55.6003,-21.2532],[55.6071,-21.2239],[55.6174,-21.2075],[55.6337,-21.1952],[55.6397,-21.1958],[55.6495,-21.2022],[55.6547,-21.2144],[55.654,-21.2234],[55.6473,-21.2366],[55.6788,-21.2402],[55.6815,-21.2628],[55.6866,-21.2715],[55.6947,-21.2753],[55.6906,-21.2825],[55.6876,-21.3093],[55.6997,-21.3347],[55.6975,-21.3462],[55.7042,-21.3609],[55.705,-21.3729],[55.7005,-21.3766],[55.679,-21.3755],[55.6709,-21.3838],[55.6592,-21.3828],[55.6468,-21.3894],[55.6418,-21.3844],[55.6334,-21.3825],[55.6093,-21.3871],[55.5896,-21.3762],[55.5867,-21.3717],[55.5831,-21.3726],[55.5832,-21.3641],[55.5898,-21.3585],[55.5899,-21.3363],[55.5851,-21.3319],[55.5881,-21.3165],[55.6004,-21.3063],[55.6055,-21.2976],[55.6019,-21.2725]]]},"properties":{"nom":"Saint-Joseph"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.2714,-21.1354],[55.2828,-21.1339],[55.3254,-21.1171],[55.3507,-21.1142],[55.4159,-21.1227],[55.4042,-21.1382],[55.4055,-21.1445],[55.4017,-21.1497],[55.389,-21.1576],[55.3819,-21.1689],[55.3374,-21.212],[55.3354,-21.2239],[55.3252,-21.2373],[55.3208,-21.2489],[55.293,-21.2298],[55.2852,-21.2073],[55.2806,-21.2025],[55.2874,-21.183],[55.2876,-21.1631],[55.2813,-21.1533],[55.2726,-21.1504],[55.2714,-21.1354]]]},"properties":{"nom":"Saint-Leu"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.4054,-21.1471],[55.4133,-21.1645],[55.4299,-21.1791],[55.4324,-21.1849],[55.4371,-21.1864],[55.4376,-21.1899],[55.4623,-21.1952],[55.4635,-21.2157],[55.4593,-21.2349],[55.4644,-21.2567],[55.4616,-21.2682],[55.457,-21.2713],[55.4605,-21.2745],[55.4555,-21.286],[55.4188,-21.295],[55.4039,-21.3035],[55.3805,-21.2818],[55.3891,-21.2698],[55.3888,-21.2643],[55.3928,-21.2584],[55.3879,-21.2341],[55.3912,-21.2123],[55.3817,-21.1964],[55.3886,-21.1833],[55.3906,-21.1711],[55.3997,-21.1644],[55.4054,-21.1471]]]},"properties":{"nom":"Saint-Louis"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.2542,-21.1097],[55.2309,-21.0909],[55.2209,-21.0774],[55.2242,-21.0545],[55.2171,-21.0365],[55.2353,-21.0179],[55.2465,-21.0199],[55.2566,-21.0162],[55.2748,-21.0032],[55.279,-20.9969],[55.2829,-20.9781],[55.2775,-20.9577],[55.2853,-20.9562],[55.307,-20.9595],[55.3191,-20.9692],[55.3545,-20.9755],[55.3712,-20.9886],[55.3766,-20.9988],[55.3843,-20.998],[55.4001,-21.0089],[55.4045,-21.0208],[55.3975,-21.0279],[55.4033,-21.037],[55.4021,-21.05],[55.4176,-21.0658],[55.4036,-21.0843],[55.4182,-21.0954],[55.4219,-21.0971],[55.4286,-21.0915],[55.4385,-21.0926],[55.4422,-21.0901],[55.4418,-21.0862],[55.4486,-21.084],[55.4644,-21.0857],[55.4549,-21.0937],[55.4553,-21.1002],[55.4245,-21.1171],[55.3955,-21.0984],[55.3753,-21.0993],[55.3609,-21.0938],[55.3352,-21.095],[55.3224,-21.0921],[55.2997,-21.0946],[55.267,-21.1086],[55.2542,-21.1097]]]},"properties":{"nom":"Saint-Paul"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.5361,-21.363],[55.5236,-21.3612],[55.501,-21.3506],[55.4841,-21.3524],[55.4787,-21.3436],[55.4699,-21.3446],[55.4595,-21.3411],[55.4548,-21.3316],[55.449,-21.3284],[55.4301,-21.3264],[55.4196,-21.3215],[55.4039,-21.3035],[55.4188,-21.295],[55.4406,-21.2914],[55.4601,-21.2839],[55.4706,-21.2695],[55.4709,-21.2579],[55.4797,-21.2546],[55.4962,-21.2709],[55.4982,-21.2785],[55.5169,-21.2921],[55.5094,-21.2983],[55.5101,-21.3008],[55.5187,-21.3005],[55.5349,-21.3166],[55.5409,-21.3118],[55.5498,-21.3105],[55.5555,-21.3033],[55.5702,-21.2986],[55.5795,-21.2858],[55.6019,-21.2725],[55.6043,-21.2882],[55.5937,-21.2903],[55.5923,-21.296],[55.5824,-21.3038],[55.5806,-21.3098],[55.5468,-21.3226],[55.5361,-21.363]]]},"properties":{"nom":"Saint-Pierre"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.7005,-21.3766],[55.7058,-21.3714],[55.7057,-21.3667],[55.6981,-21.3491],[55.6997,-21.3347],[55.6873,-21.3052],[55.6906,-21.2825],[55.6947,-21.2753],[55.6866,-21.2715],[55.6815,-21.2628],[55.6788,-21.2402],[55.8043,-21.2523],[55.8016,-21.2597],[55.8032,-21.2764],[55.8083,-21.2873],[55.8038,-21.3098],[55.8093,-21.3308],[55.7992,-21.3479],[55.7753,-21.3655],[55.7564,-21.363],[55.7505,-21.3678],[55.7271,-21.3698],[55.7172,-21.3749],[55.7005,-21.3766]]]},"properties":{"nom":"Saint-Philippe"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.4689,-21.0099],[55.4777,-21.0022],[55.4801,-20.993],[55.4925,-20.9872],[55.4893,-20.9836],[55.4919,-20.9769],[55.4904,-20.9627],[55.4946,-20.9611],[55.4931,-20.9559],[55.4999,-20.9444],[55.5009,-20.9362],[55.513,-20.9234],[55.5063,-20.9102],[55.5021,-20.8823],[55.5416,-20.8947],[55.5506,-20.8954],[55.5588,-20.8915],[55.5754,-20.8947],[55.5771,-20.902],[55.572,-20.9111],[55.5715,-20.9209],[55.5775,-20.9397],[55.5672,-20.9515],[55.5407,-21.0043],[55.5174,-21.0087],[55.511,-21.0012],[55.5019,-21.0005],[55.4689,-21.0099]]]},"properties":{"nom":"Sainte-Marie"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.6607,-21.2032],[55.6796,-21.185],[55.6949,-21.186],[55.7064,-21.1757],[55.731,-21.1682],[55.7363,-21.1618],[55.7359,-21.156],[55.74,-21.156],[55.7437,-21.1513],[55.7422,-21.148],[55.7466,-21.1444],[55.7401,-21.1388],[55.7431,-21.1359],[55.7415,-21.1304],[55.7506,-21.1177],[55.7673,-21.1036],[55.7835,-21.1247],[55.8001,-21.1273],[55.8098,-21.1373],[55.8259,-21.1436],[55.828,-21.1526],[55.835,-21.1604],[55.8331,-21.1714],[55.8366,-21.1834],[55.8258,-21.1861],[55.8247,-21.2032],[55.8141,-21.2143],[55.8085,-21.2275],[55.8043,-21.2523],[55.6487,-21.2374],[55.6475,-21.2337],[55.6546,-21.2212],[55.6544,-21.2108],[55.6607,-21.2032]]]},"properties":{"nom":"Sainte-Rose"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.5407,-21.0043],[55.5672,-20.9515],[55.5775,-20.9397],[55.5715,-20.9209],[55.572,-20.9111],[55.5771,-20.902],[55.5754,-20.8947],[55.5818,-20.8975],[55.5925,-20.896],[55.619,-20.9101],[55.6308,-20.9121],[55.6297,-20.925],[55.6415,-20.93],[55.6463,-20.9367],[55.6452,-20.9426],[55.64,-20.9432],[55.6372,-20.9514],[55.6291,-20.9559],[55.6238,-20.9529],[55.6103,-20.964],[55.5959,-20.9694],[55.5767,-20.9926],[55.5547,-21.0064],[55.5407,-21.0043]]]},"properties":{"nom":"Sainte-Suzanne"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.5522,-21.073],[55.5385,-21.0769],[55.5296,-21.0838],[55.524,-21.0798],[55.5187,-21.0913],[55.5028,-21.1003],[55.4948,-21.1117],[55.4902,-21.1043],[55.481,-21.1006],[55.4784,-21.0933],[55.4586,-21.0821],[55.444,-21.0666],[55.4543,-21.0579],[55.4542,-21.0305],[55.4621,-21.0265],[55.4611,-21.0151],[55.4659,-21.0113],[55.5078,-21.0001],[55.5174,-21.0087],[55.5384,-21.0041],[55.5547,-21.0064],[55.5742,-20.9936],[55.5853,-21.0001],[55.5847,-21.0054],[55.572,-21.0108],[55.5587,-21.0246],[55.5541,-21.0365],[55.5609,-21.0442],[55.5617,-21.0638],[55.5522,-21.073]]]},"properties":{"nom":"Salazie"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.6607,-21.2032],[55.6541,-21.2122],[55.6495,-21.2022],[55.6368,-21.1945],[55.6174,-21.2075],[55.605,-21.2297],[55.6048,-21.2417],[55.6003,-21.2532],[55.6019,-21.2725],[55.5795,-21.2858],[55.5702,-21.2986],[55.5555,-21.3033],[55.5498,-21.3105],[55.5409,-21.3118],[55.5349,-21.3166],[55.5187,-21.3005],[55.5101,-21.3008],[55.5094,-21.2983],[55.5169,-21.2921],[55.4982,-21.2785],[55.4962,-21.2709],[55.4797,-21.2546],[55.4904,-21.2463],[55.4881,-21.2388],[55.4975,-21.2386],[55.5011,-21.2318],[55.5117,-21.2271],[55.5139,-21.2141],[55.5068,-21.2057],[55.5156,-21.2012],[55.5164,-21.1854],[55.5238,-21.1828],[55.5302,-21.1861],[55.5316,-21.1743],[55.5212,-21.1435],[55.525,-21.1424],[55.5237,-21.1397],[55.527,-21.1358],[55.5352,-21.1374],[55.5467,-21.1341],[55.5554,-21.1387],[55.5727,-21.1337],[55.5804,-21.137],[55.58,-21.1451],[55.5873,-21.1505],[55.5899,-21.1574],[55.587,-21.1637],[55.5913,-21.1732],[55.6004,-21.174],[55.6031,-21.18],[55.6165,-21.1829],[55.6235,-21.1816],[55.6296,-21.1705],[55.6377,-21.167],[55.6607,-21.2032]]]},"properties":{"nom":"Tampon"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.2714,-21.1354],[55.268,-21.1279],[55.2538,-21.114],[55.2542,-21.1097],[55.267,-21.1086],[55.2763,-21.1025],[55.3097,-21.0922],[55.3352,-21.095],[55.3609,-21.0938],[55.3753,-21.0993],[55.3955,-21.0984],[55.4227,-21.1165],[55.4159,-21.1227],[55.3889,-21.1178],[55.3797,-21.1192],[55.3706,-21.115],[55.3254,-21.1171],[55.2828,-21.1339],[55.2714,-21.1354]]]},"properties":{"nom":"Trois-Bassins"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[55.4159,-21.1227],[55.42,-21.118],[55.4542,-21.1011],[55.4549,-21.0937],[55.4644,-21.0857],[55.477,-21.0922],[55.481,-21.1006],[55.4902,-21.1043],[55.5021,-21.1181],[55.5067,-21.1304],[55.5073,-21.139],[55.5018,-21.1471],[55.5018,-21.1592],[55.4949,-21.1783],[55.4842,-21.1863],[55.4708,-21.1893],[55.4623,-21.1952],[55.4376,-21.1899],[55.4371,-21.1864],[55.4324,-21.1849],[55.4299,-21.1791],[55.4133,-21.1645],[55.4054,-21.1471],[55.4042,-21.1382],[55.4159,-21.1227]]]},"properties":{"nom":"Cilaos"}}]};
 const COMMUNE_ZONE = {
   "Avirons":"green","Cilaos":"green","Entre-Deux":"green","Petite-Île":"green","Saint-Joseph":"green","Saint-Louis":"green","Saint-Philippe":"green","Saint-Pierre":"green","Tampon":"green","Étang-Salé":"green",
-  "Bras-Panon":"blue","Plaine-des-Palmistes":"blue","Saint-André":"blue","Saint-Benoît":"blue","Saint-Denis":"blue","Sainte-Marie":"blue","Sainte-Rose":"blue","Sainte-Suzanne":"blue","Salazie":"blue",
+  "Saint-Denis":"blue","Sainte-Marie":"blue","Sainte-Suzanne":"blue",
+  "Bras-Panon":"purple","Plaine-des-Palmistes":"purple","Saint-André":"purple","Saint-Benoît":"purple","Sainte-Rose":"purple","Salazie":"purple",
   "Port":"orange","Possession":"orange","Saint-Leu":"orange","Saint-Paul":"orange","Trois-Bassins":"orange"
 };
 let _zoneMap = null;
@@ -708,8 +711,8 @@ async function initZoneMap(){
   if(_zoneMap){ try{_zoneMap.remove();}catch(_){} _zoneMap=null; }
   _zoneMap = L.map(el,{center:[-21.115,55.535],zoom:10,scrollWheelZoom:false});
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap",maxZoom:18}).addTo(_zoneMap);
-  const COL={green:"#22c55e",blue:"#3b82f6",orange:"#f59e0b"};
-  const lbl=z=>z==="green"?"🟢 Sud — Livreur 1":z==="blue"?"🔵 Nord-Est — Livreur 2":z==="orange"?"🟠 Ouest — Livreur 3":"⚪ Non desservi";
+  const COL={green:"#22c55e",blue:"#3b82f6",purple:"#8b5cf6",orange:"#f59e0b"};
+  const lbl=z=>z==="green"?"🟢 Sud":z==="blue"?"🔵 Nord":z==="purple"?"🟣 Est":z==="orange"?"🟠 Ouest":"⚪ Non desservi";
   const layer=L.geoJSON(REUNION_GEO,{
     style:f=>{ const c=COL[COMMUNE_ZONE[f.properties.nom]]||"#94a3b8"; return {color:"#ffffff",weight:1.4,fillColor:c,fillOpacity:0.55}; },
     onEachFeature:(f,ly)=>{ const z=COMMUNE_ZONE[f.properties.nom]; ly.bindPopup("<b>"+f.properties.nom+"</b><br>"+lbl(z)); ly.bindTooltip(f.properties.nom,{direction:"center",className:"zlbl",permanent:false}); ly.on("mouseover",()=>ly.setStyle({fillOpacity:0.82})); ly.on("mouseout",()=>ly.setStyle({fillOpacity:0.55})); }
@@ -723,19 +726,19 @@ async function renderZones(){
   try { data = await api('GET','/zones'); }
   catch(e){ document.getElementById('content').innerHTML = '<div class="card">Impossible de charger les zones. Réessaie.</div>'; return; }
   const zones = data.zones || [];
-  const legende = zones.map(z=>`<span class="zchip"><span class="zdot" style="background:${z.couleur}"></span>${esc(z.titre)} · ${esc(z.livreur)}</span>`).join('');
+  const legende = zones.map(z=>`<span class="zchip"><span class="zdot" style="background:${z.couleur}"></span>${esc(z.titre)}</span>`).join('');
   const cartes = zones.map(z=>{
     const lignes = z.cp.map(c=>{
       const del = c.perso ? ` <button class="zdel" onclick="supprimerCP('${c.cp}')" title="Retirer cet ajout perso">🗑️</button>` : '';
       const tag = c.perso ? ` <span class="zperso">perso</span>` : '';
       return `<tr><td class="zcp">${c.cp}${del}</td><td>${esc(CP_COMMUNE[c.cp]||c.ville||'—')}<span class="zsect">${esc(c.secteur)}${tag}</span></td></tr>`;
     }).join('');
-    return `<div class="zcard"><div class="zhdr" style="background:${z.couleur}"><span>${esc(z.titre)}</span><small>${esc(z.livreur)} · ${z.cp.length} CP</small></div><table class="ztbl">${lignes}</table></div>`;
+    return `<div class="zcard"><div class="zhdr" style="background:${z.couleur}"><span>${esc(z.titre)}</span><small>${z.cp.length} CP</small></div><table class="ztbl">${lignes}</table></div>`;
   }).join('');
   document.getElementById('content').innerHTML = `
     <style>
       .zgrid{display:grid;grid-template-columns:1fr;gap:14px}
-      @media(min-width:760px){.zgrid{grid-template-columns:1fr 1fr 1fr}}
+      @media(min-width:760px){.zgrid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}}
       .zcard{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface2)}
       .zhdr{padding:10px 13px;font-weight:700;font-size:14px;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:8px}
       .zhdr small{font-weight:400;opacity:.95;font-size:11.5px;white-space:nowrap}
@@ -767,17 +770,17 @@ async function renderZones(){
         <label>Code postal<input id="zcpInput" maxlength="5" inputmode="numeric" placeholder="97XXX"></label>
         <label>Commune (info, optionnel)<input id="zvilleInput" placeholder="ex. Saint-Denis"></label>
         <label>Secteur → zone<select id="zsectInput">
-          <option value="Sud">Sud → 🟢 Zone 1</option>
-          <option value="Nord">Nord → 🔵 Zone 2</option>
-          <option value="Est">Est → 🔵 Zone 2</option>
-          <option value="Ouest">Ouest → 🟠 Zone 3</option>
+          <option value="Nord">Nord → 🔵 Zone Nord</option>
+          <option value="Est">Est → 🟣 Zone Est</option>
+          <option value="Sud">Sud → 🟢 Zone Sud</option>
+          <option value="Ouest">Ouest → 🟠 Zone Ouest</option>
         </select></label>
         <button class="zaddbtn" onclick="ajouterCP()">Enregistrer</button>
       </div>
     </div>
     <div class="zgrid">${cartes}</div>
     <div class="card">
-      <p class="muted" style="margin:0"><b>Codes CEDEX</b> (97487, 97495 → Zone 2 ; 97415 → Zone 3) : classés automatiquement.</p>
+      <p class="muted" style="margin:0"><b>Codes CEDEX</b> (97487, 97495 → Zone Nord ; 97415 → Zone Ouest) : classés automatiquement.</p>
       <p class="muted" style="margin:6px 0 0"><b>Mafate</b> (97428) : rattaché à aucune zone — accès uniquement pédestre/hélico, non desservi en camion. Un bon sur ce code ressort sans zone et se traite à la main.</p>
     </div>`;
   initZoneMap();
@@ -860,11 +863,20 @@ async function renderPlan(){
     </div>
     <div class="card" style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.25)">
       <div style="font-weight:700;color:#7c3aed">🤖 Simulation par zones</div>
-      <p class="muted" style="margin:6px 0 10px">Pour chaque livreur, coche les zones qu'il couvre. Ex : Clément → Sud + Ouest, Rehan → Nord-Est. La répartition suit ces zones.</p>
-      <div class="table-wrap"><table><thead><tr><th>Livreur</th><th style="text-align:center">🟢 Sud</th><th style="text-align:center">🔵 Nord-Est</th><th style="text-align:center">🟠 Ouest</th></tr></thead>
-        <tbody>${_plan.drivers.map(d=>`<tr><td>${pastilleLivreur(d.nom)}</td>${['Sud','Nord-Est','Ouest'].map(z=>`<td style="text-align:center"><input type="checkbox" class="zone-cb" data-driver="${esc(d.nom)}" value="${z}"></td>`).join('')}</tr>`).join('')||'<tr><td colspan="4" class="muted">Aucun livreur</td></tr>'}</tbody></table></div>
+      <p class="muted" style="margin:6px 0 10px">Pour chaque livreur, coche les zones qu'il couvre aujourd'hui. Ex : Clément → Sud + Ouest, Rehan → Nord + Est. La répartition suit ces zones.</p>
+      <div class="table-wrap"><table><thead><tr><th>Livreur</th><th style="text-align:center">🔵 Nord</th><th style="text-align:center">🟣 Est</th><th style="text-align:center">🟢 Sud</th><th style="text-align:center">🟠 Ouest</th></tr></thead>
+        <tbody>${_plan.drivers.map(d=>`<tr><td>${pastilleLivreur(d.nom)}</td>${['Nord','Est','Sud','Ouest'].map(z=>`<td style="text-align:center"><input type="checkbox" class="zone-cb" data-driver="${esc(d.nom)}" value="${z}"></td>`).join('')}</tr>`).join('')||'<tr><td colspan="5" class="muted">Aucun livreur</td></tr>'}</tbody></table></div>
       <button class="btn btn-sm" style="margin-top:10px;background:#7c3aed;color:#fff" onclick="planSimuler()">Simuler la répartition</button>
       <div id="planSimResult"></div>
+    </div>
+    <div class="card" style="background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.25)">
+      <div style="font-weight:700;color:#0ea5e9">🤖 Tournée optimisée (IA)</div>
+      <p class="muted" style="margin:6px 0 10px">Calcule l'ordre de passage optimal (routes réelles) pour un livreur à cette date, puis laisse l'IA l'ajuster selon les horaires/contraintes/priorité de chaque client.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="planIaDriver">${driverOptions()}</select>
+        <button class="btn btn-sm" style="background:#0ea5e9;color:#fff" onclick="planGenererIA()">Générer le plan IA</button>
+      </div>
+      <div id="planIaResult"></div>
     </div>
     <div class="card">
       <div id="planCounters"></div>
@@ -872,13 +884,31 @@ async function renderPlan(){
       <div id="planCharge"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px">
         <span class="muted" style="font-size:12px;font-weight:600">Tout désaffecter :</span>
-        <button class="btn btn-sm" onclick="desaffecterZone('1')">🟢 Sud</button>
-        <button class="btn btn-sm" onclick="desaffecterZone('2')">🔵 Nord-Est</button>
-        <button class="btn btn-sm" onclick="desaffecterZone('3')">🟠 Ouest</button>
+        <button class="btn btn-sm" onclick="desaffecterZone('NORD')">🔵 Nord</button>
+        <button class="btn btn-sm" onclick="desaffecterZone('EST')">🟣 Est</button>
+        <button class="btn btn-sm" onclick="desaffecterZone('SUD')">🟢 Sud</button>
+        <button class="btn btn-sm" onclick="desaffecterZone('OUEST')">🟠 Ouest</button>
       </div>
       <div id="planTable" class="table-wrap" style="margin-top:10px"></div>
     </div>`;
   planReload();
+}
+async function planGenererIA(){
+  const livreur = document.getElementById('planIaDriver').value;
+  const el = document.getElementById('planIaResult');
+  if(!livreur){ el.innerHTML = '<p class="err" style="display:block;margin-top:8px">Choisis un livreur</p>'; return; }
+  el.innerHTML = '<div class="loading" style="margin-top:10px"><div class="spin"></div></div>';
+  try{
+    const r = await api('POST','/tournee/optimiser',{ livreur, date:_plan.date, force:true });
+    if(!r.success){ el.innerHTML = `<p class="err" style="display:block;margin-top:8px">${esc(r.error||'Erreur')}</p>`; return; }
+    const lignes = (r.ordre||[]).map(s=>`<tr><td>${s.ordre}</td><td>${esc(s.client||'')}</td><td class="muted">${esc(s.ville||'')}</td><td class="muted">${esc(s.contrainte||'LIBRE')}</td><td class="muted">${s.segment?.description||''}</td></tr>`).join('');
+    el.innerHTML = `
+      <div style="margin-top:10px;padding:10px;border-radius:8px;background:rgba(14,165,233,.08)">
+        <b>${r.totalKm} km · ${r.totalMin} min</b> — ${r.nbStops} arrêt(s)${r.iaNote?`<div style="margin-top:6px;font-size:13px">🤖 ${esc(r.iaNote)}</div>`:''}
+      </div>
+      <div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>#</th><th>Client</th><th>Ville</th><th>Contrainte</th><th>Trajet</th></tr></thead><tbody>${lignes||'<tr><td colspan="5" class="muted">Aucun arrêt</td></tr>'}</tbody></table></div>
+      <a href="${r.mapsUrl}" target="_blank" class="btn btn-sm" style="margin-top:8px;display:inline-block">🗺️ Ouvrir dans Maps</a>`;
+  }catch(e){ el.innerHTML = `<p class="err" style="display:block;margin-top:8px">Erreur : ${esc(e.message||'réseau')}</p>`; }
 }
 // Vraie livraison terminée UNIQUEMENT (❌ Non livré contient aussi le mot "livré" — piège du .includes/regex simple)
 function estLivree(statut){ const s=(statut||'').toLowerCase(); return s.includes('livré') && !s.includes('non'); }
@@ -1090,8 +1120,9 @@ function planRenderTable(){
   // Brouillon découpé par zone
   const groupes={}, ordre=[];
   source.forEach(l=>{ const key=zNum(l.zone)||'0'; if(!groupes[key]){groupes[key]=[];ordre.push(key);} groupes[key].push(l); });
-  ordre.sort((a,b)=>(a==='0'?9:parseInt(a))-(b==='0'?9:parseInt(b)));
-  const libZone={'1':'🟢 Sud','2':'🔵 Nord-Est','3':'🟠 Ouest','0':'⚪ Hors zone'};
+  const ordreZones=['NORD','EST','SUD','OUEST','0'];
+  ordre.sort((a,b)=>ordreZones.indexOf(a)-ordreZones.indexOf(b));
+  const libZone={'NORD':'🔵 Nord','EST':'🟣 Est','SUD':'🟢 Sud','OUEST':'🟠 Ouest','0':'⚪ Hors zone'};
   el.innerHTML = ordre.map(key=>{
     const livs=groupes[key];
     const nAff=livs.filter(l=>(l.livreur||'').trim()).length;
@@ -1140,7 +1171,7 @@ async function planAffecterSelection(){
   if(r&&r.success){ toast('✅ '+r.total+' livraison(s) → '+(livreur||'(désaffecté)')); planReload(); } else toast('❌ Erreur');
 }
 async function desaffecterZone(zoneNum){
-  const lbl={'1':'🟢 Sud','2':'🔵 Nord-Est','3':'🟠 Ouest'}[String(zoneNum)]||('zone '+zoneNum);
+  const lbl={'NORD':'🔵 Nord','EST':'🟣 Est','SUD':'🟢 Sud','OUEST':'🟠 Ouest'}[String(zoneNum)]||('zone '+zoneNum);
   const cibles=(_plan.livs||[]).filter(l=>zNum(l.zone)===String(zoneNum) && (l.livreur||'').trim());
   if(!cibles.length){ toast('Aucune livraison affectée dans '+lbl); return; }
   if(!confirm('Désaffecter les '+cibles.length+' livraison(s) de '+lbl+' ?\n\nElles repasseront en « non affecté ».')) return;
@@ -1244,7 +1275,7 @@ async function renderLivraisons(){
         <div><label>Date</label><input type="date" id="lv-date" value="${today}" onchange="chargerLivraisons()"></div>
         <div><label>au <span class="muted" style="font-weight:400">(optionnel : plusieurs jours)</span></label><input type="date" id="lv-date-fin" onchange="chargerLivraisons()"></div>
         <div><label>Zone</label><select id="lv-zone" onchange="chargerLivraisons()">
-          <option value="">Toutes</option><option value="1">🟢 Zone 1</option><option value="2">🔵 Zone 2</option><option value="3">🟠 Zone 3</option>
+          <option value="">Toutes</option><option value="🔵 Zone Nord">🔵 Nord</option><option value="🟣 Zone Est">🟣 Est</option><option value="🟢 Zone Sud">🟢 Sud</option><option value="🟠 Zone Ouest">🟠 Ouest</option>
         </select></div>
       </div>
       <input id="lv-search" placeholder="🔍 Rechercher un client, une ville, un BL ou un livreur..." oninput="filtrerLivraisons()" style="margin-bottom:12px">
@@ -1344,9 +1375,10 @@ function renderLivTable(){
         <td>${esc(l.ville)}</td>
         <td><select class="inline-sel" onchange="changerZoneLivraison('${l.id}',this.value)">
           <option value="" ${!l.zone?'selected':''}>—</option>
-          <option value="🟢 Zone 1 — Livreur 1" ${zNum(l.zone)==='1'?'selected':''}>🟢 Z1</option>
-          <option value="🔵 Zone 2 — Livreur 2" ${zNum(l.zone)==='2'?'selected':''}>🔵 Z2</option>
-          <option value="🟠 Zone 3 — Livreur 3" ${zNum(l.zone)==='3'?'selected':''}>🟠 Z3</option>
+          <option value="🔵 Zone Nord" ${zNum(l.zone)==='NORD'?'selected':''}>🔵 N</option>
+          <option value="🟣 Zone Est" ${zNum(l.zone)==='EST'?'selected':''}>🟣 E</option>
+          <option value="🟢 Zone Sud" ${zNum(l.zone)==='SUD'?'selected':''}>🟢 S</option>
+          <option value="🟠 Zone Ouest" ${zNum(l.zone)==='OUEST'?'selected':''}>🟠 O</option>
           <option value="⛔ NON LIVRÉ" ${/NON LIVR/i.test(l.zone||'')?'selected':''}>⛔ Non livré</option>
         </select></td>
         <td>${statutPill(l.statut)}${(estLivree(l.statut)&&l.date_heure_livraison)?`<div class="muted" style="font-size:11px;margin-top:2px">🕒 ${dtFR(l.date_heure_livraison)}</div>`:''}</td>
@@ -1504,9 +1536,10 @@ function choisirClientLiv(i){
   window._selClientVille=c.ville||''; window._selClientCp=c.cp||'';
   // Zone : pré-remplir mais modifiable
   const n=zNum(c.zone);
-  if(n==='1') document.getElementById('fl-zone').value='🟢 Zone 1 — Livreur 1';
-  else if(n==='2') document.getElementById('fl-zone').value='🔵 Zone 2 — Livreur 2';
-  else if(n==='3') document.getElementById('fl-zone').value='🟠 Zone 3 — Livreur 3';
+  if(n==='NORD') document.getElementById('fl-zone').value='🔵 Zone Nord';
+  else if(n==='EST') document.getElementById('fl-zone').value='🟣 Zone Est';
+  else if(n==='SUD') document.getElementById('fl-zone').value='🟢 Zone Sud';
+  else if(n==='OUEST') document.getElementById('fl-zone').value='🟠 Zone Ouest';
   document.getElementById('fl-ac').style.display='none';
 }
 // ── Visionneuse photos plein écran (fleches / swipe / fermer) ──
@@ -1826,7 +1859,7 @@ async function renderClients(){
         </div></div>
       <input id="cl-search" placeholder="🔍 Rechercher un client, une ville ou un ID Odoo..." oninput="filtrerClients(true)" style="margin-bottom:8px;margin-top:12px">
       <select id="cl-zone" onchange="filtrerClients(true)" style="margin-bottom:14px">
-        <option value="">Toutes les zones</option><option value="1">🟢 Sud</option><option value="2">🔵 Nord-Est</option><option value="3">🟠 Ouest</option>
+        <option value="">Toutes les zones</option><option value="NORD">🔵 Nord</option><option value="EST">🟣 Est</option><option value="SUD">🟢 Sud</option><option value="OUEST">🟠 Ouest</option>
       </select>
       <div id="cl-liste"></div>
     </div>`;
@@ -1856,9 +1889,10 @@ function filtrerClients(resetPage){
       <td>${esc(c.cp)}</td>
       <td><select class="inline-sel" onchange="changerZoneClient('${c.id}',this.value)">
         <option value="" ${!c.zone?'selected':''}>—</option>
-        <option value="🟢 Zone 1 — Livreur 1" ${zNum(c.zone)==='1'?'selected':''}>🟢 Sud</option>
-        <option value="🔵 Zone 2 — Livreur 2" ${zNum(c.zone)==='2'?'selected':''}>🔵 Nord-Est</option>
-        <option value="🟠 Zone 3 — Livreur 3" ${zNum(c.zone)==='3'?'selected':''}>🟠 Ouest</option>
+        <option value="🔵 Zone Nord" ${zNum(c.zone)==='NORD'?'selected':''}>🔵 Nord</option>
+        <option value="🟣 Zone Est" ${zNum(c.zone)==='EST'?'selected':''}>🟣 Est</option>
+        <option value="🟢 Zone Sud" ${zNum(c.zone)==='SUD'?'selected':''}>🟢 Sud</option>
+        <option value="🟠 Zone Ouest" ${zNum(c.zone)==='OUEST'?'selected':''}>🟠 Ouest</option>
         <option value="⛔ NON LIVRÉ" ${/NON LIVR/i.test(c.zone||'')?'selected':''}>⛔ Non livré</option>
       </select></td>
       <td>${esc(c.tel1||'—')}</td>
@@ -2171,8 +2205,8 @@ async function regeocoderTout(){
     } while(offset<total);
     let html='<div style="font-weight:700;color:#059669;margin:10px 0 6px">✅ Terminé — '+geocodes+'/'+total+' géocodés</div>';
     if(echecs.length){
-      html+='<div style="font-weight:700;color:#b45309;margin:8px 0 4px">⚠️ '+echecs.length+' à corriger manuellement :</div>';
-      html+='<div style="max-height:200px;overflow:auto;font-size:13px">'+echecs.map(function(e){return '• '+esc(e.nom)+(e.ville?' — '+esc(e.ville):'')+(e.cp?' ('+esc(e.cp)+')':'');}).join('<br>')+'</div>';
+      html+='<div style="font-weight:700;color:#b45309;margin:8px 0 4px">⚠️ '+echecs.length+' à vérifier :</div>';
+      html+='<div style="max-height:200px;overflow:auto;font-size:13px">'+echecs.map(function(e){return '• '+esc(e.nom)+(e.ville?' — '+esc(e.ville):'')+(e.cp?' ('+esc(e.cp)+')':'')+(e.raison?' <span class="muted">— '+esc(e.raison)+'</span>':'');}).join('<br>')+'</div>';
     } else {
       html+='<div class="muted" style="font-size:13px">Toutes les adresses ont été géocodées. 🎉</div>';
     }
@@ -2262,9 +2296,10 @@ async function renderUsers(){
           </td>
           <td><select class="inline-sel" onchange="majUser('${u.login}','zone',this.value)">
             <option value="" ${!u.zone?'selected':''}>Toutes</option>
-            <option value="🟢 Zone 1 — Livreur 1" ${zNum(u.zone)==='1'?'selected':''}>🟢 Z1</option>
-            <option value="🔵 Zone 2 — Livreur 2" ${zNum(u.zone)==='2'?'selected':''}>🔵 Z2</option>
-            <option value="🟠 Zone 3 — Livreur 3" ${zNum(u.zone)==='3'?'selected':''}>🟠 Z3</option></select></td>
+            <option value="🔵 Zone Nord" ${zNum(u.zone)==='NORD'?'selected':''}>🔵 N</option>
+            <option value="🟣 Zone Est" ${zNum(u.zone)==='EST'?'selected':''}>🟣 E</option>
+            <option value="🟢 Zone Sud" ${zNum(u.zone)==='SUD'?'selected':''}>🟢 S</option>
+            <option value="🟠 Zone Ouest" ${zNum(u.zone)==='OUEST'?'selected':''}>🟠 O</option></select></td>
           <td><input class="inline-input" type="email" value="${esc(u.email||'')}" onblur="majUser('${u.login}','email',this.value)" placeholder="⚠️" style="border-bottom-color:${u.email?'var(--green)':'var(--red)'};width:130px"></td>
           <td><input class="inline-input" type="tel" value="${esc(u.tel||'')}" onblur="majUser('${u.login}','tel',this.value)" placeholder="⚠️" style="border-bottom-color:${u.tel?'var(--green)':'var(--red)'};width:100px"></td>
           <td><span class="pill ${u.actif?'pill-ok':'pill-no'}">${u.actif?'Actif':'Inactif'}</span></td>
@@ -2815,18 +2850,85 @@ function imprimerDoc(){
 // ════════════════════════════════════════════════════════════════════════════
 // ONGLET FLOTTE (affectations véhicules)
 // ════════════════════════════════════════════════════════════════════════════
+// ── Sous-onglets de l'espace Flotte (véhicules, registre d'utilisation, carburant) ──
+let _flotteTab = 'dashboard';
+const FLOTTE_TABS = [
+  ['dashboard','📊 Vue d’ensemble'],
+  ['vehicules','🚚 Véhicules'],
+  ['utilisations','📋 Utilisations'],
+  ['carburant','⛽ Carburant'],
+  ['cartes','💳 Cartes'],
+  ['alertes','🚨 Alertes'],
+  ['config','⚙️ Configuration'],
+];
 async function renderFlotte(){
-  const today=new Date().toISOString().split('T')[0];
-  document.getElementById('content').innerHTML=`
+  document.getElementById('content').innerHTML = `
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${FLOTTE_TABS.map(([k,l])=>`<button class="kpi-per ${_flotteTab===k?'active':''}" onclick="flotteAllerTab('${k}')">${l}</button>`).join('')}
+      </div>
+    </div>
+    <div id="flotteBody"><div class="loading"><div class="spin"></div></div></div>`;
+  await flotteChargerTab();
+}
+function flotteAllerTab(k){ _flotteTab=k; renderFlotte(); }
+function flotteChargerTab(){
+  const body=document.getElementById('flotteBody');
+  if(_flotteTab==='dashboard')     return flotteRenderDashboard(body);
+  if(_flotteTab==='vehicules')     return flotteRenderVehicules(body);
+  if(_flotteTab==='utilisations')  return flotteRenderUtilisations(body);
+  if(_flotteTab==='carburant')     return flotteRenderCarburant(body);
+  if(_flotteTab==='cartes')        return flotteRenderCartes(body);
+  if(_flotteTab==='alertes')       return flotteRenderAlertes(body);
+  if(_flotteTab==='config')        return flotteRenderConfig(body);
+}
+
+// ── Vue d'ensemble ──
+async function flotteRenderDashboard(body){
+  const d = await api('GET','/flotte/admin/dashboard').catch(()=>null);
+  if(!d || d.error){ body.innerHTML = '<div class="card"><p class="err" style="display:block">Erreur de chargement du dashboard</p></div>'; return; }
+  const alertesLbl = {
+    volume_superieur_reservoir:'Volume > réservoir', plusieurs_pleins_meme_jour:'Plusieurs pleins/jour',
+    hors_plage_horaire:'Hors plage horaire', km_retour_incoherent:'Km retour incohérent',
+    consommation_anormale:'Consommation anormale', plein_sans_photo:'Plein sans photo',
+  };
+  const kpi=(label,val,color)=>`<div style="flex:1;min-width:130px;background:var(--surface2);border-radius:10px;padding:14px;text-align:center"><div style="font-size:24px;font-weight:800;color:${color||'var(--text)'}">${val}</div><div style="font-size:11px;color:var(--text2);margin-top:4px">${label}</div></div>`;
+  body.innerHTML = `
     <div class="card">
-      <div class="flex-between"><h3>🚚 Mes camions</h3>
-        <button class="btn btn-green btn-sm" onclick="ajouterVehicule()">➕ Ajouter un camion</button></div>
-      <p class="muted" style="margin:12px 0 14px">Les plaques enregistrées ici apparaissent dans la liste de choix du livreur (évite les erreurs de saisie).</p>
-      <div id="vehicules-liste"></div>
+      <h3 style="margin:0 0 12px">📊 Ce mois (${d.periode.debut} → ${d.periode.fin})</h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${kpi('Véhicules actifs', d.vehicules_total)}
+        ${kpi('En circulation', d.vehicules_en_cours, 'var(--blue)')}
+        ${kpi('Pleins ce mois', d.pleins_mois)}
+        ${kpi('Montant carburant', d.montant_mois.toFixed(2)+' €', 'var(--gold)')}
+        ${kpi('Litres', d.litres_mois+' L')}
+        ${kpi('Sans photo', d.pleins_sans_photo, d.pleins_sans_photo>0?'var(--red)':'var(--green)')}
+        ${kpi('Alertes ouvertes', d.alertes_ouvertes, d.alertes_ouvertes>0?'var(--red)':'var(--green)')}
+      </div>
+    </div>
+    ${Object.keys(d.alertes_par_type).length ? `<div class="card">
+      <h3 style="margin:0 0 10px">🚨 Alertes ouvertes par type</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${Object.entries(d.alertes_par_type).map(([t,n])=>`<span class="pill" style="background:rgba(240,85,90,.15);color:var(--red)">${esc(alertesLbl[t]||t)} · ${n}</span>`).join('')}</div>
+    </div>`:''}
+    <div class="card">
+      <h3 style="margin:0 0 10px">🚗 Véhicules actuellement en circulation</h3>
+      ${d.utilisations_en_cours.length ? `<div class="table-wrap"><table><thead><tr><th>Conducteur</th><th>Depuis</th></tr></thead><tbody>${d.utilisations_en_cours.map(u=>`<tr><td>${esc(u.conducteur_login)}</td><td class="muted">${new Date(u.date_depart).toLocaleString('fr-FR')}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">Aucun véhicule en circulation actuellement.</p>'}
+    </div>`;
+}
+
+// ── Véhicules (+ affectations existantes) ──
+async function flotteRenderVehicules(body){
+  const today=new Date().toISOString().split('T')[0];
+  body.innerHTML=`
+    <div class="card">
+      <div class="flex-between"><h3>🚚 Mes véhicules</h3>
+        <button class="btn btn-green btn-sm" onclick="ajouterVehicule()">➕ Ajouter un véhicule</button></div>
+      <p class="muted" style="margin:12px 0 14px">Renseigne la capacité du réservoir et la consommation de référence pour activer les alertes anti-fraude sur ce véhicule.</p>
+      <div id="vehicules-liste"><div class="loading"><div class="spin"></div></div></div>
     </div>
     <div class="card">
       <h3>🚐 Affectations du jour</h3>
-      <p class="muted" style="margin-bottom:14px">Qui conduit quel fourgon, quel jour. Enregistré automatiquement quand le livreur démarre sa tournée.</p>
+      <p class="muted" style="margin-bottom:14px">Qui conduit quel véhicule, quel jour. Enregistré automatiquement quand le livreur démarre sa tournée.</p>
       <label>Date</label><input type="date" id="fl-jour" value="${today}" onchange="chargerFlotte()" style="max-width:200px;margin-bottom:14px">
       <div id="flotte-liste"></div>
     </div>`;
@@ -2838,15 +2940,34 @@ async function chargerVehicules(){
   el.innerHTML='<div class="loading"><div class="spin"></div></div>';
   const r=await api('GET','/vehicules').catch(()=>({vehicules:[]}));
   const v=r.vehicules||[];
-  if(v.length===0){el.innerHTML='<div class="loading">Aucun camion enregistré. Cliquez "➕ Ajouter un camion".</div>';return;}
+  window._flotteVehiculesData = v;
+  if(v.length===0){el.innerHTML='<div class="loading">Aucun véhicule enregistré. Cliquez "➕ Ajouter un véhicule".</div>';return;}
   el.innerHTML=`<div class="table-wrap"><table>
-    <thead><tr><th>Plaque</th><th>Description</th><th></th></tr></thead>
+    <thead><tr><th>Plaque</th><th>Marque / Modèle</th><th>Réservoir</th><th>Conso réf.</th><th></th></tr></thead>
     <tbody>${v.map(x=>`<tr>
-      <td><b style="font-family:monospace;font-size:15px">${esc(x.plaque)}</b></td>
-      <td class="muted">${esc(x.description||'—')}</td>
-      <td><button class="btn btn-red btn-sm" onclick="suppVehicule('${x.id}','${esc(x.plaque)}')">🗑️</button></td>
+      <td><b style="font-family:monospace;font-size:15px">${esc(x.plaque)}</b><div class="muted" style="font-size:11px">${esc(x.description||'')}</div></td>
+      <td class="muted">${esc([x.marque,x.modele].filter(Boolean).join(' ')||'—')}</td>
+      <td class="muted">${x.capacite_reservoir_l?x.capacite_reservoir_l+' L':'—'}</td>
+      <td class="muted">${(x.conso_ref_min_l_100km&&x.conso_ref_max_l_100km)?x.conso_ref_min_l_100km+'–'+x.conso_ref_max_l_100km+' L/100km':'—'}</td>
+      <td style="white-space:nowrap"><button class="btn btn-sm" onclick="flotteEditerVehicule('${x.id}')">✏️</button> <button class="btn btn-red btn-sm" onclick="suppVehicule('${x.id}','${esc(x.plaque)}')">🗑️</button></td>
     </tr>`).join('')}</tbody>
   </table></div>`;
+}
+async function flotteEditerVehicule(id){
+  const v = (window._flotteVehiculesData||[]).find(x=>String(x.id)===String(id));
+  if(!v) return;
+  const marque=prompt('Marque :', v.marque||''); if(marque===null) return;
+  const modele=prompt('Modèle :', v.modele||''); if(modele===null) return;
+  const capacite=prompt('Capacité du réservoir (litres) :', v.capacite_reservoir_l||''); if(capacite===null) return;
+  const consoMin=prompt('Consommation de référence — minimum (L/100km) :', v.conso_ref_min_l_100km||''); if(consoMin===null) return;
+  const consoMax=prompt('Consommation de référence — maximum (L/100km) :', v.conso_ref_max_l_100km||''); if(consoMax===null) return;
+  const r = await api('PATCH','/flotte/admin/vehicules/'+id, {
+    marque: marque.trim()||null, modele: modele.trim()||null,
+    capacite_reservoir_l: capacite?parseFloat(capacite):null,
+    conso_ref_min_l_100km: consoMin?parseFloat(consoMin):null,
+    conso_ref_max_l_100km: consoMax?parseFloat(consoMax):null,
+  }).catch(e=>({error:e.message}));
+  if(r&&r.success){ toast('✅ Véhicule mis à jour'); chargerVehicules(); } else toast('❌ '+((r&&r.error)||'Erreur'));
 }
 async function ajouterVehicule(){
   const plaque=prompt('Plaque du camion (ex: GC-216-MR) :');
@@ -2879,6 +3000,199 @@ async function chargerFlotte(){
       <td class="muted">${a.heure_debut?new Date(a.heure_debut).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—'}</td>
     </tr>`).join('')}</tbody>
   </table></div>`;
+}
+
+// ── Utilisations (registre prise/retour) ──
+async function flotteRenderUtilisations(body){
+  body.innerHTML = `
+    <div class="card">
+      <div class="flex-between"><h3>📋 Utilisations des véhicules</h3></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center">
+        <input type="date" id="fu-debut" onchange="flotteChargerUtilisations()"><span class="muted">au</span><input type="date" id="fu-fin" onchange="flotteChargerUtilisations()">
+      </div>
+      <div id="fu-liste"><div class="loading"><div class="spin"></div></div></div>
+    </div>`;
+  flotteChargerUtilisations();
+}
+async function flotteChargerUtilisations(){
+  const debut=document.getElementById('fu-debut').value, fin=document.getElementById('fu-fin').value;
+  const q=[]; if(debut) q.push('debut='+debut); if(fin) q.push('fin='+fin);
+  const r = await api('GET','/flotte/admin/utilisations'+(q.length?'?'+q.join('&'):'')).catch(()=>({utilisations:[]}));
+  const list=r.utilisations||[];
+  const el=document.getElementById('fu-liste');
+  if(!list.length){ el.innerHTML='<p class="muted">Aucune utilisation sur cette période.</p>'; return; }
+  const statutLbl={en_cours:['En cours','var(--blue)'],cloturee:['Terminé','var(--green)'],anomalie:['Anomalie','var(--red)']};
+  const trajetLbl={professionnel:'Professionnel',mixte:'Mixte',personnel:'Personnel'};
+  el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Véhicule</th><th>Conducteur</th><th>Départ</th><th>Km</th><th>Motif</th><th>Trajet</th><th>Statut</th></tr></thead><tbody>
+    ${list.map(u=>{
+      const v=u.vehicules||{}; const [lbl,col]=statutLbl[u.statut]||['—','var(--text2)'];
+      const km = u.km_retour!=null ? (u.km_retour-u.km_depart)+' km' : u.km_depart+' km (départ)';
+      return `<tr><td><b>${esc(v.plaque||'?')}</b></td><td class="muted">${esc(u.conducteur_login)}</td><td class="muted">${new Date(u.date_depart).toLocaleString('fr-FR')}</td><td class="muted">${km}</td><td class="muted">${esc(u.motif)}</td><td class="muted">${trajetLbl[u.type_trajet]||u.type_trajet}</td><td><span class="pill" style="background:${col}22;color:${col}">${lbl}</span></td></tr>`;
+    }).join('')}
+  </tbody></table></div>`;
+}
+
+// ── Carburant (pleins + export) ──
+async function flotteRenderCarburant(body){
+  body.innerHTML = `
+    <div class="card">
+      <div class="flex-between"><h3>⛽ Pleins de carburant</h3><button class="btn btn-sm" style="background:#1D6F42;color:#fff" onclick="flotteExportCSV()">📥 Export CSV</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center">
+        <input type="date" id="fp-debut" onchange="flotteChargerPleins()"><span class="muted">au</span><input type="date" id="fp-fin" onchange="flotteChargerPleins()">
+      </div>
+      <div id="fp-liste"><div class="loading"><div class="spin"></div></div></div>
+    </div>`;
+  flotteChargerPleins();
+}
+async function flotteChargerPleins(){
+  const debut=document.getElementById('fp-debut').value, fin=document.getElementById('fp-fin').value;
+  const q=[]; if(debut) q.push('debut='+debut); if(fin) q.push('fin='+fin);
+  const r = await api('GET','/flotte/admin/pleins'+(q.length?'?'+q.join('&'):'')).catch(()=>({pleins:[]}));
+  window._flottePleins = r.pleins||[];
+  const el=document.getElementById('fp-liste');
+  if(!window._flottePleins.length){ el.innerHTML='<p class="muted">Aucun plein sur cette période.</p>'; return; }
+  el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Véhicule</th><th>Conducteur</th><th>Station</th><th>Montant</th><th>Litres</th><th>Carte</th><th>Ticket</th></tr></thead><tbody>
+    ${window._flottePleins.map(p=>{
+      const v=p.vehicules||{}; const carte=p.flotte_cartes_carburant;
+      const ticket = p.exception_sans_photo ? `<span class="pill" style="background:rgba(240,85,90,.15);color:var(--red)" title="${esc(p.exception_justification||'')}">⚠️ Sans photo</span>` : `<button class="btn btn-sm" onclick="flotteVoirTicket(${p.id})">📷 Voir</button>`;
+      return `<tr><td class="muted">${new Date(p.date_plein).toLocaleString('fr-FR')}</td><td><b>${esc(v.plaque||'?')}</b></td><td class="muted">${esc(p.conducteur_login)}</td><td class="muted">${esc(p.station)}</td><td><b>${parseFloat(p.montant_eur).toFixed(2)} €</b></td><td class="muted">${p.litres||'—'}</td><td class="muted">${carte?esc(carte.numero_masque):'—'}</td><td>${ticket}</td></tr>`;
+    }).join('')}
+  </tbody></table></div>`;
+}
+async function flotteVoirTicket(id){
+  const r = await api('GET','/flotte/pleins/'+id+'/photo-url').catch(()=>null);
+  if(!r || r.error || !r.url){ toast('❌ Photo indisponible'); return; }
+  window.open(r.url, '_blank');
+}
+function flotteExportCSV(){
+  const rows = window._flottePleins||[];
+  if(!rows.length){ toast('Rien à exporter'); return; }
+  const head=['Date','Véhicule','Conducteur','Station','Montant €','Litres','Km au plein','Carte','Sans photo','Justification exception'];
+  const csv=[head.join(';')].concat(rows.map(p=>{
+    const v=p.vehicules||{}; const carte=p.flotte_cartes_carburant;
+    return [new Date(p.date_plein).toLocaleString('fr-FR'), v.plaque||'', p.conducteur_login, p.station, parseFloat(p.montant_eur).toFixed(2), p.litres||'', p.km_au_plein||'', carte?carte.numero_masque:'', p.exception_sans_photo?'OUI':'NON', p.exception_justification||''].map(x=>'"'+String(x||'').replace(/"/g,'""')+'"').join(';');
+  })).join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='flotte_pleins.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Cartes carburant ──
+async function flotteRenderCartes(body){
+  const veh = await api('GET','/vehicules').catch(()=>({vehicules:[]}));
+  window._flotteVehiculesOptions = veh.vehicules||[];
+  body.innerHTML = `
+    <div class="card">
+      <div class="flex-between"><h3>💳 Cartes carburant</h3><button class="btn btn-green btn-sm" onclick="flotteAjouterCarte()">➕ Ajouter une carte</button></div>
+      <p class="muted" style="margin:12px 0 14px">Le numéro doit rester masqué (garde au maximum les 4 derniers chiffres, ex : **** **** **** 4821).</p>
+      <div id="fc-liste"><div class="loading"><div class="spin"></div></div></div>
+    </div>`;
+  flotteChargerCartes();
+}
+async function flotteChargerCartes(){
+  const r = await api('GET','/flotte/admin/cartes').catch(()=>({cartes:[]}));
+  const list=r.cartes||[];
+  const el=document.getElementById('fc-liste');
+  if(!list.length){ el.innerHTML='<p class="muted">Aucune carte enregistrée.</p>'; return; }
+  const statutLbl={active:['Active','var(--green)'],suspendue:['Suspendue','var(--orange)'],perdue:['Perdue','var(--red)'],retiree:['Retirée','var(--text2)']};
+  el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Numéro</th><th>Véhicule</th><th>Statut</th><th>Depuis</th><th></th></tr></thead><tbody>
+    ${list.map(c=>{
+      const [lbl,col]=statutLbl[c.statut]||['—','var(--text2)']; const v=c.vehicules;
+      return `<tr><td style="font-family:monospace">${esc(c.numero_masque)}</td><td class="muted">${v?esc(v.plaque):'—'}</td><td><span class="pill" style="background:${col}22;color:${col}">${lbl}</span></td><td class="muted">${c.date_attribution}</td>
+        <td><select class="inline-sel" onchange="flotteMajCarte(${c.id},this.value)"><option value="">Changer le statut…</option><option value="active">Active</option><option value="suspendue">Suspendue</option><option value="perdue">Perdue</option><option value="retiree">Retirée</option></select></td></tr>`;
+    }).join('')}
+  </tbody></table></div>`;
+}
+async function flotteAjouterCarte(){
+  const numero=prompt('Numéro masqué de la carte (ex: **** **** **** 4821) :'); if(!numero||!numero.trim()) return;
+  const options=(window._flotteVehiculesOptions||[]).map(v=>v.plaque).join(', ');
+  const plaque=prompt('Plaque du véhicule associé (laisser vide si aucun) — véhicules disponibles : '+options)||'';
+  const vehicule = (window._flotteVehiculesOptions||[]).find(v=>v.plaque.toUpperCase()===plaque.trim().toUpperCase());
+  const r = await api('POST','/flotte/admin/cartes', { numero_masque:numero.trim(), vehicule_id: vehicule?vehicule.id:undefined }).catch(e=>({error:e.message}));
+  if(r&&r.success){ toast('✅ Carte ajoutée'); flotteChargerCartes(); } else toast('❌ '+((r&&r.error)||'Erreur'));
+}
+async function flotteMajCarte(id, statut){
+  if(!statut) return;
+  const r = await api('PATCH','/flotte/admin/cartes/'+id, { statut }).catch(()=>null);
+  if(r&&r.success){ toast('✅ Statut mis à jour'); flotteChargerCartes(); } else toast('❌ Erreur');
+}
+
+// ── Alertes anti-fraude ──
+async function flotteRenderAlertes(body){
+  body.innerHTML = `
+    <div class="card">
+      <div class="flex-between"><h3>🚨 Alertes anti-fraude</h3>
+        <select id="fa-filtre" onchange="flotteChargerAlertes()" style="max-width:220px">
+          <option value="nouvelle" selected>Nouvelles</option>
+          <option value="en_cours">En cours</option>
+          <option value="traitee">Traitées</option>
+          <option value="ignoree">Ignorées</option>
+          <option value="">Toutes</option>
+        </select>
+      </div>
+      <div id="fa-liste" style="margin-top:14px"><div class="loading"><div class="spin"></div></div></div>
+    </div>`;
+  flotteChargerAlertes();
+}
+async function flotteChargerAlertes(){
+  const statut=document.getElementById('fa-filtre').value;
+  const r = await api('GET','/flotte/admin/alertes'+(statut?'?statut='+statut:'')).catch(()=>({alertes:[]}));
+  const list=r.alertes||[];
+  const el=document.getElementById('fa-liste');
+  if(!list.length){ el.innerHTML='<p class="muted">Aucune alerte.</p>'; return; }
+  const lbl={volume_superieur_reservoir:'Volume > réservoir',plusieurs_pleins_meme_jour:'Plusieurs pleins/jour',hors_plage_horaire:'Hors plage horaire',km_retour_incoherent:'Km retour incohérent',consommation_anormale:'Consommation anormale',plein_sans_photo:'Plein sans photo'};
+  el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Véhicule</th><th>Conducteur</th><th>Détail</th><th>Statut</th><th></th></tr></thead><tbody>
+    ${list.map(a=>{
+      const v=a.vehicules;
+      return `<tr><td class="muted">${new Date(a.date_detection).toLocaleString('fr-FR')}</td><td><b>${esc(lbl[a.type]||a.type)}</b></td><td class="muted">${v?esc(v.plaque):'—'}</td><td class="muted">${esc(a.conducteur_login||'—')}</td><td class="muted">${esc(a.detail||'')}</td><td class="muted">${esc(a.statut)}</td>
+        <td style="white-space:nowrap"><button class="btn btn-sm" title="Marquer traitée" onclick="flotteTraiterAlerte(${a.id},'traitee')">✅</button> <button class="btn btn-sm" title="Ignorer" onclick="flotteTraiterAlerte(${a.id},'ignoree')">🚫</button></td></tr>`;
+    }).join('')}
+  </tbody></table></div>`;
+}
+async function flotteTraiterAlerte(id, statut){
+  const commentaire = statut==='traitee' ? (prompt('Commentaire (optionnel) :')||'') : '';
+  const r = await api('PATCH','/flotte/admin/alertes/'+id, { statut, commentaire }).catch(()=>null);
+  if(r&&r.success){ toast('✅ Alerte mise à jour'); flotteChargerAlertes(); } else toast('❌ Erreur');
+}
+
+// ── Configuration du module (4 niveaux — cf. README) ──
+async function flotteRenderConfig(body){
+  const r = await api('GET','/flotte/admin/config').catch(()=>null);
+  if(!r){ body.innerHTML='<div class="card"><p class="err" style="display:block">Erreur de chargement</p></div>'; return; }
+  const cfg=r.config;
+  const champ=(cle,label,type,hint)=>`<div style="margin-bottom:14px"><label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">${label}</label><input id="fcfg-${cle}" type="${type}" value="${esc(cfg[cle])}" style="width:100%;max-width:260px">${hint?`<div class="muted" style="font-size:11px;margin-top:3px">${hint}</div>`:''}</div>`;
+  body.innerHTML = `
+    <div class="card" style="border:1px solid ${cfg.module_actif?'rgba(51,196,129,.4)':'rgba(240,85,90,.4)'}">
+      <h3 style="margin:0 0 8px">⚙️ Activation du module</h3>
+      <p class="muted" style="margin-bottom:12px">⚠️ Ce module suit l'activité des conducteurs (kilométrage, horodatage). <b>L'information préalable des salariés (et la consultation du CSE si applicable) est obligatoire avant activation</b> — RGPD, Code du travail art. L1222-4.</p>
+      <label style="display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer">
+        <input type="checkbox" id="fcfg-module_actif" ${cfg.module_actif?'checked':''} style="width:20px;height:20px">
+        Module actif (les conducteurs peuvent utiliser l'appli Flotte)
+      </label>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 14px">Paramètres des alertes</h3>
+      ${champ('capacite_reservoir_defaut_l','Capacité réservoir par défaut (L)','number','Utilisé si le véhicule n’a pas sa capacité renseignée')}
+      ${champ('conso_ecart_tolere_pct','Écart de consommation toléré (%)','number','Avant déclenchement de l’alerte « consommation anormale »')}
+      ${champ('max_pleins_par_jour_vehicule','Nombre max. de pleins/jour/véhicule','number','Au-delà, alerte « plusieurs pleins le même jour »')}
+      ${champ('plage_horaire_debut','Début de la plage horaire habituelle','time','')}
+      ${champ('plage_horaire_fin','Fin de la plage horaire habituelle','time','')}
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 14px">Durées de conservation (RGPD)</h3>
+      ${champ('duree_conservation_pleins_ans','Pleins (photos + montants) — années','number','Aligné sur le délai de reprise fiscal — à valider avec le comptable')}
+      ${champ('duree_conservation_utilisations_ans','Utilisations (km, motif) — années','number','')}
+      ${champ('duree_conservation_alertes_mois','Alertes — mois','number','')}
+    </div>
+    <button class="btn btn-gold" onclick="flotteEnregistrerConfig()">💾 Enregistrer les paramètres</button>`;
+}
+async function flotteEnregistrerConfig(){
+  const cles=['capacite_reservoir_defaut_l','conso_ecart_tolere_pct','max_pleins_par_jour_vehicule','plage_horaire_debut','plage_horaire_fin','duree_conservation_pleins_ans','duree_conservation_utilisations_ans','duree_conservation_alertes_mois'];
+  const body={}; cles.forEach(c=>{ const el=document.getElementById('fcfg-'+c); if(el) body[c] = el.type==='number' ? parseFloat(el.value) : el.value; });
+  body.module_actif = document.getElementById('fcfg-module_actif').checked;
+  const r = await api('PATCH','/flotte/admin/config', body).catch(e=>({error:e.message}));
+  if(r&&r.success){ toast('✅ Configuration enregistrée'); flotteRenderConfig(document.getElementById('flotteBody')); } else toast('❌ '+((r&&r.error)||'Erreur'));
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -2977,8 +3291,8 @@ async function chargerKPI(){
     </div>
     <div class="card">
       <h3>🚚 Par livreur</h3>
-      <div class="table-wrap"><table><thead><tr><th>Livreur</th><th>Total</th><th>🟢 Sud</th><th>🔵 N-E</th><th>🟠 Ouest</th><th>Livrées</th><th>📦 Colis</th><th>Taux</th></tr></thead>
-        <tbody>${(d.parLivreur||[]).map(l=>`<tr><td><b>${esc(l.livreur)}</b></td><td>${l.total}</td><td>${l.z1||0}</td><td>${l.z2||0}</td><td>${l.z3||0}</td><td>${l.livres}</td><td><b>${l.colis||0}</b></td><td>${l.taux||0}%</td></tr>`).join('')||'<tr><td colspan="5" class="muted">—</td></tr>'}</tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>Livreur</th><th>Total</th><th>🔵 Nord</th><th>🟣 Est</th><th>🟢 Sud</th><th>🟠 Ouest</th><th>Livrées</th><th>📦 Colis</th><th>Taux</th></tr></thead>
+        <tbody>${(d.parLivreur||[]).map(l=>`<tr><td><b>${esc(l.livreur)}</b></td><td>${l.total}</td><td>${l.zNord||0}</td><td>${l.zEst||0}</td><td>${l.zSud||0}</td><td>${l.zOuest||0}</td><td>${l.livres}</td><td><b>${l.colis||0}</b></td><td>${l.taux||0}%</td></tr>`).join('')||'<tr><td colspan="6" class="muted">—</td></tr>'}</tbody></table></div>
     </div>
     <div class="card">
       <h3>⚠️ Clients souvent non livrés</h3>

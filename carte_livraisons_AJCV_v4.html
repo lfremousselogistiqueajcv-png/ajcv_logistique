@@ -87,9 +87,10 @@ body { font-family: Arial, sans-serif; background:#f0f2f5; color:#222; }
 .detail-label { color:#888; }
 .detail-val { font-weight:500; color:#333; max-width:180px; text-align:right; }
 .zone-badge { display:inline-block; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:bold; margin-bottom:8px; }
-.z1 { background:#e0f2f1; color:#00695c; }
-.z2 { background:#efebe9; color:#5d4037; }
-.z3 { background:#fff3e0; color:#e65100; }
+.z1 { background:#e3f2fd; color:#1565C0; }
+.z2 { background:#f3e8ff; color:#7c3aed; }
+.z3 { background:#e0f2f1; color:#00695c; }
+.z4 { background:#fff3e0; color:#e65100; }
 
 
 .btn-sig { display:block; width:100%; padding:10px; background:#2e7d32; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:bold; cursor:pointer; margin-top:8px; }
@@ -190,9 +191,10 @@ body { font-family: Arial, sans-serif; background:#f0f2f5; color:#222; }
   </select>
   <span style="font-size:11px;color:#888;align-self:center">Zones :</span>
   <div id="filtre-zones" style="display:inline-flex;gap:6px">
-    <button type="button" class="zone-chip" data-zone="🟢 Zone 1 — Livreur 1" onclick="toggleZone(this)">Sud</button>
-    <button type="button" class="zone-chip" data-zone="🔵 Zone 2 — Livreur 2" onclick="toggleZone(this)">Nord-Est</button>
-    <button type="button" class="zone-chip" data-zone="🟠 Zone 3 — Livreur 3" onclick="toggleZone(this)">Ouest</button>
+    <button type="button" class="zone-chip" data-zone="🔵 Zone Nord" onclick="toggleZone(this)">Nord</button>
+    <button type="button" class="zone-chip" data-zone="🟣 Zone Est" onclick="toggleZone(this)">Est</button>
+    <button type="button" class="zone-chip" data-zone="🟢 Zone Sud" onclick="toggleZone(this)">Sud</button>
+    <button type="button" class="zone-chip" data-zone="🟠 Zone Ouest" onclick="toggleZone(this)">Ouest</button>
   </div>
   <div id="filtre-livreurs" style="display:inline-flex;gap:6px;align-items:center"></div>
   <select id="filtre-statut" onchange="filtrer()">
@@ -467,9 +469,10 @@ window.addEventListener('load', () => {
 
 // ── CONSTANTES ───────────────────────────────────────────────
 const ZONES_CONFIG = {
-  '🟢 Zone 1 — Livreur 1': { color:'#00897b', fill:'#e0f2f1', cls:'z1', nom:'Sud' },
-  '🔵 Zone 2 — Livreur 2': { color:'#6d4c41', fill:'#efebe9', cls:'z2', nom:'Nord-Est' },
-  '🟠 Zone 3 — Livreur 3': { color:'#e65100', fill:'#fff3e0', cls:'z3', nom:'Ouest' }
+  '🔵 Zone Nord':  { color:'#1565C0', fill:'#e3f2fd', cls:'z1', nom:'Nord' },
+  '🟣 Zone Est':   { color:'#7c3aed', fill:'#f3e8ff', cls:'z2', nom:'Est' },
+  '🟢 Zone Sud':   { color:'#00897b', fill:'#e0f2f1', cls:'z3', nom:'Sud' },
+  '🟠 Zone Ouest': { color:'#e65100', fill:'#fff3e0', cls:'z4', nom:'Ouest' }
 };
 
 const STATUT_CLASS = {
@@ -568,9 +571,10 @@ function initCarte() {
         style: f => {
           const nom = (f.properties.nom||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
           const communesZones = {
-            '🟢 Zone 1 — Livreur 1':['SAINT-PIERRE','SAINT-JOSEPH','TAMPON','SAINT-LOUIS','CILAOS','ENTRE-DEUX','AVIRONS','SAINT-PHILIPPE','PETITE','ETANG-SALE'],
-            '🔵 Zone 2 — Livreur 2':['SAINT-DENIS','SAINT-BENOIT','SAINT-ANDRE','SAINTE-MARIE','SAINTE-SUZANNE','BRAS-PANON','SAINTE-ROSE','PALMISTES','SALAZIE'],
-            '🟠 Zone 3 — Livreur 3':['SAINT-PAUL','LE PORT','POSSESSION','SAINT-LEU','TROIS-BASSINS']
+            '🔵 Zone Nord':['SAINT-DENIS','SAINTE-MARIE','SAINTE-SUZANNE'],
+            '🟣 Zone Est':['SAINT-BENOIT','SAINT-ANDRE','BRAS-PANON','SAINTE-ROSE','PALMISTES','SALAZIE'],
+            '🟢 Zone Sud':['SAINT-PIERRE','SAINT-JOSEPH','TAMPON','SAINT-LOUIS','CILAOS','ENTRE-DEUX','AVIRONS','SAINT-PHILIPPE','PETITE','ETANG-SALE'],
+            '🟠 Zone Ouest':['SAINT-PAUL','LE PORT','POSSESSION','SAINT-LEU','TROIS-BASSINS']
           };
           for (const [zone,communes] of Object.entries(communesZones)) {
             if (communes.some(c=>nom.includes(c))) {
