@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.64",
+  "version": "2026.07.04.65",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.65",
+      "date": "21/09/2026",
+      "titre": "Pointage/Congés : choisir qui est suivi",
+      "notes": [
+        "👥 Nouveau bouton « Qui gérer » dans l'onglet Pointage : coche les salariés dont tu gères le pointage — seuls ceux-là apparaissent désormais dans Pointage et Congés (avant, tous les comptes actifs s'affichaient).",
+        "⚠️ Nécessite d'exécuter sql/pointage_gere.sql dans Supabase (test, puis prod) — tant que ce n'est pas fait, personne n'apparaît dans ces deux onglets (comportement normal, il faudra cocher les salariés concernés après)."
+      ]
+    },
     {
       "v": "2026.07.04.64",
       "date": "21/09/2026",

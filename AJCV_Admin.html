@@ -420,6 +420,17 @@ html[data-theme="light"]{
   </div>
 </div>
 
+<div class="modal-bg" id="modalQuiGerer">
+  <div class="modal">
+    <h3>👥 Qui gérer</h3>
+    <p class="muted" style="margin-bottom:10px">Coche les salariés dont tu gères le pointage et les congés — les autres n'apparaîtront pas dans ces onglets.</p>
+    <div id="quiGererCorps" style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto"></div>
+    <div class="form-actions">
+      <button class="btn btn-gray" onclick="fermerModal('modalQuiGerer')">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalRecapPointage">
   <div class="modal">
     <h3>📊 Récap des heures</h3>
@@ -2580,7 +2591,8 @@ async function renderPointage(){
   document.getElementById('content').innerHTML='<div class="loading"><div class="spin"></div></div>';
   if(!_pointage.users){
     const [du,dc]=await Promise.all([api('GET','/admin/users').catch(()=>({users:[]})),api('GET','/pointage/config').catch(()=>({config:null}))]);
-    _pointage.users=(du.users||[]).filter(u=>u.actif);
+    _pointage.users=(du.users||[]).filter(u=>u.actif&&u.pointage_gere);
+    _pointage.usersAll=(du.users||[]).filter(u=>u.actif);
     _pointage.seuil=(dc.config&&dc.config.seuil_hebdo_heures)||35;
   }
   await _chargerSemainePointage();
@@ -2611,9 +2623,11 @@ function _renderPointageGrille(){
           <button class="btn btn-gray btn-sm" onclick="_changerSemainePointage(1)">▶</button>
           <button class="btn btn-gray btn-sm" onclick="_changerSemainePointage(0)">Aujourd'hui</button>
           <button class="btn btn-gold btn-sm" style="margin-left:10px" onclick="ouvrirRecapPointage()">📊 Récap</button>
+          <button class="btn btn-gray btn-sm" onclick="ouvrirQuiGerer()">👥 Qui gérer</button>
         </div>
       </div>
-      ${_pointage.fallback?'<p class="muted" style="background:rgba(230,126,34,.1);padding:8px 10px;border-radius:8px;margin-top:10px">⚠️ Pointage pas encore actif (migration sql/pointage_jours.sql + sql/pointage_horaires.sql à exécuter dans Supabase).</p>':''}
+      ${_pointage.fallback?'<p class="muted" style="background:rgba(230,126,34,.1);padding:8px 10px;border-radius:8px;margin-top:10px">⚠️ Pointage pas encore actif (migration sql/pointage_jours.sql + sql/pointage_horaires.sql + sql/pointage_gere.sql à exécuter dans Supabase).</p>':''}
+      ${(!_pointage.fallback&&!users.length)?'<p class="muted" style="background:rgba(78,139,240,.1);padding:8px 10px;border-radius:8px;margin-top:10px">ℹ️ Aucun salarié suivi ici pour le moment — clique « 👥 Qui gérer » pour choisir qui apparaît.</p>':''}
       <p class="muted" style="margin:10px 0 4px">Clique sur une case pour saisir l'entrée, la sortie et la pause déjeuner de chacun. Seuil heures sup :
         <input type="number" id="pSeuil" value="${_pointage.seuil}" min="0" step="0.5" style="width:60px;display:inline-block" onchange="_majSeuilPointage()"> h / semaine
       </p>
@@ -2704,6 +2718,28 @@ async function _majSeuilPointage(){
   _renderPointageGrille();
 }
 
+// ── Qui gérer (salariés suivis en Pointage / Congés) ──
+function ouvrirQuiGerer(){
+  const users=_pointage.usersAll||[];
+  document.getElementById('quiGererCorps').innerHTML = users.length ? users.map(u=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;cursor:pointer">
+      <input type="checkbox" ${u.pointage_gere?'checked':''} style="width:18px;height:18px" onchange="_toggleQuiGerer('${u.login}',this.checked)">
+      <span><b>${esc(u.prenom)} ${esc(u.nom||'')}</b> <span class="muted" style="font-size:11px">(${esc(u.role)})</span></span>
+    </label>`).join('') : '<p class="muted">Aucun utilisateur actif.</p>';
+  document.getElementById('modalQuiGerer').classList.add('active');
+}
+async function _toggleQuiGerer(login,checked){
+  const r=await api('PATCH','/admin/users/'+login,{pointage_gere:checked}).catch(()=>null);
+  if(r&&r.success){
+    const u=(_pointage.usersAll||[]).find(x=>x.login===login); if(u) u.pointage_gere=checked;
+    _pointage.users=(_pointage.usersAll||[]).filter(x=>x.pointage_gere);
+    _conges.users=null; // forcera un rechargement à jour au prochain passage sur l'onglet Congés
+    toast('✅ Mis à jour');
+    _renderPointageGrille();
+    ouvrirQuiGerer();
+  } else toast('❌ Erreur');
+}
+
 // ── Récap des heures sur une période ──
 let _recapPointage=[];
 function ouvrirRecapPointage(){
@@ -2744,7 +2780,7 @@ async function renderConges(){
   document.getElementById('content').innerHTML='<div class="loading"><div class="spin"></div></div>';
   if(!_conges.users){
     const du=await api('GET','/admin/users').catch(()=>({users:[]}));
-    _conges.users=(du.users||[]).filter(u=>u.actif);
+    _conges.users=(du.users||[]).filter(u=>u.actif&&u.pointage_gere);
   }
   const r=await api('GET','/soldes-conges').catch(()=>({soldes:[],pris:{}}));
   _conges.fallback=!!r.fallback;
