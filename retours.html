@@ -167,6 +167,25 @@ html[data-theme="light"]{
 
 <div class="toast" id="toast"></div>
 
+<!-- MODALE : modifier un article -->
+<div class="modal-bg" id="modalEditArticle">
+  <div class="modal">
+    <h3>✏️ Modifier l'article</h3>
+    <div class="form-grid">
+      <input id="ea-lib" placeholder="Libellé *">
+      <input id="ea-cb" placeholder="Code-barres">
+      <input id="ea-cat" placeholder="Catégorie">
+      <input id="ea-px" placeholder="Prix d'achat (ex: 4,50)">
+      <select id="ea-fourn"><option value="">— Fournisseur —</option></select>
+    </div>
+    <div class="err" id="eaErr"></div>
+    <div class="form-actions">
+      <button class="btn btn-gray" onclick="fermerModal('modalEditArticle')">Annuler</button>
+      <button class="btn btn-gold" onclick="enregistrerArticle()">✅ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODALE : nouveau dossier fournisseur -->
 <div class="modal-bg" id="modalNouveauDossier">
   <div class="modal">
@@ -768,15 +787,45 @@ function importerCSV(input){
 }
 let _t=null;
 function rechDebounce(){clearTimeout(_t);_t=setTimeout(()=>rechercher($('rech').value),250)}
+let _articlesCourants=[];
 async function rechercher(q){
   try{
     const d=await api('GET','/retours/articles?q='+encodeURIComponent(q||''));
     if(d.error){$('rech-res').innerHTML='<p class="err" style="display:block">'+esc(d.error)+'</p>';return}
     const A=d.articles||[];
-    $('rech-res').innerHTML=A.length?'<div class="table-wrap"><table><thead><tr><th>Réf.</th><th>Libellé</th><th>Code-barres</th><th>Catégorie</th><th>PA</th><th>Fournisseur</th></tr></thead><tbody>'+
-      A.map(a=>'<tr><td><b>'+esc(a.ref_odoo)+'</b></td><td>'+esc(a.libelle)+'</td><td>'+esc(a.code_barre||'—')+'</td><td>'+esc(a.categorie||'—')+'</td><td>'+(a.prix_achat!=null?Number(a.prix_achat).toFixed(2)+' €':'—')+'</td><td>'+esc(a.fournisseurs?a.fournisseurs.nom:'—')+'</td></tr>').join('')+
+    _articlesCourants=A;
+    $('rech-res').innerHTML=A.length?'<div class="table-wrap"><table><thead><tr><th>Réf.</th><th>Libellé</th><th>Code-barres</th><th>Catégorie</th><th>PA</th><th>Fournisseur</th><th></th></tr></thead><tbody>'+
+      A.map((a,i)=>'<tr><td><b>'+esc(a.ref_odoo)+'</b></td><td>'+esc(a.libelle)+'</td><td>'+esc(a.code_barre||'—')+'</td><td>'+esc(a.categorie||'—')+'</td><td>'+(a.prix_achat!=null?Number(a.prix_achat).toFixed(2)+' €':'—')+'</td><td>'+esc(a.fournisseurs?a.fournisseurs.nom:'—')+'</td><td><button class="btn btn-gray btn-sm" onclick="ouvrirEditArticle('+i+')">✏️</button></td></tr>').join('')+
       '</tbody></table></div>':'<p class="muted">Aucun article'+(q?' pour « '+esc(q)+' »':' — importe ton CSV ci-dessus')+'.</p>';
   }catch(e){}
+}
+let _articleEnEditionId=null;
+function ouvrirEditArticle(i){
+  const a=_articlesCourants[i]; if(!a)return;
+  _articleEnEditionId=a.id;
+  $('eaErr').style.display='none';
+  $('ea-lib').value=a.libelle||'';
+  $('ea-cb').value=a.code_barre||'';
+  $('ea-cat').value=a.categorie||'';
+  $('ea-px').value=a.prix_achat!=null?a.prix_achat:'';
+  $('ea-fourn').innerHTML='<option value="">— Fournisseur —</option>'+_fournisseurs.map(f=>`<option value="${f.id}" ${a.fournisseur_id===f.id?'selected':''}>${esc(f.nom)}</option>`).join('');
+  $('modalEditArticle').classList.add('active');
+}
+async function enregistrerArticle(){
+  const err=$('eaErr'); err.style.display='none';
+  const libelle=$('ea-lib').value.trim();
+  if(!libelle){err.textContent='Libellé requis';err.style.display='block';return}
+  const pxRaw=$('ea-px').value.trim();
+  const body={
+    libelle, code_barre:$('ea-cb').value.trim(), categorie:$('ea-cat').value.trim(),
+    prix_achat:pxRaw?parseFloat(pxRaw.replace(',','.')):null,
+    fournisseur_id:$('ea-fourn').value||null,
+  };
+  const r=await api('PATCH','/retours/articles/'+_articleEnEditionId,body);
+  if(r.error){err.textContent=r.error;err.style.display='block';return}
+  toast('✅ Article mis à jour');
+  fermerModal('modalEditArticle');
+  rechercher($('rech').value);
 }
 
 // ════════════════════════════════════════════════════════════════════════════
