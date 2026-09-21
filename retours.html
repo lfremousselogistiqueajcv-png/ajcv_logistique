@@ -581,7 +581,12 @@ async function chargerCandidatsDossier(){
   $('nd-candidats').innerHTML='<div class="loading"><div class="spin"></div></div>';
   const d=await api('GET','/retours/dossiers-fournisseur/candidats?fournisseur_id='+fid);
   const F=d.fiches||[];
-  if(!F.length){$('nd-candidats').innerHTML='<p class="muted">Aucune fiche reçue au dépôt en attente pour ce fournisseur.</p>';return}
+  if(!F.length){
+    const msg=d.raison==='aucun_article'
+      ?'Aucun article du catalogue n’est rattaché à ce fournisseur — vérifie l’onglet Articles (colonne fournisseur).'
+      :'Aucune fiche reçue au dépôt en attente pour ce fournisseur — réceptionne-les d’abord dans l’onglet Réception dépôt.';
+    $('nd-candidats').innerHTML='<p class="muted">'+msg+'</p>';return
+  }
   $('nd-candidats').innerHTML=`<p class="muted" style="margin-bottom:8px">${F.length} fiche(s) disponible(s) — coche celles à inclure :</p>
     <div style="max-height:280px;overflow-y:auto">${F.map(f=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
       <input type="checkbox" class="nd-cb" value="${f.id}" checked>

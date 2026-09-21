@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.66",
+  "version": "2026.07.04.67",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.67",
+      "date": "21/09/2026",
+      "titre": "Dossiers fournisseur : message plus précis quand rien n'apparaît",
+      "notes": [
+        "🔍 « Nouveau dossier d'envoi » : le message quand aucune fiche ne s'affiche indique désormais si c'est parce qu'aucun article n'est rattaché à ce fournisseur (à corriger dans l'onglet Articles), ou parce qu'aucune fiche n'a encore été réceptionnée au dépôt pour lui."
+      ]
+    },
     {
       "v": "2026.07.04.66",
       "date": "21/09/2026",
