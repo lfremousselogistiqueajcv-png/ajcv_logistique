@@ -199,6 +199,7 @@ html[data-theme="light"]{
       <div class="side-group">Équipe</div>
       <div class="nav-tab" data-tab="planning" onclick="go('planning')">🗓️<span>Planning</span></div>
       <div class="nav-tab" data-tab="pointage" onclick="go('pointage')">⏱️<span>Pointage</span></div>
+      <div class="nav-tab" data-tab="conges" onclick="go('conges')">🏖️<span>Congés</span></div>
       <div class="side-group">Pilotage</div>
       <div class="nav-tab" data-tab="kpi" onclick="go('kpi')">📊<span>KPI</span></div>
       <div class="nav-tab" data-tab="docs" onclick="go('docs')">📄<span>Documents</span></div>
@@ -400,6 +401,25 @@ html[data-theme="light"]{
   </div>
 </div>
 
+<div class="modal-bg" id="modalPointageJour">
+  <div class="modal">
+    <h3 id="pj-titre">⏱️ Pointage du jour</h3>
+    <div class="form-grid">
+      <div><label>Heure d'entrée *</label><input type="time" id="pj-entree" oninput="_majTotalPointageJour()"></div>
+      <div><label>Heure de sortie *</label><input type="time" id="pj-sortie" oninput="_majTotalPointageJour()"></div>
+      <div><label>Pause déjeuner - début</label><input type="time" id="pj-pause-debut" oninput="_majTotalPointageJour()"></div>
+      <div><label>Pause déjeuner - fin</label><input type="time" id="pj-pause-fin" oninput="_majTotalPointageJour()"></div>
+    </div>
+    <p class="muted" id="pj-total" style="margin:10px 0;font-size:14px"></p>
+    <div class="err" id="pjErr"></div>
+    <div class="form-actions">
+      <button class="btn btn-red" id="pj-del" style="display:none;margin-right:auto" onclick="supprimerPointageJour()">🗑️ Supprimer</button>
+      <button class="btn btn-gray" onclick="fermerModal('modalPointageJour')">Annuler</button>
+      <button class="btn btn-green" onclick="enregistrerPointageJour()">✅ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalRecapPointage">
   <div class="modal">
     <h3>📊 Récap des heures</h3>
@@ -556,6 +576,7 @@ function go(tab){
   else if(tab==='journal') renderJournal();
   else if(tab==='planning') renderPlanning();
   else if(tab==='pointage') renderPointage();
+  else if(tab==='conges') renderConges();
 }
 
 // ── ACCUEIL ────────────────────────────────────────────────────────────────
@@ -580,6 +601,7 @@ function renderAccueil(){
     {label:'Équipe', items:[
       ['🗓️','Planning','planning','Missions de la semaine, par personne'],
       ['⏱️','Pointage','pointage','Heures hebdomadaires et récap par salarié'],
+      ['🏖️','Congés','conges','Soldes CP et RTT par salarié'],
     ]},
     {label:'Pilotage', items:[
       ['📊','KPI','kpi','Tableaux de bord et statistiques'],
@@ -2591,17 +2613,21 @@ function _renderPointageGrille(){
           <button class="btn btn-gold btn-sm" style="margin-left:10px" onclick="ouvrirRecapPointage()">📊 Récap</button>
         </div>
       </div>
-      ${_pointage.fallback?'<p class="muted" style="background:rgba(230,126,34,.1);padding:8px 10px;border-radius:8px;margin-top:10px">⚠️ Pointage pas encore actif (migration sql/pointage_jours.sql à exécuter dans Supabase).</p>':''}
-      <p class="muted" style="margin:10px 0 4px">Heures relevées sur la fiche papier de chacun, jour par jour. Seuil heures sup :
+      ${_pointage.fallback?'<p class="muted" style="background:rgba(230,126,34,.1);padding:8px 10px;border-radius:8px;margin-top:10px">⚠️ Pointage pas encore actif (migration sql/pointage_jours.sql + sql/pointage_horaires.sql à exécuter dans Supabase).</p>':''}
+      <p class="muted" style="margin:10px 0 4px">Clique sur une case pour saisir l'entrée, la sortie et la pause déjeuner de chacun. Seuil heures sup :
         <input type="number" id="pSeuil" value="${_pointage.seuil}" min="0" step="0.5" style="width:60px;display:inline-block" onchange="_majSeuilPointage()"> h / semaine
       </p>
       <div class="table-wrap" style="margin-top:10px"><table>
-        <thead><tr><th style="min-width:130px">Personne</th>${jours.map(j=>{const d=new Date(j+'T00:00:00');return `<th style="min-width:64px">${_JOURS[(d.getDay()+6)%7].slice(0,3)}<br><span class="muted" style="font-weight:400">${d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</span></th>`;}).join('')}<th style="min-width:90px">Total</th></tr></thead>
+        <thead><tr><th style="min-width:130px">Personne</th>${jours.map(j=>{const d=new Date(j+'T00:00:00');return `<th style="min-width:90px">${_JOURS[(d.getDay()+6)%7].slice(0,3)}<br><span class="muted" style="font-weight:400">${d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</span></th>`;}).join('')}<th style="min-width:90px">Total</th></tr></thead>
         <tbody>${users.length?users.map(u=>{
           let total=0;
           const cells=jours.map(j=>{
             const p=_pointage.rows[u.login+'|'+j]; const v=p?parseFloat(p.heures):0; total+=v;
-            return `<td><input type="number" min="0" max="24" step="0.25" value="${p?p.heures:''}" id="ph-${u.login}-${j}" style="width:56px" onchange="_saisirPointage('${u.login}','${j}')"></td>`;
+            const h=(t)=>t?t.slice(0,5):'';
+            const contenu=p
+              ?`${h(p.heure_entree)}–${h(p.heure_sortie)}${p.pause_debut&&p.pause_fin?`<br><span class="muted" style="font-size:10px">pause ${h(p.pause_debut)}-${h(p.pause_fin)}</span>`:''}<br><b>${v.toFixed(2)} h</b>`
+              :`<span class="muted" style="font-size:16px">+</span>`;
+            return `<td style="cursor:pointer;text-align:center;font-size:11.5px" onclick="ouvrirPointageJour('${u.login}','${j}')" title="Cliquer pour saisir">${contenu}</td>`;
           }).join('');
           const depasse=total>_pointage.seuil;
           return `<tr>
@@ -2618,12 +2644,56 @@ function _changerSemainePointage(delta){
   else { const d=new Date(_pointage.weekStart+'T00:00:00'); d.setDate(d.getDate()+delta*7); _pointage.weekStart=_isoJ(d); }
   _chargerSemainePointage();
 }
-async function _saisirPointage(login,jour){
-  const heures=document.getElementById('ph-'+login+'-'+jour).value;
-  if(heures===''){ return; }
-  const r=await api('POST','/pointage',{personne:login,date_jour:jour,heures}).catch(e=>({error:e.message}));
-  if(r&&r.success){ _pointage.rows[login+'|'+jour]=r.data; _renderPointageGrille(); }
-  else toast('❌ '+((r&&r.error)||'Erreur'));
+
+// ── Modale de saisie horaires (entrée / sortie / pause déjeuner) ──
+function ouvrirPointageJour(login,jour){
+  document.getElementById('pjErr').style.display='none';
+  const p=_pointage.rows[login+'|'+jour];
+  const m=document.getElementById('modalPointageJour');
+  m.dataset.login=login; m.dataset.jour=jour;
+  const d=new Date(jour+'T00:00:00');
+  document.getElementById('pj-titre').textContent='⏱️ Pointage — '+esc(login)+' — '+d.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long'});
+  document.getElementById('pj-entree').value=p?(p.heure_entree||'').slice(0,5):'08:00';
+  document.getElementById('pj-sortie').value=p?(p.heure_sortie||'').slice(0,5):'17:00';
+  document.getElementById('pj-pause-debut').value=p?(p.pause_debut||'').slice(0,5):'12:00';
+  document.getElementById('pj-pause-fin').value=p?(p.pause_fin||'').slice(0,5):'13:00';
+  document.getElementById('pj-del').style.display=p?'inline-block':'none';
+  _majTotalPointageJour();
+  m.classList.add('active');
+}
+function _minutesDepuisMinuit(hhmm){ if(!hhmm) return null; const [h,mn]=hhmm.split(':').map(Number); return h*60+mn; }
+function _majTotalPointageJour(){
+  const e=_minutesDepuisMinuit(document.getElementById('pj-entree').value);
+  const s=_minutesDepuisMinuit(document.getElementById('pj-sortie').value);
+  const pd=_minutesDepuisMinuit(document.getElementById('pj-pause-debut').value);
+  const pf=_minutesDepuisMinuit(document.getElementById('pj-pause-fin').value);
+  let total=null;
+  if(e!=null&&s!=null&&s>e){ total=s-e; if(pd!=null&&pf!=null&&pf>pd) total-=(pf-pd); }
+  document.getElementById('pj-total').innerHTML = total!=null&&total>0 ? 'Total : <b style="color:var(--text)">'+(total/60).toFixed(2)+' h</b>' : '';
+}
+async function enregistrerPointageJour(){
+  const err=document.getElementById('pjErr'); err.style.display='none';
+  const m=document.getElementById('modalPointageJour');
+  const body={
+    personne:m.dataset.login, date_jour:m.dataset.jour,
+    heure_entree:document.getElementById('pj-entree').value,
+    heure_sortie:document.getElementById('pj-sortie').value,
+    pause_debut:document.getElementById('pj-pause-debut').value||undefined,
+    pause_fin:document.getElementById('pj-pause-fin').value||undefined,
+  };
+  if(!body.heure_entree||!body.heure_sortie){ err.textContent="Heure d'entrée et de sortie requises"; err.style.display='block'; return; }
+  if(body.heure_sortie<=body.heure_entree){ err.textContent="L'heure de sortie doit être après l'entrée"; err.style.display='block'; return; }
+  if((body.pause_debut&&!body.pause_fin)||(!body.pause_debut&&body.pause_fin)){ err.textContent='Renseigne le début ET la fin de la pause, ou aucun des deux'; err.style.display='block'; return; }
+  const r=await api('POST','/pointage',body).catch(e=>({error:e.message}));
+  if(r&&r.success){ fermerModal('modalPointageJour'); _pointage.rows[m.dataset.login+'|'+m.dataset.jour]=r.data; _renderPointageGrille(); }
+  else { err.textContent=(r&&r.error)||'Erreur'; err.style.display='block'; }
+}
+async function supprimerPointageJour(){
+  const m=document.getElementById('modalPointageJour');
+  if(!confirm('Supprimer ce pointage ?')) return;
+  const r=await api('DELETE','/pointage/'+m.dataset.login+'/'+m.dataset.jour).catch(()=>null);
+  if(r&&r.success){ fermerModal('modalPointageJour'); delete _pointage.rows[m.dataset.login+'|'+m.dataset.jour]; _renderPointageGrille(); }
+  else toast('❌ Erreur');
 }
 async function _majSeuilPointage(){
   const v=parseFloat(document.getElementById('pSeuil').value);
@@ -2662,6 +2732,58 @@ function exportRecapPointageCSV(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='recap_heures.csv'; a.click();
   URL.revokeObjectURL(url);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ONGLET CONGÉS (sql/soldes_conges.sql) — soldes CP et RTT par salarié.
+// Le solde acquis est saisi par le responsable (issu de la paie) ; les jours
+// pris sont comptés automatiquement depuis les congés posés dans le Planning.
+// ════════════════════════════════════════════════════════════════════════════
+const _conges={ users:null };
+async function renderConges(){
+  document.getElementById('content').innerHTML='<div class="loading"><div class="spin"></div></div>';
+  if(!_conges.users){
+    const du=await api('GET','/admin/users').catch(()=>({users:[]}));
+    _conges.users=(du.users||[]).filter(u=>u.actif);
+  }
+  const r=await api('GET','/soldes-conges').catch(()=>({soldes:[],pris:{}}));
+  _conges.fallback=!!r.fallback;
+  _conges.soldes={}; (r.soldes||[]).forEach(s=>{ _conges.soldes[s.personne+'|'+s.type]=s.solde_initial; });
+  _conges.pris=r.pris||{};
+  _renderCongesGrille();
+}
+function _renderCongesGrille(){
+  const users=_conges.users;
+  document.getElementById('content').innerHTML=`
+    <div class="card">
+      <h3 style="margin:0">🏖️ Soldes de congés</h3>
+      ${_conges.fallback?'<p class="muted" style="background:rgba(230,126,34,.1);padding:8px 10px;border-radius:8px;margin-top:10px">⚠️ Soldes pas encore actifs (migration sql/soldes_conges.sql à exécuter dans Supabase).</p>':''}
+      <p class="muted" style="margin:10px 0">Solde acquis saisi à la main (d'après la paie) ; jours pris comptés automatiquement depuis les congés posés dans le Planning.</p>
+      <div class="table-wrap" style="margin-top:10px"><table>
+        <thead><tr><th style="min-width:130px">Personne</th><th colspan="3">Congés payés</th><th colspan="3">RTT</th></tr>
+        <tr><th></th><th>Acquis</th><th>Pris</th><th>Restant</th><th>Acquis</th><th>Pris</th><th>Restant</th></tr></thead>
+        <tbody>${users.length?users.map(u=>{
+          const cpAcquis=_conges.soldes[u.login+'|cp']||0, cpPris=_conges.pris[u.login+'|cp']||0, cpRestant=cpAcquis-cpPris;
+          const rttAcquis=_conges.soldes[u.login+'|rtt']||0, rttPris=_conges.pris[u.login+'|rtt']||0, rttRestant=rttAcquis-rttPris;
+          return `<tr>
+            <td><b>${esc(u.prenom)} ${esc(u.nom||'')}</b><br><span class="muted" style="font-size:11px">${esc(u.role)}</span></td>
+            <td><input type="number" min="0" step="0.5" value="${cpAcquis||''}" id="sc-${u.login}-cp" style="width:64px" onchange="_saisirSoldeConge('${u.login}','cp')"></td>
+            <td class="muted">${cpPris} j</td>
+            <td><b style="${cpRestant<0?'color:var(--red)':''}">${cpRestant.toFixed(1)} j</b></td>
+            <td><input type="number" min="0" step="0.5" value="${rttAcquis||''}" id="sc-${u.login}-rtt" style="width:64px" onchange="_saisirSoldeConge('${u.login}','rtt')"></td>
+            <td class="muted">${rttPris} j</td>
+            <td><b style="${rttRestant<0?'color:var(--red)':''}">${rttRestant.toFixed(1)} j</b></td>
+          </tr>`;
+        }).join(''):'<tr><td colspan="7" class="muted" style="text-align:center">Aucun utilisateur actif</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+}
+async function _saisirSoldeConge(login,type){
+  const v=document.getElementById('sc-'+login+'-'+type).value;
+  if(v===''){ return; }
+  const r=await api('PATCH','/soldes-conges',{personne:login,type,solde_initial:v}).catch(e=>({error:e.message}));
+  if(r&&r.success){ _conges.soldes[login+'|'+type]=parseFloat(v); _renderCongesGrille(); }
+  else toast('❌ '+((r&&r.error)||'Erreur'));
 }
 
 // ── Référentiel des types de tâches (paramétrable par le responsable) ──

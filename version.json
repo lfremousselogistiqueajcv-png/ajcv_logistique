@@ -1,7 +1,26 @@
 {
-  "version": "2026.07.04.61",
+  "version": "2026.07.04.63",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.63",
+      "date": "21/09/2026",
+      "titre": "Pointage : heure d'entrée/sortie + pause déjeuner",
+      "notes": [
+        "⏱️ La saisie d'un pointage se fait maintenant avec de vrais horaires (ex : 09h-12h puis 13h-16h) au lieu d'un simple nombre d'heures — clique sur une case du jour pour ouvrir la saisie.",
+        "🧮 Le total est calculé automatiquement (sortie − entrée − pause déjeuner) et affiché en direct pendant la saisie.",
+        "⚠️ Nécessite d'exécuter sql/pointage_horaires.sql dans Supabase, en plus de sql/pointage_jours.sql et sql/soldes_conges.sql (test, puis prod)."
+      ]
+    },
+    {
+      "v": "2026.07.04.62",
+      "date": "21/09/2026",
+      "titre": "Nouvel onglet Congés : soldes CP et RTT par salarié",
+      "notes": [
+        "🏖️ Nouvel onglet Congés : saisis le solde de congés payés et de RTT acquis par chaque salarié (d'après la paie). Les jours pris sont comptés automatiquement à partir des congés posés dans le Planning, avec le restant en direct.",
+        "⚠️ Nécessite d'exécuter sql/soldes_conges.sql dans Supabase (test, puis prod à la promotion)."
+      ]
+    },
     {
       "v": "2026.07.04.61",
       "date": "21/09/2026",
