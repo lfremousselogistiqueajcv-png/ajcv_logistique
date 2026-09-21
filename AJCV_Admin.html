@@ -198,6 +198,7 @@ html[data-theme="light"]{
       <div class="nav-tab" data-tab="odoo" onclick="go('odoo')">🔄<span>Imports Odoo</span></div>
       <div class="side-group">Équipe</div>
       <div class="nav-tab" data-tab="planning" onclick="go('planning')">🗓️<span>Planning</span></div>
+      <div class="nav-tab" data-tab="pointage" onclick="go('pointage')">⏱️<span>Pointage</span></div>
       <div class="side-group">Pilotage</div>
       <div class="nav-tab" data-tab="kpi" onclick="go('kpi')">📊<span>KPI</span></div>
       <div class="nav-tab" data-tab="docs" onclick="go('docs')">📄<span>Documents</span></div>
@@ -383,7 +384,7 @@ html[data-theme="light"]{
     <h3 id="pl-titre">➕ Nouvelle mission</h3>
     <div class="form-grid">
       <div><label>Personne *</label><select id="pl-personne"></select></div>
-      <div><label>Tâche *</label><select id="pl-tache"></select></div>
+      <div><label>Tâche *</label><select id="pl-tache" onchange="_planningTacheChange()"></select></div>
       <div><label>Date *</label><input type="date" id="pl-date"></div>
       <div></div>
       <div><label>Début *</label><input type="time" id="pl-debut"></div>
@@ -395,6 +396,22 @@ html[data-theme="light"]{
       <button class="btn btn-red" id="pl-del" style="display:none;margin-right:auto" onclick="supprimerPlanning()">🗑️ Supprimer</button>
       <button class="btn btn-gray" onclick="fermerModal('modalPlanning')">Annuler</button>
       <button class="btn btn-green" onclick="enregistrerPlanning()">✅ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalRecapPointage">
+  <div class="modal">
+    <h3>📊 Récap des heures</h3>
+    <div class="form-grid">
+      <div><label>Du</label><input type="date" id="rp-debut"></div>
+      <div><label>Au</label><input type="date" id="rp-fin"></div>
+    </div>
+    <div style="margin:10px 0"><button class="btn btn-gray btn-sm" onclick="chargerRecapPointage()">🔍 Afficher</button></div>
+    <div id="recapPointageCorps"></div>
+    <div class="form-actions">
+      <button class="btn btn-gray" onclick="exportRecapPointageCSV()">⬇️ Export CSV</button>
+      <button class="btn btn-gray" onclick="fermerModal('modalRecapPointage')">Fermer</button>
     </div>
   </div>
 </div>
@@ -538,6 +555,7 @@ function go(tab){
   else if(tab==='maint') renderMaintenance();
   else if(tab==='journal') renderJournal();
   else if(tab==='planning') renderPlanning();
+  else if(tab==='pointage') renderPointage();
 }
 
 // ── ACCUEIL ────────────────────────────────────────────────────────────────
@@ -561,6 +579,7 @@ function renderAccueil(){
     ]},
     {label:'Équipe', items:[
       ['🗓️','Planning','planning','Missions de la semaine, par personne'],
+      ['⏱️','Pointage','pointage','Heures hebdomadaires et récap par salarié'],
     ]},
     {label:'Pilotage', items:[
       ['📊','KPI','kpi','Tableaux de bord et statistiques'],
@@ -2454,9 +2473,16 @@ function _renderPlanningGrille(){
           ${jours.map(j=>{
             const items=parPersonneJour[u.login+'|'+j]||[];
             return `<td style="vertical-align:top;cursor:pointer" onclick="ouvrirPlanning(null,'${u.login}','${j}')">
-              ${items.map(it=>`<div onclick="event.stopPropagation();ouvrirPlanning('${it.id}')" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 7px;margin-bottom:4px;font-size:11.5px;cursor:pointer" title="Cliquer pour modifier">
-                ${(it.taches_types&&it.taches_types.icone)||'📋'} <b>${(it.taches_types&&esc(it.taches_types.nom))||'?'}</b><br>${it.heure_debut.slice(0,5)}–${it.heure_fin.slice(0,5)}${it.commentaire?'<br><span class="muted">'+esc(it.commentaire)+'</span>':''}
-              </div>`).join('')}
+              ${items.map(it=>{
+                const estConge=it.taches_types&&it.taches_types.categorie==='conge';
+                const style=estConge
+                  ?'background:rgba(230,126,34,.14);border:1px solid rgba(230,126,34,.4);border-radius:8px;padding:5px 7px;margin-bottom:4px;font-size:11.5px;cursor:pointer'
+                  :'background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 7px;margin-bottom:4px;font-size:11.5px;cursor:pointer';
+                const horaire=estConge?'':`<br>${it.heure_debut.slice(0,5)}–${it.heure_fin.slice(0,5)}`;
+                return `<div onclick="event.stopPropagation();ouvrirPlanning('${it.id}')" style="${style}" title="Cliquer pour modifier">
+                ${(it.taches_types&&it.taches_types.icone)||'📋'} <b>${(it.taches_types&&esc(it.taches_types.nom))||'?'}</b>${horaire}${it.commentaire?'<br><span class="muted">'+esc(it.commentaire)+'</span>':''}
+              </div>`;
+              }).join('')}
               <div class="muted" style="font-size:16px;text-align:center;opacity:.4">+</div>
             </td>`;
           }).join('')}
@@ -2473,7 +2499,10 @@ function ouvrirPlanning(id,personne,date){
   document.getElementById('plErr').style.display='none';
   const selP=document.getElementById('pl-personne'), selT=document.getElementById('pl-tache');
   selP.innerHTML=_planning.users.map(u=>`<option value="${u.login}">${esc(u.prenom)} ${esc(u.nom||'')} (${esc(u.role)})</option>`).join('');
-  selT.innerHTML=_planning.types.map(t=>`<option value="${t.id}">${t.icone} ${esc(t.nom)}</option>`).join('');
+  const missions=_planning.types.filter(t=>t.categorie!=='conge'), conges=_planning.types.filter(t=>t.categorie==='conge');
+  selT.innerHTML=
+    (missions.length?`<optgroup label="Missions">${missions.map(t=>`<option value="${t.id}">${t.icone} ${esc(t.nom)}</option>`).join('')}</optgroup>`:'')+
+    (conges.length?`<optgroup label="Congés">${conges.map(t=>`<option value="${t.id}">${t.icone} ${esc(t.nom)}</option>`).join('')}</optgroup>`:'');
   const item=id?_planning.items.find(x=>String(x.id)===String(id)):null;
   document.getElementById('modalPlanning').dataset.editId=item?item.id:'';
   document.getElementById('pl-titre').textContent=item?'✏️ Modifier la mission':'➕ Nouvelle mission';
@@ -2485,6 +2514,14 @@ function ouvrirPlanning(id,personne,date){
   document.getElementById('pl-tache').value=item?item.tache_id:(_planning.types[0]&&_planning.types[0].id)||'';
   document.getElementById('pl-commentaire').value=item?(item.commentaire||''):'';
   document.getElementById('modalPlanning').classList.add('active');
+  _planningTacheChange();
+}
+function _planningTacheChange(){
+  const t=_planning.types.find(x=>String(x.id)===document.getElementById('pl-tache').value);
+  const estConge=t&&t.categorie==='conge';
+  const debut=document.getElementById('pl-debut'), fin=document.getElementById('pl-fin');
+  if(estConge){ debut.value='00:00'; fin.value='23:59'; debut.disabled=true; fin.disabled=true; }
+  else { debut.disabled=false; fin.disabled=false; if(debut.value==='00:00'&&fin.value==='23:59'){ debut.value='08:00'; fin.value='12:00'; } }
 }
 async function enregistrerPlanning(){
   const err=document.getElementById('plErr'); err.style.display='none';
@@ -2509,6 +2546,105 @@ async function supprimerPlanning(){
   const r=await api('DELETE','/planning/'+id).catch(()=>null);
   if(r&&r.success){ fermerModal('modalPlanning'); toast('🗑️ Mission supprimée'); _chargerSemainePlanning(); }
   else toast('❌ Erreur');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ONGLET POINTAGE (sql/pointage_conges.sql) — heures hebdo saisies par le
+// responsable, relevées depuis la fiche papier remplie par chaque salarié.
+// ════════════════════════════════════════════════════════════════════════════
+const _pointage={ weekStart:_isoJ(_lundiDe(new Date())), users:null, rows:{} };
+async function renderPointage(){
+  document.getElementById('content').innerHTML='<div class="loading"><div class="spin"></div></div>';
+  if(!_pointage.users){
+    const du=await api('GET','/admin/users').catch(()=>({users:[]}));
+    _pointage.users=(du.users||[]).filter(u=>u.actif);
+  }
+  await _chargerSemainePointage();
+}
+async function _chargerSemainePointage(){
+  const d0=_pointage.weekStart;
+  const r=await api('GET','/pointage?debut='+d0+'&fin='+d0).catch(()=>({pointages:[]}));
+  _pointage.fallback=!!r.fallback;
+  _pointage.rows={}; (r.pointages||[]).forEach(p=>{ _pointage.rows[p.personne]=p; });
+  _renderPointageGrille();
+}
+function _semaineLabelPointage(){
+  const d0=new Date(_pointage.weekStart+'T00:00:00'); const d6=new Date(d0); d6.setDate(d6.getDate()+6);
+  const f=(d)=>d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
+  return 'Semaine du '+f(d0)+' au '+f(d6);
+}
+function _renderPointageGrille(){
+  const users=_pointage.users;
+  const total=users.reduce((s,u)=>s+(_pointage.rows[u.login]?parseFloat(_pointage.rows[u.login].heures)||0:0),0);
+  document.getElementById('content').innerHTML=`
+    <div class="card">
+      <div class="flex-between">
+        <h3 style="margin:0">⏱️ Pointage des heures</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-gray btn-sm" onclick="_changerSemainePointage(-1)">◀</button>
+          <b>${_semaineLabelPointage()}</b>
+          <button class="btn btn-gray btn-sm" onclick="_changerSemainePointage(1)">▶</button>
+          <button class="btn btn-gray btn-sm" onclick="_changerSemainePointage(0)">Aujourd'hui</button>
+          <button class="btn btn-gold btn-sm" style="margin-left:10px" onclick="ouvrirRecapPointage()">📊 Récap</button>
+        </div>
+      </div>
+      ${_pointage.fallback?'<p class="muted" style="background:rgba(230,126,34,.1);padding:8px 10px;border-radius:8px;margin-top:10px">⚠️ Pointage pas encore actif (migration sql/pointage_conges.sql à exécuter dans Supabase).</p>':''}
+      <p class="muted" style="margin-top:8px">Heures relevées sur la fiche papier de chacun, saisies pour toute la semaine. Total équipe : <b style="color:var(--text)">${total.toFixed(2)} h</b></p>
+      <div class="table-wrap" style="margin-top:10px"><table>
+        <thead><tr><th>Personne</th><th style="width:130px">Heures (semaine)</th><th>Commentaire</th></tr></thead>
+        <tbody>${users.length?users.map(u=>{
+          const p=_pointage.rows[u.login];
+          return `<tr>
+            <td><b>${esc(u.prenom)} ${esc(u.nom||'')}</b><br><span class="muted" style="font-size:11px">${esc(u.role)}</span></td>
+            <td><input type="number" min="0" step="0.25" value="${p?p.heures:''}" id="ph-${u.login}" style="width:90px" onchange="_saisirPointage('${u.login}')"></td>
+            <td><input value="${p?esc(p.commentaire||''):''}" id="pc-${u.login}" placeholder="optionnel" onchange="_saisirPointage('${u.login}')"></td>
+          </tr>`;
+        }).join(''):'<tr><td colspan="3" class="muted" style="text-align:center">Aucun utilisateur actif</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+}
+function _changerSemainePointage(delta){
+  if(delta===0){ _pointage.weekStart=_isoJ(_lundiDe(new Date())); }
+  else { const d=new Date(_pointage.weekStart+'T00:00:00'); d.setDate(d.getDate()+delta*7); _pointage.weekStart=_isoJ(d); }
+  _chargerSemainePointage();
+}
+async function _saisirPointage(login){
+  const heures=document.getElementById('ph-'+login).value;
+  const commentaire=document.getElementById('pc-'+login).value.trim();
+  if(heures===''){ return; }
+  const r=await api('POST','/pointage',{personne:login,semaine_debut:_pointage.weekStart,heures,commentaire}).catch(e=>({error:e.message}));
+  if(r&&r.success){ toast('✅ Heures enregistrées'); _pointage.rows[login]=r.data; }
+  else toast('❌ '+((r&&r.error)||'Erreur'));
+}
+
+// ── Récap des heures sur une période ──
+let _recapPointage=[];
+function ouvrirRecapPointage(){
+  const d=new Date(), debutMois=new Date(d.getFullYear(),d.getMonth(),1);
+  document.getElementById('rp-debut').value=_isoJ(debutMois);
+  document.getElementById('rp-fin').value=_isoJ(d);
+  document.getElementById('recapPointageCorps').innerHTML='';
+  document.getElementById('modalRecapPointage').classList.add('active');
+  chargerRecapPointage();
+}
+async function chargerRecapPointage(){
+  const debut=document.getElementById('rp-debut').value, fin=document.getElementById('rp-fin').value;
+  const r=await api('GET','/pointage?debut='+debut+'&fin='+fin).catch(()=>({pointages:[]}));
+  const parPersonne={};
+  (r.pointages||[]).forEach(p=>{ parPersonne[p.personne]=(parPersonne[p.personne]||0)+parseFloat(p.heures); });
+  _recapPointage=(_pointage.users||[]).map(u=>({login:u.login,nom:(u.prenom+' '+(u.nom||'')).trim(),role:u.role,heures:parPersonne[u.login]||0}));
+  document.getElementById('recapPointageCorps').innerHTML=`
+    <div class="table-wrap"><table><thead><tr><th>Personne</th><th>Rôle</th><th>Total heures</th></tr></thead>
+    <tbody>${_recapPointage.map(x=>`<tr><td>${esc(x.nom)}</td><td class="muted">${esc(x.role)}</td><td><b>${x.heures.toFixed(2)} h</b></td></tr>`).join('')}</tbody></table></div>`;
+}
+function exportRecapPointageCSV(){
+  if(!_recapPointage.length){ toast('Rien à exporter'); return; }
+  const head=['Personne','Rôle','Total heures'];
+  const csv=[head.join(';')].concat(_recapPointage.map(x=>[x.nom,x.role,x.heures.toFixed(2)].map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(';'))).join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='recap_heures.csv'; a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ── Référentiel des types de tâches (paramétrable par le responsable) ──

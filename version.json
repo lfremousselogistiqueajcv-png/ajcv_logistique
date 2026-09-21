@@ -1,7 +1,17 @@
 {
-  "version": "2026.07.04.59",
+  "version": "2026.07.04.60",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.60",
+      "date": "21/09/2026",
+      "titre": "Nouvel onglet Pointage + congés dans le Planning",
+      "notes": [
+        "⏱️ Nouvel onglet Pointage : saisis chaque semaine le total d'heures relevé sur la fiche papier de chaque salarié (+ commentaire optionnel), avec un récap sur une période au choix (mois, trimestre...) et export CSV.",
+        "🏖️ Planning : 5 nouveaux motifs de congé (Congé payé, RTT, Maladie, Sans solde, Autre absence), affichés en orange et distincts des missions — sélectionner un congé bascule automatiquement la mission sur la journée entière.",
+        "⚠️ Nécessite d'exécuter sql/pointage_conges.sql dans Supabase (test, puis prod à la promotion)."
+      ]
+    },
     {
       "v": "2026.07.04.59",
       "date": "19/09/2026",
