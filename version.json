@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.65",
+  "version": "2026.07.04.66",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.66",
+      "date": "21/09/2026",
+      "titre": "Correctif : génération du document fournisseur (photos) disparue à la refonte",
+      "notes": [
+        "🐞 Depuis la refonte Retours, le bouton qui génère le document imprimable (synthèse par article + photos) pour un fournisseur avait disparu de l'écran — le backend n'avait jamais bougé, seul le bouton manquait. Restauré : bouton « 📦 Générer le document (photos) » dans le détail d'un dossier fournisseur.",
+        "🐞 Correctif technique : un plantage silencieux pouvait survenir sur l'Accueil si on changeait d'onglet pendant le chargement des indicateurs."
+      ]
+    },
     {
       "v": "2026.07.04.65",
       "date": "21/09/2026",

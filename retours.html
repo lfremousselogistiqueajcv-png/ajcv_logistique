@@ -278,7 +278,8 @@ async function renderAccueil(){
     const d=await api('GET','/retours/mes').catch(()=>({fiches:[]}));
     const F=d.fiches||[];
     const enCours=F.filter(f=>!['livre','refuse'].includes(f.statut)).length;
-    $('acc-kpis').innerHTML=`<div class="card"><div class="kpi-grid">
+    const zoneKpi=$('acc-kpis'); if(!zoneKpi) return; // page quittée pendant le chargement
+    zoneKpi.innerHTML=`<div class="card"><div class="kpi-grid">
       ${kpiTuile(F.length,'Fiches déclarées')}${kpiTuile(enCours,'En cours','var(--blue)')}
     </div></div>`;
     return;
@@ -292,7 +293,8 @@ async function renderAccueil(){
   const nonTransmis=F.filter(f=>f.recu_le&&!f.dossier_numero&&f.statut!=='refuse').length;
   const dossiersOuverts=dossiers.filter(d=>d.statut!=='clos'&&d.statut!=='rembourse_total').length;
   const montantAttendu=dossiers.filter(d=>['rembourse_partiel','rembourse_total'].includes(d.statut)).reduce((s,d)=>s+(d.montant_rembourse||0),0);
-  $('acc-kpis').innerHTML=`<div class="card"><div class="kpi-grid">
+  const zoneKpi=$('acc-kpis'); if(!zoneKpi) return; // page quittée pendant le chargement
+  zoneKpi.innerHTML=`<div class="card"><div class="kpi-grid">
     ${kpiTuile(F.length,'Fiches (total)')}
     ${kpiTuile(enAttenteReception,'En attente dépôt',enAttenteReception?'var(--orange)':'var(--green)')}
     ${kpiTuile(nonTransmis,'Reçues, pas encore transmises',nonTransmis?'var(--red)':'var(--green)')}
@@ -595,16 +597,19 @@ async function creerDossier(){
   toast('✅ Dossier '+r.dossier.numero+' créé ('+ids.length+' fiches)');
   fermerModal('modalNouveauDossier');chargerDossiers();
 }
+let _dossierFichesCourant=[];
 async function ouvrirDossierDetail(id){
   const d=await api('GET','/retours/dossiers-fournisseur/'+id);
   if(d.error){toast('❌ '+d.error);return}
   const dos=d.dossier, st=STDOSS[dos.statut]||[dos.statut,'#888'];
+  _dossierFichesCourant=d.fiches||[];
   let bg=document.getElementById('dossDet');if(bg)bg.remove();
   bg=document.createElement('div');bg.id='dossDet';bg.className='modal-bg active';
   bg.innerHTML=`<div class="modal" style="max-width:640px">
     <div class="flex-between"><h3 style="margin:0">${esc(dos.numero)} <span class="pill" style="background:${st[1]}22;color:${st[1]}">${st[0]}</span></h3><button class="btn btn-gray btn-sm" onclick="document.getElementById('dossDet').remove()">✕</button></div>
     <p class="muted" style="margin:10px 0">Fournisseur : <b style="color:var(--text)">${esc(dos.fournisseurs?dos.fournisseurs.nom:'—')}</b>${dos.fournisseurs&&dos.fournisseurs.contact_email?' · '+esc(dos.fournisseurs.contact_email):''}${dos.date_envoi?' · Transmis le '+new Date(dos.date_envoi).toLocaleDateString('fr-FR')+' par '+esc(dos.envoye_par||''):' · Pas encore transmis'}</p>
-    <h4 style="font-size:13px;color:var(--gold);margin-bottom:8px">Regroupement par article</h4>
+    <div class="flex-between" style="margin-bottom:8px"><h4 style="font-size:13px;color:var(--gold);margin:0">Regroupement par article</h4>
+      <button class="btn btn-green btn-sm" onclick="genererDocumentDossier()">📦 Générer le document (photos)</button></div>
     <div class="table-wrap"><table><thead><tr><th>Réf.</th><th>Article</th><th>Qté totale</th><th>Fiches</th></tr></thead><tbody>
       ${(d.regroupement||[]).map(a=>`<tr><td><b>${esc(a.ref_odoo)}</b></td><td>${esc(a.libelle)}</td><td><b>${a.qte}</b></td><td class="muted">${a.fiches.map(esc).join(', ')}</td></tr>`).join('')}
     </tbody></table></div>
@@ -644,6 +649,13 @@ async function cloturerDossier(id){
   const r=await api('PATCH','/retours/dossiers-fournisseur/'+id+'/cloturer',{});
   if(r.error){toast('❌ '+r.error);return}
   toast('🔒 Dossier clos');document.getElementById('dossDet').remove();chargerDossiers();
+}
+function genererDocumentDossier(){
+  const F=_dossierFichesCourant;
+  if(!F.length){toast('Aucune fiche dans ce dossier');return}
+  if(F.length>40){toast('40 fiches max par document (là : '+F.length+')');return}
+  toast('📦 Génération du document ('+F.length+' fiches)…');
+  window.open(API+'/retours/dossier?ids='+F.map(f=>f.id).join(',')+'&t='+encodeURIComponent(S.token),'_blank');
 }
 
 // ════════════════════════════════════════════════════════════════════════════
