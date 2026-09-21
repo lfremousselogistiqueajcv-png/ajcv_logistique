@@ -2549,33 +2549,36 @@ async function supprimerPlanning(){
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// ONGLET POINTAGE (sql/pointage_conges.sql) — heures hebdo saisies par le
+// ONGLET POINTAGE (sql/pointage_jours.sql) — heures saisies JOUR PAR JOUR par le
 // responsable, relevées depuis la fiche papier remplie par chaque salarié.
+// Heures sup calculées automatiquement au-delà d'un seuil hebdo paramétrable.
 // ════════════════════════════════════════════════════════════════════════════
-const _pointage={ weekStart:_isoJ(_lundiDe(new Date())), users:null, rows:{} };
+const _pointage={ weekStart:_isoJ(_lundiDe(new Date())), users:null, rows:{}, seuil:35 };
 async function renderPointage(){
   document.getElementById('content').innerHTML='<div class="loading"><div class="spin"></div></div>';
   if(!_pointage.users){
-    const du=await api('GET','/admin/users').catch(()=>({users:[]}));
+    const [du,dc]=await Promise.all([api('GET','/admin/users').catch(()=>({users:[]})),api('GET','/pointage/config').catch(()=>({config:null}))]);
     _pointage.users=(du.users||[]).filter(u=>u.actif);
+    _pointage.seuil=(dc.config&&dc.config.seuil_hebdo_heures)||35;
   }
   await _chargerSemainePointage();
 }
+function _joursSemainePointage(){ const d0=new Date(_pointage.weekStart+'T00:00:00'); return Array.from({length:7},(_,i)=>{const d=new Date(d0);d.setDate(d.getDate()+i);return _isoJ(d);}); }
 async function _chargerSemainePointage(){
-  const d0=_pointage.weekStart;
-  const r=await api('GET','/pointage?debut='+d0+'&fin='+d0).catch(()=>({pointages:[]}));
+  const jours=_joursSemainePointage();
+  const r=await api('GET','/pointage?debut='+jours[0]+'&fin='+jours[6]).catch(()=>({pointages:[]}));
   _pointage.fallback=!!r.fallback;
-  _pointage.rows={}; (r.pointages||[]).forEach(p=>{ _pointage.rows[p.personne]=p; });
+  _pointage.rows={}; (r.pointages||[]).forEach(p=>{ _pointage.rows[p.personne+'|'+p.date_jour]=p; });
   _renderPointageGrille();
 }
 function _semaineLabelPointage(){
-  const d0=new Date(_pointage.weekStart+'T00:00:00'); const d6=new Date(d0); d6.setDate(d6.getDate()+6);
-  const f=(d)=>d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
-  return 'Semaine du '+f(d0)+' au '+f(d6);
+  const jours=_joursSemainePointage();
+  const f=(iso)=>{const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});};
+  return 'Semaine du '+f(jours[0])+' au '+f(jours[6]);
 }
 function _renderPointageGrille(){
+  const jours=_joursSemainePointage();
   const users=_pointage.users;
-  const total=users.reduce((s,u)=>s+(_pointage.rows[u.login]?parseFloat(_pointage.rows[u.login].heures)||0:0),0);
   document.getElementById('content').innerHTML=`
     <div class="card">
       <div class="flex-between">
@@ -2588,18 +2591,25 @@ function _renderPointageGrille(){
           <button class="btn btn-gold btn-sm" style="margin-left:10px" onclick="ouvrirRecapPointage()">📊 Récap</button>
         </div>
       </div>
-      ${_pointage.fallback?'<p class="muted" style="background:rgba(230,126,34,.1);padding:8px 10px;border-radius:8px;margin-top:10px">⚠️ Pointage pas encore actif (migration sql/pointage_conges.sql à exécuter dans Supabase).</p>':''}
-      <p class="muted" style="margin-top:8px">Heures relevées sur la fiche papier de chacun, saisies pour toute la semaine. Total équipe : <b style="color:var(--text)">${total.toFixed(2)} h</b></p>
+      ${_pointage.fallback?'<p class="muted" style="background:rgba(230,126,34,.1);padding:8px 10px;border-radius:8px;margin-top:10px">⚠️ Pointage pas encore actif (migration sql/pointage_jours.sql à exécuter dans Supabase).</p>':''}
+      <p class="muted" style="margin:10px 0 4px">Heures relevées sur la fiche papier de chacun, jour par jour. Seuil heures sup :
+        <input type="number" id="pSeuil" value="${_pointage.seuil}" min="0" step="0.5" style="width:60px;display:inline-block" onchange="_majSeuilPointage()"> h / semaine
+      </p>
       <div class="table-wrap" style="margin-top:10px"><table>
-        <thead><tr><th>Personne</th><th style="width:130px">Heures (semaine)</th><th>Commentaire</th></tr></thead>
+        <thead><tr><th style="min-width:130px">Personne</th>${jours.map(j=>{const d=new Date(j+'T00:00:00');return `<th style="min-width:64px">${_JOURS[(d.getDay()+6)%7].slice(0,3)}<br><span class="muted" style="font-weight:400">${d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</span></th>`;}).join('')}<th style="min-width:90px">Total</th></tr></thead>
         <tbody>${users.length?users.map(u=>{
-          const p=_pointage.rows[u.login];
+          let total=0;
+          const cells=jours.map(j=>{
+            const p=_pointage.rows[u.login+'|'+j]; const v=p?parseFloat(p.heures):0; total+=v;
+            return `<td><input type="number" min="0" max="24" step="0.25" value="${p?p.heures:''}" id="ph-${u.login}-${j}" style="width:56px" onchange="_saisirPointage('${u.login}','${j}')"></td>`;
+          }).join('');
+          const depasse=total>_pointage.seuil;
           return `<tr>
             <td><b>${esc(u.prenom)} ${esc(u.nom||'')}</b><br><span class="muted" style="font-size:11px">${esc(u.role)}</span></td>
-            <td><input type="number" min="0" step="0.25" value="${p?p.heures:''}" id="ph-${u.login}" style="width:90px" onchange="_saisirPointage('${u.login}')"></td>
-            <td><input value="${p?esc(p.commentaire||''):''}" id="pc-${u.login}" placeholder="optionnel" onchange="_saisirPointage('${u.login}')"></td>
+            ${cells}
+            <td><b style="${depasse?'color:var(--orange)':''}">${total.toFixed(2)} h</b>${depasse?`<br><span class="muted" style="font-size:10.5px;color:var(--orange)">+${(total-_pointage.seuil).toFixed(2)} h sup</span>`:''}</td>
           </tr>`;
-        }).join(''):'<tr><td colspan="3" class="muted" style="text-align:center">Aucun utilisateur actif</td></tr>'}</tbody>
+        }).join(''):'<tr><td colspan="9" class="muted" style="text-align:center">Aucun utilisateur actif</td></tr>'}</tbody>
       </table></div>
     </div>`;
 }
@@ -2608,13 +2618,20 @@ function _changerSemainePointage(delta){
   else { const d=new Date(_pointage.weekStart+'T00:00:00'); d.setDate(d.getDate()+delta*7); _pointage.weekStart=_isoJ(d); }
   _chargerSemainePointage();
 }
-async function _saisirPointage(login){
-  const heures=document.getElementById('ph-'+login).value;
-  const commentaire=document.getElementById('pc-'+login).value.trim();
+async function _saisirPointage(login,jour){
+  const heures=document.getElementById('ph-'+login+'-'+jour).value;
   if(heures===''){ return; }
-  const r=await api('POST','/pointage',{personne:login,semaine_debut:_pointage.weekStart,heures,commentaire}).catch(e=>({error:e.message}));
-  if(r&&r.success){ toast('✅ Heures enregistrées'); _pointage.rows[login]=r.data; }
+  const r=await api('POST','/pointage',{personne:login,date_jour:jour,heures}).catch(e=>({error:e.message}));
+  if(r&&r.success){ _pointage.rows[login+'|'+jour]=r.data; _renderPointageGrille(); }
   else toast('❌ '+((r&&r.error)||'Erreur'));
+}
+async function _majSeuilPointage(){
+  const v=parseFloat(document.getElementById('pSeuil').value);
+  if(isNaN(v)||v<0) return;
+  _pointage.seuil=v;
+  const r=await api('PATCH','/pointage/config',{seuil_hebdo_heures:v}).catch(()=>null);
+  if(r&&r.success) toast('✅ Seuil mis à jour');
+  _renderPointageGrille();
 }
 
 // ── Récap des heures sur une période ──

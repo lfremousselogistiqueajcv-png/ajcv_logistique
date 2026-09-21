@@ -1,7 +1,17 @@
 {
-  "version": "2026.07.04.60",
+  "version": "2026.07.04.61",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.61",
+      "date": "21/09/2026",
+      "titre": "Pointage : saisie jour par jour + heures sup automatiques",
+      "notes": [
+        "⏱️ L'onglet Pointage passe d'une saisie « total semaine » à une grille jour par jour (comme le Planning) — plus fidèle à la fiche papier de chacun.",
+        "⚠️ Heures sup calculées automatiquement au-delà d'un seuil hebdomadaire, réglable directement dans l'écran (35h par défaut).",
+        "⚠️ Nécessite d'exécuter sql/pointage_jours.sql dans Supabase (test, puis prod à la promotion) — la table de la version précédente (pointage_heures) reste en base, inutilisée, sans risque."
+      ]
+    },
     {
       "v": "2026.07.04.60",
       "date": "21/09/2026",
