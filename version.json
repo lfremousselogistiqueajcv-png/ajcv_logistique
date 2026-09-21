@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.63",
+  "version": "2026.07.04.64",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.64",
+      "date": "21/09/2026",
+      "titre": "Correctif : le filtre de plage de dates (Livraisons) ne filtrait pas",
+      "notes": [
+        "🐞 Onglet Livraisons, champ « au » (plusieurs jours) : le serveur ignorait la plage envoyée par la page et renvoyait toutes les livraisons sans filtre de date. Corrigé — la plage est maintenant bien appliquée."
+      ]
+    },
     {
       "v": "2026.07.04.63",
       "date": "21/09/2026",
