@@ -450,6 +450,8 @@ html[data-theme="light"]{
       <div id="sigChequeWrap" style="display:none">
         <span class="sig-field-label">N° de chèque</span>
         <input type="text" class="sig-input" id="sigChequeNum" placeholder="Ex: 0001234" inputmode="numeric">
+        <input type="file" accept="image/*" capture="environment" id="sigChequeFile" style="display:none" onchange="sigChequePhotoChoisie(this)">
+        <button type="button" id="sigChequePhotoBtn" onclick="document.getElementById('sigChequeFile').click()" style="margin:8px 0 4px;width:100%;padding:12px;border-radius:10px;border:1px dashed var(--gold);background:transparent;color:var(--gold);font-weight:700;cursor:pointer">📷 Photo du chèque</button>
       </div>
     </div>
     <span class="sig-field-label">Email destinataire</span>
@@ -2747,7 +2749,24 @@ function sigReglementChange() {
   document.getElementById('sigReglementDetails').style.display = type ? '' : 'none';
   document.getElementById('sigChequeWrap').style.display = (type === 'Chèque') ? '' : 'none';
   if (!type) document.getElementById('sigMontant').value = '';
-  if (type !== 'Chèque') document.getElementById('sigChequeNum').value = '';
+  if (type !== 'Chèque') { document.getElementById('sigChequeNum').value = ''; resetSigChequePhoto(); }
+}
+let _sigChequePhotoB64 = null;
+function resetSigChequePhoto() {
+  _sigChequePhotoB64 = null;
+  const btn = document.getElementById('sigChequePhotoBtn');
+  if (!btn) return;
+  btn.textContent = '📷 Photo du chèque';
+  btn.style.borderStyle = 'dashed'; btn.style.borderColor = 'var(--gold)'; btn.style.color = 'var(--gold)';
+}
+async function sigChequePhotoChoisie(input) {
+  const f = input.files && input.files[0]; if (!f) return;
+  try {
+    _sigChequePhotoB64 = await compresserPhoto(f, 1200, 0.7);
+    const btn = document.getElementById('sigChequePhotoBtn');
+    btn.textContent = '✅ Photo du chèque prise — toucher pour reprendre';
+    btn.style.borderStyle = 'solid'; btn.style.borderColor = 'var(--green)'; btn.style.color = 'var(--green)';
+  } catch (_) { showToast('❌ Photo illisible', 'error'); }
 }
 
 async function validerSansSignature() {
@@ -2951,6 +2970,7 @@ async function envoyerSignature() {
   if (!hasSig)   { showToast('Signature obligatoire', 'error'); return; }
   if (reglement && (!montant || parseFloat(montant) <= 0)) { showToast('Indiquez le montant du règlement', 'error'); return; }
   if (reglement === 'Chèque' && !chequeNum) { showToast('Indiquez le n° de chèque', 'error'); return; }
+  if (reglement === 'Chèque' && !_sigChequePhotoB64) { showToast('Photo du chèque obligatoire', 'error'); return; }
   if (!confirm('Confirmer la livraison de "'+(l.client||'')+'" ?\n\nUne fois validé, le bon de réception sera enregistré.')) return;
 
   const btn = document.getElementById('btnValiderSig');
@@ -2986,6 +3006,7 @@ async function envoyerSignature() {
     reglement:     reglement,                                  // Type de règlement récupéré ('' = aucun)
     montant:       reglement ? montant : '',                   // Montant encaissé
     chequeNum:     reglement === 'Chèque' ? chequeNum : '',    // N° de chèque (si chèque)
+    chequePhoto:   reglement === 'Chèque' ? _sigChequePhotoB64 : '', // Photo du chèque (si chèque)
     email:         l.email || '',        // Email fiche client
     emailManuel:   emailManuel,          // Email saisi manuellement (prioritaire)
     signature:     signatureCompressee(600),

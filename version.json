@@ -1,7 +1,17 @@
 {
-  "version": "2026.07.04.68",
+  "version": "2026.07.04.69",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.69",
+      "date": "22/09/2026",
+      "titre": "Photo du chèque à la livraison + bordereau de remise",
+      "notes": [
+        "📷 Livreur : quand le règlement récupéré est un chèque, une photo du chèque est désormais obligatoire (comme le n° de chèque) — elle part avec le reste du bon de réception.",
+        "💰 Nouvel onglet Bordereau (admin) : pour un livreur et une période donnés, le nombre de livraisons, les totaux par mode de règlement (espèces, chèques...), et le détail des chèques (numéro + photo) — prêt pour la remise à la comptabilité. Export CSV inclus.",
+        "⚠️ Nécessite d'exécuter sql/cheques_photos.sql dans Supabase (test, puis prod à la promotion)."
+      ]
+    },
     {
       "v": "2026.07.04.68",
       "date": "21/09/2026",

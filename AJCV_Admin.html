@@ -202,6 +202,7 @@ html[data-theme="light"]{
       <div class="nav-tab" data-tab="conges" onclick="go('conges')">🏖️<span>Congés</span></div>
       <div class="side-group">Pilotage</div>
       <div class="nav-tab" data-tab="kpi" onclick="go('kpi')">📊<span>KPI</span></div>
+      <div class="nav-tab" data-tab="bordereau" onclick="go('bordereau')">💰<span>Bordereau</span></div>
       <div class="nav-tab" data-tab="docs" onclick="go('docs')">📄<span>Documents</span></div>
       <div class="side-group">Administration</div>
       <div class="nav-tab" data-tab="users" onclick="go('users')">🔐<span>Utilisateurs</span></div>
@@ -580,6 +581,7 @@ function go(tab){
   else if(tab==='docs') renderDocs();
   else if(tab==='flotte') renderFlotte();
   else if(tab==='kpi') renderKPI();
+  else if(tab==='bordereau') renderBordereau();
   else if(tab==='odoo') renderImportsOdoo();
   else if(tab==='zones') renderZones();
   else if(tab==='chargement') renderChargements();
@@ -617,6 +619,7 @@ function renderAccueil(){
     {label:'Pilotage', items:[
       ['📊','KPI','kpi','Tableaux de bord et statistiques'],
       ['📄','Documents','docs','Bons de réception et signatures'],
+      ['💰','Bordereau','bordereau','Règlements récupérés par les livreurs, pour la compta'],
     ]},
     {label:'Administration', items:[
       ['🔐','Utilisateurs','users','Comptes, rôles, casquettes'],
@@ -2928,6 +2931,74 @@ async function testerEmail(){
   }else{
     alert('❌ L\'email ne fonctionne pas.\n\nErreur : '+((r&&r.error)||'inconnue')+'\n\nCauses fréquentes :\n• EMAIL_PASS incorrect (régénérez le mot de passe d\'application Gmail)\n• Railway bloque le port SMTP\n• La 2FA Gmail n\'est pas activée');
   }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// BORDEREAU DE REMISE (sql/cheques_photos.sql) — règlements récupérés par les
+// livreurs à la livraison (espèces, chèques...), pour la remise à la compta.
+// ════════════════════════════════════════════════════════════════════════════
+const _bordereau={ livreurs:null };
+async function renderBordereau(){
+  document.getElementById('content').innerHTML='<div class="loading"><div class="spin"></div></div>';
+  if(!_bordereau.livreurs){
+    const d=await api('GET','/admin/users').catch(()=>({users:[]}));
+    _bordereau.livreurs=(d.users||[]).filter(u=>u.actif&&(u.peut_livrer||u.role==='Livreur'));
+  }
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('content').innerHTML=`
+    <div class="card">
+      <h3>💰 Bordereau de remise</h3>
+      <p class="muted" style="margin-bottom:10px">Règlements (espèces, chèques...) récupérés par les livreurs à la livraison — pour la remise à la compta.</p>
+      <div class="form-grid">
+        <div><label>Livreur</label><select id="bd-livreur"><option value="">Tous</option>${_bordereau.livreurs.map(u=>`<option value="${esc(u.prenom)}">${esc(u.prenom)} ${esc(u.nom||'')}</option>`).join('')}</select></div>
+        <div><label>Du</label><input type="date" id="bd-debut" value="${today}"></div>
+        <div><label>Au</label><input type="date" id="bd-fin" value="${today}"></div>
+      </div>
+      <div class="form-actions" style="justify-content:flex-start">
+        <button class="btn btn-gold btn-sm" onclick="genererBordereau()">🔍 Générer</button>
+        <button class="btn btn-gray btn-sm" onclick="exportBordereauCSV()">⬇️ Export CSV</button>
+      </div>
+      <div id="bordereauCorps" style="margin-top:16px"></div>
+    </div>`;
+  genererBordereau();
+}
+let _bordereauData=[];
+async function genererBordereau(){
+  const livreur=document.getElementById('bd-livreur').value;
+  const debut=document.getElementById('bd-debut').value;
+  const fin=document.getElementById('bd-fin').value;
+  const zone=document.getElementById('bordereauCorps');
+  zone.innerHTML='<div class="loading"><div class="spin"></div></div>';
+  const q='/livraisons/bordereau?'+(livreur?'livreur='+encodeURIComponent(livreur)+'&':'')+'debut='+debut+'&fin='+fin;
+  const r=await api('GET',q).catch(()=>null);
+  if(!r||r.error){ zone.innerHTML='<p class="muted">Erreur de chargement.</p>'; return; }
+  _bordereauData=r.reglements||[];
+  const totaux={};
+  _bordereauData.forEach(x=>{ totaux[x.reglement]=(totaux[x.reglement]||0)+(parseFloat(x.montant)||0); });
+  zone.innerHTML=`
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+      <div class="kpi"><b>${r.nb_livraisons_total}</b><span>Livraisons (période/livreur)</span></div>
+      <div class="kpi"><b>${_bordereauData.length}</b><span>Avec règlement</span></div>
+      ${Object.entries(totaux).map(([mode,tot])=>`<div class="kpi"><b>${tot.toFixed(2)} €</b><span>${esc(mode)}</span></div>`).join('')}
+    </div>
+    <h4 style="font-size:13px;color:var(--gold);margin-bottom:8px">Détail</h4>
+    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Livreur</th><th>Client</th><th>BL</th><th>Règlement</th><th>Montant</th><th>N° chèque</th><th></th></tr></thead><tbody>
+      ${_bordereauData.length?_bordereauData.map(x=>`<tr><td>${esc(x.date_heure||new Date(x.created_at).toLocaleDateString('fr-FR'))}</td><td>${esc(x.livreur)}</td><td>${esc(x.client)}</td><td>${esc(x.bl||'—')}</td><td>${esc(x.reglement)}</td><td>${x.montant!=null?Number(x.montant).toFixed(2)+' €':'—'}</td><td>${esc(x.cheque_num||'—')}</td><td>${x.cheque_photo_path?`<button class="btn btn-gray btn-sm" onclick="voirPhotoCheque('${x.id}')">📷</button>`:''}</td></tr>`).join(''):'<tr><td colspan="8" class="muted" style="text-align:center">Aucun règlement sur cette période</td></tr>'}
+    </tbody></table></div>`;
+}
+async function voirPhotoCheque(id){
+  const r=await api('GET','/livraisons/signature/'+id+'/cheque-photo-url').catch(()=>null);
+  if(!r||!r.url){toast('❌ Photo introuvable');return}
+  window.open(r.url,'_blank');
+}
+function exportBordereauCSV(){
+  if(!_bordereauData.length){toast('Rien à exporter');return}
+  const head=['Date','Livreur','Client','BL','Règlement','Montant','N° chèque'];
+  const csv=[head.join(';')].concat(_bordereauData.map(x=>[x.date_heure||'',x.livreur||'',x.client||'',x.bl||'',x.reglement||'',x.montant!=null?Number(x.montant).toFixed(2):'',x.cheque_num||''].map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(';'))).join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='bordereau_remise.csv'; a.click();
+  URL.revokeObjectURL(url);
 }
 
 async function renderDocs(){
