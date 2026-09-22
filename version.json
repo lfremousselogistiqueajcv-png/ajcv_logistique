@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.71",
+  "version": "2026.07.04.72",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.72",
+      "date": "22/09/2026",
+      "titre": "Bordereau PDF : photos des chèques en annexe",
+      "notes": [
+        "📷 Le PDF du bordereau inclut maintenant une annexe avec la photo de chaque chèque (une par page, avec client/BL/montant/n° en légende) — plus besoin d'ouvrir chaque photo séparément.",
+        "ℹ️ Les photos restent uniquement dans le PDF (l'export Excel, en texte, ne peut pas les inclure)."
+      ]
+    },
     {
       "v": "2026.07.04.71",
       "date": "22/09/2026",

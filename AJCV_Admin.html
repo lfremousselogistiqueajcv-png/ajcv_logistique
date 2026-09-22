@@ -3026,9 +3026,20 @@ function exporterBordereauExcel(){
   XLSX.writeFile(wb, 'Bordereau_remise_'+debutTxt.replace(/\//g,'-')+'_au_'+finTxt.replace(/\//g,'-')+'.xlsx');
   toast('📊 Excel généré');
 }
-function genererBordereauPDF(){
+async function _chequePhotoDataUrl(id){
+  try{
+    const r=await api('GET','/livraisons/signature/'+id+'/cheque-photo-url');
+    if(!r||!r.url) return null;
+    const blob=await (await fetch(r.url)).blob();
+    return await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>res(null); fr.readAsDataURL(blob); });
+  }catch(_){ return null; }
+}
+async function genererBordereauPDF(){
   if(!window.jspdf){ toast('jsPDF non chargé'); return; }
   const { jsPDF } = window.jspdf;
+  const chequesAvecPhoto=_bordereauData.filter(x=>x.reglement==='Chèque'&&x.cheque_photo_path);
+  if(chequesAvecPhoto.length) toast('⏳ Récupération des photos de chèques…');
+  const photos=await Promise.all(chequesAvecPhoto.map(async x=>({ x, dataUrl: await _chequePhotoDataUrl(x.id) })));
   const doc = new jsPDF({unit:'mm',format:'a4'});
   const W=210, H=297, M=18, col2=110;
   const { livreurLbl, debutTxt, finTxt } = _bordereauFiltreLabel();
@@ -3089,8 +3100,32 @@ function genererBordereauPDF(){
   doc.setFontSize(8); doc.setTextColor(110,110,110); doc.setFont('helvetica','normal');
   doc.text('Remis par (livreur / responsable)', M, y+21);
   doc.text('Reçu par (comptabilité)', col2, y+21);
-
   pied();
+
+  // ANNEXE — photos des chèques (une par page, pour rester lisible)
+  const photosOk=photos.filter(p=>p.dataUrl);
+  photosOk.forEach(({x,dataUrl},i)=>{
+    doc.addPage(); page++; entete();
+    doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+    doc.text('ANNEXE — PHOTO DU CHÈQUE ('+(i+1)+'/'+photosOk.length+')', M, y); y+=7;
+    doc.setFontSize(10); doc.setTextColor(26,35,50); doc.setFont('helvetica','bold');
+    doc.text((x.client||'—')+'   —   BL '+(x.bl||'—')+'   —   '+(x.montant!=null?Number(x.montant).toFixed(2)+' €':'—')+'   —   N° '+(x.cheque_num||'—'), M, y); y+=8;
+    try{
+      const maxW=W-2*M, maxH=H-y-25;
+      const dims=doc.getImageProperties(dataUrl);
+      let w=maxW, h=w*dims.height/dims.width;
+      if(h>maxH){ h=maxH; w=h*dims.width/dims.height; }
+      doc.addImage(dataUrl,'JPEG',M,y,w,h);
+    }catch(_){ doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.text('Photo illisible.', M, y); }
+    pied();
+  });
+  if(chequesAvecPhoto.length && !photosOk.length){
+    doc.addPage(); page++; entete();
+    doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(150,150,150);
+    doc.text('Photos des chèques indisponibles (erreur réseau).', M, y);
+    pied();
+  }
+
   doc.save('Bordereau_remise_'+debutTxt.replace(/\//g,'-')+'_au_'+finTxt.replace(/\//g,'-')+'.pdf');
   toast('🖨️ PDF généré');
 }
