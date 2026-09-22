@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.70",
+  "version": "2026.07.04.71",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.71",
+      "date": "22/09/2026",
+      "titre": "Bordereau : export PDF et Excel",
+      "notes": [
+        "🖨️ Bouton PDF : document complet (période, livreur, résumé par mode de règlement, détail ligne par ligne, cases signature « Remis par / Reçu par »), même identité visuelle que les bons de réception.",
+        "📊 Bouton Excel : classeur avec un onglet Résumé et un onglet Détail, prêt pour la comptabilité."
+      ]
+    },
     {
       "v": "2026.07.04.70",
       "date": "22/09/2026",

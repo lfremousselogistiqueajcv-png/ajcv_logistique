@@ -2956,13 +2956,14 @@ async function renderBordereau(){
       </div>
       <div class="form-actions" style="justify-content:flex-start">
         <button class="btn btn-gold btn-sm" onclick="genererBordereau()">🔍 Générer</button>
-        <button class="btn btn-gray btn-sm" onclick="exportBordereauCSV()">⬇️ Export CSV</button>
+        <button class="btn btn-gray btn-sm" onclick="genererBordereauPDF()">🖨️ PDF</button>
+        <button class="btn btn-gray btn-sm" onclick="exporterBordereauExcel()">📊 Excel</button>
       </div>
       <div id="bordereauCorps" style="margin-top:16px"></div>
     </div>`;
   genererBordereau();
 }
-let _bordereauData=[];
+let _bordereauData=[], _bordereauNbTotal=0;
 async function genererBordereau(){
   const livreur=document.getElementById('bd-livreur').value;
   const debut=document.getElementById('bd-debut').value;
@@ -2973,6 +2974,7 @@ async function genererBordereau(){
   const r=await api('GET',q).catch(e=>({error:e.message}));
   if(!r||r.error){ zone.innerHTML='<p class="muted">❌ '+esc((r&&r.error)||'Erreur de chargement (réseau)')+'</p>'; return; }
   _bordereauData=r.reglements||[];
+  _bordereauNbTotal=r.nb_livraisons_total||0;
   const totaux={};
   _bordereauData.forEach(x=>{ totaux[x.reglement]=(totaux[x.reglement]||0)+(parseFloat(x.montant)||0); });
   zone.innerHTML=`
@@ -2991,14 +2993,106 @@ async function voirPhotoCheque(id){
   if(!r||!r.url){toast('❌ Photo introuvable');return}
   window.open(r.url,'_blank');
 }
-function exportBordereauCSV(){
-  if(!_bordereauData.length){toast('Rien à exporter');return}
-  const head=['Date','Livreur','Client','BL','Règlement','Montant','N° chèque'];
-  const csv=[head.join(';')].concat(_bordereauData.map(x=>[x.date_heure||'',x.livreur||'',x.client||'',x.bl||'',x.reglement||'',x.montant!=null?Number(x.montant).toFixed(2):'',x.cheque_num||''].map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(';'))).join('\n');
-  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='bordereau_remise.csv'; a.click();
-  URL.revokeObjectURL(url);
+function _bordereauFiltreLabel(){
+  const sel=document.getElementById('bd-livreur');
+  const livreurLbl=sel&&sel.selectedIndex>=0?sel.options[sel.selectedIndex].textContent:'Tous';
+  const debut=document.getElementById('bd-debut').value, fin=document.getElementById('bd-fin').value;
+  const f=(iso)=>{ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return d+'/'+m+'/'+y; };
+  return { livreurLbl, debutTxt:f(debut), finTxt:f(fin), debut, fin };
+}
+function exporterBordereauExcel(){
+  if(!window.XLSX){ toast('Excel non chargé'); return; }
+  const { livreurLbl, debutTxt, finTxt } = _bordereauFiltreLabel();
+  const totaux={};
+  _bordereauData.forEach(x=>{ totaux[x.reglement]=(totaux[x.reglement]||0)+(parseFloat(x.montant)||0); });
+  const resume=[
+    ['Bordereau de remise — AJCV Logistique'],
+    ['Période', debutTxt+' au '+finTxt],
+    ['Livreur', livreurLbl],
+    ['Généré le', new Date().toLocaleString('fr-FR')],
+    [],
+    ['Livraisons sur la période', _bordereauNbTotal],
+    ['Dont avec règlement récupéré', _bordereauData.length],
+    ...Object.entries(totaux).map(([mode,tot])=>[mode, Number(tot.toFixed(2))]),
+  ];
+  const detailHead=['Date','Livreur','Client','BL','Règlement','Montant (€)','N° chèque'];
+  const detail=[detailHead, ..._bordereauData.map(x=>[
+    x.date_heure||new Date(x.created_at).toLocaleDateString('fr-FR'), x.livreur||'', x.client||'', x.bl||'—',
+    x.reglement||'', x.montant!=null?Number(x.montant):null, x.cheque_num||'—',
+  ])];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resume), 'Résumé');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detail), 'Détail');
+  XLSX.writeFile(wb, 'Bordereau_remise_'+debutTxt.replace(/\//g,'-')+'_au_'+finTxt.replace(/\//g,'-')+'.xlsx');
+  toast('📊 Excel généré');
+}
+function genererBordereauPDF(){
+  if(!window.jspdf){ toast('jsPDF non chargé'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm',format:'a4'});
+  const W=210, H=297, M=18, col2=110;
+  const { livreurLbl, debutTxt, finTxt } = _bordereauFiltreLabel();
+  const genLabel = new Date().toLocaleString('fr-FR');
+  let y=20, page=1;
+  const cols=[[M,'Date',22],[M+24,'Livreur',24],[M+50,'Client',40],[M+92,'BL',18],[M+112,'Mode',22],[M+136,'Montant',20],[M+158,'N° chèque',30]];
+  function entete(){
+    y=20;
+    doc.setTextColor(26,35,50); doc.setFont('helvetica','bold'); doc.setFontSize(20);
+    doc.text('BORDEREAU DE REMISE — AJCV', M, y); y+=6;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(110,110,110);
+    doc.text('Service Logistique · 82C Rue Raphaël Babet · 97480 Saint-Joseph, La Réunion', M, y); y+=6;
+    doc.setDrawColor(255,179,0); doc.setLineWidth(0.8); doc.line(M,y,W-M,y); y+=10;
+  }
+  function pied(){
+    doc.setFontSize(7); doc.setTextColor(150,150,150);
+    doc.text('AJCV Service Logistique · Document généré automatiquement le '+genLabel+' · Page '+page, M, H-10);
+  }
+  function enteteTableau(){
+    doc.setFontSize(7.5); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+    cols.forEach(([x,label])=>doc.text(label,x,y));
+    y+=4; doc.setDrawColor(220,220,220); doc.setLineWidth(0.2); doc.line(M,y,W-M,y); y+=4.5;
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(40,40,40);
+  }
+  entete();
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('PÉRIODE & LIVREUR', M, y); y+=6;
+  doc.setFontSize(11); doc.setTextColor(26,35,50); doc.setFont('helvetica','bold');
+  doc.text('Du '+debutTxt+' au '+finTxt+'   —   Livreur : '+livreurLbl, M, y); y+=10;
+
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('RÉSUMÉ', M, y); y+=6;
+  const totaux={};
+  _bordereauData.forEach(x=>{ totaux[x.reglement]=(totaux[x.reglement]||0)+(parseFloat(x.montant)||0); });
+  doc.setFontSize(10); doc.setTextColor(26,35,50); doc.setFont('helvetica','normal');
+  doc.text('Livraisons sur la période : '+_bordereauNbTotal, M, y); y+=6;
+  doc.text('Dont avec règlement récupéré : '+_bordereauData.length, M, y); y+=6;
+  Object.entries(totaux).forEach(([mode,tot])=>{ doc.text(mode+' : '+tot.toFixed(2)+' €', M, y); y+=6; });
+  y+=3; doc.setDrawColor(220,220,220); doc.setLineWidth(0.3); doc.line(M,y,W-M,y); y+=8;
+
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('DÉTAIL DES RÈGLEMENTS', M, y); y+=6;
+  enteteTableau();
+  if(!_bordereauData.length){ doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.text('Aucun règlement sur cette période.', M, y); y+=6; }
+  _bordereauData.forEach(x=>{
+    if(y>H-30){ pied(); doc.addPage(); page++; entete(); enteteTableau(); }
+    const dateTxt=(x.date_heure||new Date(x.created_at).toLocaleDateString('fr-FR')).slice(0,16);
+    const row=[dateTxt, x.livreur||'', x.client||'', x.bl||'—', x.reglement||'', x.montant!=null?Number(x.montant).toFixed(2)+' €':'—', x.cheque_num||'—'];
+    cols.forEach(([cx,,w],i)=>{ doc.text(doc.splitTextToSize(String(row[i]),w-2)[0]||'', cx, y); });
+    y+=5.5;
+  });
+
+  y+=12;
+  if(y>H-45){ pied(); doc.addPage(); page++; entete(); y+=6; }
+  doc.setDrawColor(200,200,200); doc.setLineWidth(0.3);
+  doc.line(M, y+16, M+70, y+16);
+  doc.line(col2, y+16, col2+70, y+16);
+  doc.setFontSize(8); doc.setTextColor(110,110,110); doc.setFont('helvetica','normal');
+  doc.text('Remis par (livreur / responsable)', M, y+21);
+  doc.text('Reçu par (comptabilité)', col2, y+21);
+
+  pied();
+  doc.save('Bordereau_remise_'+debutTxt.replace(/\//g,'-')+'_au_'+finTxt.replace(/\//g,'-')+'.pdf');
+  toast('🖨️ PDF généré');
 }
 
 async function renderDocs(){
