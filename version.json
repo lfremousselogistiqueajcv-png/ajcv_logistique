@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.69",
+  "version": "2026.07.04.70",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.70",
+      "date": "22/09/2026",
+      "titre": "Bordereau : message d'erreur explicite",
+      "notes": [
+        "🔍 Correctif technique : l'onglet Bordereau affichait un message générique « Erreur de chargement » sans détail — il affiche maintenant le message d'erreur réel pour pouvoir diagnostiquer."
+      ]
+    },
     {
       "v": "2026.07.04.69",
       "date": "22/09/2026",

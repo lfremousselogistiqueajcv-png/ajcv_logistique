@@ -2970,8 +2970,8 @@ async function genererBordereau(){
   const zone=document.getElementById('bordereauCorps');
   zone.innerHTML='<div class="loading"><div class="spin"></div></div>';
   const q='/livraisons/bordereau?'+(livreur?'livreur='+encodeURIComponent(livreur)+'&':'')+'debut='+debut+'&fin='+fin;
-  const r=await api('GET',q).catch(()=>null);
-  if(!r||r.error){ zone.innerHTML='<p class="muted">Erreur de chargement.</p>'; return; }
+  const r=await api('GET',q).catch(e=>({error:e.message}));
+  if(!r||r.error){ zone.innerHTML='<p class="muted">❌ '+esc((r&&r.error)||'Erreur de chargement (réseau)')+'</p>'; return; }
   _bordereauData=r.reglements||[];
   const totaux={};
   _bordereauData.forEach(x=>{ totaux[x.reglement]=(totaux[x.reglement]||0)+(parseFloat(x.montant)||0); });
