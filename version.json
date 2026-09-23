@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.75",
+  "version": "2026.07.04.76",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.76",
+      "date": "23/09/2026",
+      "titre": "Audit fonctionnel : deux correctifs (droits Retours, vérif. de version)",
+      "notes": [
+        "🐞 Console Administration : la vérification de version interrogeait toujours la version.json de PROD, même quand la page tournait sur TEST — corrigé pour utiliser sa propre version.json.",
+        "🐞 « Accorder/retirer les droits Retours » à un compte répondait toujours « succès » même si l'écriture en base échouait — l'erreur est maintenant remontée."
+      ]
+    },
     {
       "v": "2026.07.04.75",
       "date": "23/09/2026",
