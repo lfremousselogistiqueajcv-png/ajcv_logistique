@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.77",
+  "version": "2026.07.04.78",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.78",
+      "date": "23/09/2026",
+      "titre": "Retrait de la signature électronique du bordereau",
+      "notes": [
+        "↩️ Fonctionnalité de la version précédente retirée (abandonnée avant la migration SQL, jamais utilisée) : plus de bouton « Créer le bordereau (à signer) » côté admin, ni de bouton 💰 côté appli Livreur. Le Bordereau (aperçu, PDF, Excel) reste inchangé."
+      ]
+    },
     {
       "v": "2026.07.04.77",
       "date": "23/09/2026",
