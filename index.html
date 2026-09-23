@@ -22,27 +22,32 @@
     background:radial-gradient(1200px 620px at 50% -8%, rgba(255,255,255,.05), transparent 62%), var(--bg);
     padding:38px 18px 50px;
   }
-  .wrap{max-width:900px;margin:0 auto}
-  header{text-align:center;margin-bottom:36px}
-  .brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
-  .brand .mark{width:38px;height:38px;border-radius:50%;object-fit:cover;flex:none}
-  h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.01em}
-  .sub{color:var(--mut);font-size:13px;margin-top:8px}
-  .sect{color:var(--mut);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin:30px 2px 12px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+  .wrap{max-width:920px;margin:0 auto}
+  header{text-align:center;margin-bottom:40px}
+  .brand{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px}
+  .brand .mark{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none;box-shadow:0 6px 18px -6px rgba(0,0,0,.55)}
+  h1{font-size:21px;margin:0;font-weight:800;letter-spacing:-.01em}
+  .sub{color:var(--mut);font-size:13px;margin-top:7px;letter-spacing:.01em}
+  .sect{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin:34px 2px 14px}
+  .sect::after{content:'';flex:1;height:1px;background:var(--border)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
   a.tile{
-    position:relative;display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:14px;text-decoration:none;color:var(--text);
+    position:relative;display:flex;gap:14px;align-items:center;padding:18px;border-radius:16px;text-decoration:none;color:var(--text);
     background:var(--surface);border:1px solid var(--border);
-    transition:transform .15s ease, border-color .15s ease;
+    transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s ease,border-color .18s ease;
   }
-  a.tile:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.18)}
+  a.tile:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.22);box-shadow:0 18px 34px -16px rgba(0,0,0,.6)}
   .ico{
-    flex:none;width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;
-    box-shadow:0 6px 14px -6px rgba(0,0,0,.5);
+    flex:none;width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 14px -6px rgba(0,0,0,.5);position:relative;overflow:hidden;
   }
-  .ico svg{width:21px;height:21px;stroke:#F5F1E8;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-  .nom{font-weight:700;font-size:14.5px}
+  .ico::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.35),transparent 55%);pointer-events:none}
+  .ico svg{width:22px;height:22px;stroke:#F5F1E8;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;position:relative}
+  .txt{flex:1;min-width:0}
+  .nom{font-weight:700;font-size:15px}
   .desc{color:var(--mut);font-size:12px;margin-top:3px;line-height:1.45}
+  .arrow{flex:none;color:var(--mut);opacity:0;transform:translateX(-4px);transition:opacity .18s ease,transform .18s ease;font-size:15px}
+  a.tile:hover .arrow{opacity:1;transform:translateX(0)}
   .t-admin .ico{background:#1B222C;border:1px solid #3A3220}
   .t-admin .ico svg{stroke:var(--gold)}
   .t-livreur .ico{background:linear-gradient(135deg,#FF9A56,#FF5D6C)}
@@ -73,23 +78,28 @@
     <div class="grid">
       <a class="tile t-livreur" href="livreur_final.html">
         <div class="ico"><svg viewBox="0 0 24 24"><rect x="1" y="7" width="13" height="10" rx="1"/><path d="M14 10h4l4 4v3h-8"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg></div>
-        <div><div class="nom">Livreur</div><div class="desc">Tournées, livraisons &amp; encaissements</div></div>
+        <div class="txt"><div class="nom">Livreur</div><div class="desc">Tournées, livraisons &amp; encaissements</div></div>
+        <div class="arrow">→</div>
       </a>
       <a class="tile t-prep" href="preparateur.html">
         <div class="ico"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg></div>
-        <div><div class="nom">Préparateur</div><div class="desc">Préparations, colis &amp; photos sécurisées</div></div>
+        <div class="txt"><div class="nom">Préparateur</div><div class="desc">Préparations, colis &amp; photos sécurisées</div></div>
+        <div class="arrow">→</div>
       </a>
       <a class="tile t-carte" href="carte_livraisons_AJCV_v4.html">
         <div class="ico"><svg viewBox="0 0 24 24"><path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></div>
-        <div><div class="nom">Carte</div><div class="desc">Les livraisons du jour sur la carte</div></div>
+        <div class="txt"><div class="nom">Carte</div><div class="desc">Les livraisons du jour sur la carte</div></div>
+        <div class="arrow">→</div>
       </a>
       <a class="tile t-retours" href="retours.html">
         <div class="ico"><svg viewBox="0 0 24 24"><path d="M4.5 9a8 8 0 1 1 1.4 9"/><path d="M4.5 4v5h5"/></svg></div>
-        <div><div class="nom">Retours client</div><div class="desc">Produits défectueux &amp; remplacements</div></div>
+        <div class="txt"><div class="nom">Retours client</div><div class="desc">Produits défectueux &amp; remplacements</div></div>
+        <div class="arrow">→</div>
       </a>
       <a class="tile t-flotte" href="flotte.html">
         <div class="ico"><svg viewBox="0 0 24 24"><rect x="2" y="9" width="20" height="8" rx="1.5"/><circle cx="7" cy="19" r="1.8"/><circle cx="17" cy="19" r="1.8"/><path d="M6 9V6h5l3 3"/></svg></div>
-        <div><div class="nom">Flotte</div><div class="desc">Véhicules &amp; carte carburant</div></div>
+        <div class="txt"><div class="nom">Flotte</div><div class="desc">Véhicules &amp; carte carburant</div></div>
+        <div class="arrow">→</div>
       </a>
     </div>
 
@@ -97,11 +107,13 @@
     <div class="grid">
       <a class="tile t-cbd" href="admin_production.html">
         <div class="ico"><svg viewBox="0 0 24 24"><path d="M5 19c8 1 14-5 14-14-9 0-14 6-14 14z"/><path d="M5 19c2-4 5-8 10-11"/></svg></div>
-        <div><div class="nom">Console Production</div><div class="desc">Ventes · Stock · Traçabilité · Pointages</div></div>
+        <div class="txt"><div class="nom">Console Production</div><div class="desc">Ventes · Stock · Traçabilité · Pointages</div></div>
+        <div class="arrow">→</div>
       </a>
       <a class="tile t-cbdp" href="preparateur_cbd.html">
         <div class="ico"><svg viewBox="0 0 24 24"><path d="M7.5 8l1.3-4h6.4l1.3 4"/><path d="M5.5 8h13l-1.1 11.3a2 2 0 0 1-2 1.7H8.6a2 2 0 0 1-2-1.7L5.5 8z"/><path d="M9 11v2.2M15 11v2.2"/></svg></div>
-        <div><div class="nom">Atelier CBD</div><div class="desc">À produire · Saisie · Pointage du temps</div></div>
+        <div class="txt"><div class="nom">Atelier CBD</div><div class="desc">À produire · Saisie · Pointage du temps</div></div>
+        <div class="arrow">→</div>
       </a>
     </div>
 
@@ -109,7 +121,8 @@
     <div class="grid">
       <a class="tile t-admin" href="AJCV_Admin.html">
         <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
-        <div><div class="nom">Administration</div><div class="desc">Livraisons · Plan de tournée · KPI · Zones</div></div>
+        <div class="txt"><div class="nom">Administration</div><div class="desc">Livraisons · Plan de tournée · KPI · Zones</div></div>
+        <div class="arrow">→</div>
       </a>
     </div>
 
