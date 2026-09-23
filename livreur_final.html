@@ -329,6 +329,9 @@ html[data-theme="light"]{
         📲 Installer
       </button>
       <button class="header-btn" onclick="ouvrirMonPlanning()" title="Mon planning">🗓️</button>
+      <button class="header-btn notif-btn" onclick="ouvrirMesBordereaux()" title="Mes bordereaux à signer">
+        💰<span class="notif-badge" id="bordereauBadge" style="display:none">0</span>
+      </button>
       <button class="header-btn notif-btn" onclick="checkNotifications()">
         🔔<span class="notif-badge" id="notifBadge">0</span>
       </button>
@@ -402,6 +405,18 @@ html[data-theme="light"]{
     <div id="planningCorps"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="fermerMonPlanning()" style="width:100%">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MES BORDEREAUX (signature électronique de remise) -->
+<div class="modal-bg" id="modalBordereaux">
+  <div class="modal-sheet" style="max-height:85vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💰 Mes bordereaux</div>
+    <div id="bordereauxCorps"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="fermerMesBordereaux()" style="width:100%">Fermer</button>
     </div>
   </div>
 </div>
@@ -928,6 +943,8 @@ function lancerApp() {
   if (dp) dp.value = new Date().toISOString().split('T')[0];
   chargerLivraisons();
   setInterval(chargerLivraisons, CFG.REFRESH);
+  chargerBordereauBadge();
+  setInterval(chargerBordereauBadge, 300000);
 }
 
 // ════════════════════════════════════════
@@ -1179,6 +1196,96 @@ function _semainePlanningDelta(delta){
   const d=new Date(_monPlanning.weekStart+'T00:00:00'); d.setDate(d.getDate()+delta*7);
   _monPlanning.weekStart=_isoJourLocal(d);
   renderMonPlanning();
+}
+
+// ════════════════════════════════════════
+// MES BORDEREAUX (signature électronique de remise)
+// ════════════════════════════════════════
+let _mesBordereaux=[];
+async function chargerBordereauBadge(){
+  try{
+    const resp=await fetch(`${CFG.API_URL}/bordereaux/mes`,{headers:{'Authorization':`Bearer ${state.token||''}`}});
+    const data=await resp.json();
+    _mesBordereaux=data.bordereaux||[];
+    const nb=_mesBordereaux.filter(b=>b.statut==='brouillon').length;
+    const badge=document.getElementById('bordereauBadge');
+    if(badge){ badge.style.display=nb?'':'none'; badge.textContent=nb; }
+  }catch(_){}
+}
+function ouvrirMesBordereaux(){ document.getElementById('modalBordereaux').classList.add('active'); renderMesBordereaux(); }
+function fermerMesBordereaux(){ document.getElementById('modalBordereaux').classList.remove('active'); }
+async function renderMesBordereaux(){
+  const c=document.getElementById('bordereauxCorps');
+  c.innerHTML='<div class="empty"><div class="empty-icon">⏳</div><div class="empty-title">Chargement...</div></div>';
+  await chargerBordereauBadge();
+  if(!_mesBordereaux.length){ c.innerHTML='<div class="empty"><div class="empty-icon">💰</div><div class="empty-title">Aucun bordereau pour toi</div></div>'; return; }
+  const STL={brouillon:['🕐 À signer','var(--gold)'],remis:['✍️ Chez la compta','var(--blue)'],receptionne:['✅ Clôturé','var(--green)']};
+  c.innerHTML=_mesBordereaux.map(b=>{
+    const st=STL[b.statut]||[b.statut,'var(--text2)'];
+    const totTxt=Object.entries(b.totaux||{}).map(([m,t])=>_escPlan(m)+' '+Number(t).toFixed(2)+' €').join(' · ')||'—';
+    return `<div style="background:var(--surface2);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><b>${_escPlan(b.numero)}</b><span style="color:${st[1]};font-size:12px;font-weight:700">${st[0]}</span></div>
+      <div style="color:var(--text2);font-size:12px;margin:2px 0">${b.date_debut} → ${b.date_fin} · ${totTxt}</div>
+      ${b.statut==='brouillon'?`<button onclick="ouvrirSignatureBordereau('${b.id}')" style="margin-top:6px;width:100%;padding:9px;border:none;border-radius:8px;background:var(--gold);color:var(--navy);font-weight:700;cursor:pointer">✍️ Signer la remise</button>`:''}
+    </div>`;
+  }).join('');
+}
+let _bdCanvasCtx=null, _bdCanvasDrawing=false, _bdCanvasSigned=false, _bdCanvasId=null;
+function ouvrirSignatureBordereau(id){
+  _bdCanvasId=id;
+  const b=_mesBordereaux.find(x=>x.id===id); if(!b) return;
+  const totTxt=Object.entries(b.totaux||{}).map(([m,t])=>_escPlan(m)+' '+Number(t).toFixed(2)+' €').join(' · ')||'—';
+  document.getElementById('bordereauxCorps').innerHTML=`
+    <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;margin-bottom:10px">
+      <b>${_escPlan(b.numero)}</b><br>
+      <span style="color:var(--text2);font-size:12px">${b.date_debut} → ${b.date_fin} · ${b.nb_livraisons_total} livraison(s)</span><br>
+      <span style="color:var(--gold);font-weight:700;font-size:13px">${totTxt}</span>
+    </div>
+    <label class="sig-field-label">Je confirme remettre ces montants</label>
+    <input type="text" class="sig-input" id="bdSignataireNom" placeholder="Ton nom" value="${_escPlan((state.prenom||'')+(state.nom?' '+state.nom:''))}">
+    <div class="sig-canvas-wrap" id="bdCanvasWrap" style="margin-top:10px"><canvas id="bdSigCanvasLiv"></canvas></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button onclick="effacerSignatureBordereau()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer">Effacer</button>
+      <button onclick="validerSignatureBordereauLivreur()" style="flex:2;padding:10px;border-radius:8px;border:none;background:var(--gold);color:var(--navy);font-weight:700;cursor:pointer">✅ Valider la signature</button>
+    </div>
+    <button onclick="renderMesBordereaux()" style="margin-top:10px;width:100%;padding:9px;border:none;border-radius:8px;background:transparent;color:var(--text2);cursor:pointer">← Retour à la liste</button>`;
+  requestAnimationFrame(()=>requestAnimationFrame(_resizeBdCanvas));
+}
+function _resizeBdCanvas(){
+  const canvas=document.getElementById('bdSigCanvasLiv'); if(!canvas) return;
+  const wrap=document.getElementById('bdCanvasWrap'); const w=wrap?wrap.offsetWidth:0;
+  if(!w){ setTimeout(_resizeBdCanvas,100); return; }
+  const ratio=window.devicePixelRatio||1;
+  canvas.width=Math.round(w*ratio); canvas.height=Math.round(160*ratio);
+  const ctx=canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.strokeStyle='#111827'; ctx.lineWidth=2.5*ratio; ctx.lineCap='round'; ctx.lineJoin='round';
+  _bdCanvasCtx=ctx; _bdCanvasSigned=false;
+  function pos(e){ const r=canvas.getBoundingClientRect(); const t=e.touches?e.touches[0]:e;
+    const sx=canvas.width/r.width, sy=canvas.height/r.height; return {x:(t.clientX-r.left)*sx,y:(t.clientY-r.top)*sy}; }
+  canvas.onmousedown=e=>{ _bdCanvasDrawing=true; ctx.beginPath(); const p=pos(e); ctx.moveTo(p.x,p.y); };
+  canvas.onmousemove=e=>{ if(!_bdCanvasDrawing) return; const p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); _bdCanvasSigned=true; };
+  window.addEventListener('mouseup',()=>{_bdCanvasDrawing=false;});
+  canvas.ontouchstart=e=>{ e.preventDefault(); _bdCanvasDrawing=true; ctx.beginPath(); const p=pos(e); ctx.moveTo(p.x,p.y); };
+  canvas.ontouchmove=e=>{ e.preventDefault(); if(!_bdCanvasDrawing) return; const p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); _bdCanvasSigned=true; };
+  canvas.ontouchend=()=>{_bdCanvasDrawing=false;};
+}
+function effacerSignatureBordereau(){ const c=document.getElementById('bdSigCanvasLiv'); if(c&&_bdCanvasCtx) _bdCanvasCtx.clearRect(0,0,c.width,c.height); _bdCanvasSigned=false; }
+async function validerSignatureBordereauLivreur(){
+  const nom=document.getElementById('bdSignataireNom').value.trim();
+  if(!nom){ showToast('Indique ton nom','error'); return; }
+  if(!_bdCanvasSigned){ showToast('Signature requise','error'); return; }
+  const canvas=document.getElementById('bdSigCanvasLiv');
+  try{
+    const resp=await fetch(`${CFG.API_URL}/bordereaux/${_bdCanvasId}/signer-livreur`,{
+      method:'PATCH', headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
+      body:JSON.stringify({signature:canvas.toDataURL('image/png'),signataire:nom}),
+    });
+    const data=await resp.json();
+    if(!data.success){ showToast('❌ '+(data.error||'Erreur'),'error'); return; }
+    showToast('✅ Bordereau signé — remis à la compta','success');
+    renderMesBordereaux();
+  }catch(_){ showToast('❌ Erreur réseau','error'); }
 }
 
 // ════════════════════════════════════════

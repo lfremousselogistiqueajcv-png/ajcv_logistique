@@ -448,6 +448,17 @@ html[data-theme="light"]{
   </div>
 </div>
 
+<!-- MODAL DÉTAIL D'UN BORDEREAU (signature compta) -->
+<div class="modal-bg" id="modalBordereauDetail">
+  <div class="modal" style="max-width:640px">
+    <h3 id="bd-det-titre">📋 Bordereau</h3>
+    <div id="bdDetailCorps"></div>
+    <div class="form-actions">
+      <button class="btn btn-gray" onclick="fermerModal('modalBordereauDetail')">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL GESTION DES TYPES DE TÂCHES (référentiel paramétrable) -->
 <div class="modal-bg" id="modalTachesTypes">
   <div class="modal">
@@ -2966,10 +2977,39 @@ async function renderBordereau(){
         <button class="btn btn-gold btn-sm" onclick="genererBordereau()">🔍 Générer</button>
         <button class="btn btn-gray btn-sm" onclick="genererBordereauPDF()">🖨️ PDF</button>
         <button class="btn btn-gray btn-sm" onclick="exporterBordereauExcel()">📊 Excel</button>
+        <button class="btn btn-green btn-sm" onclick="creerBordereauSigne()">📝 Créer le bordereau (à signer)</button>
       </div>
       <div id="bordereauCorps" style="margin-top:16px"></div>
+    </div>
+    <div class="card">
+      <h3>📋 Bordereaux créés (signature électronique)</h3>
+      <p class="muted" style="margin-bottom:10px">Le livreur signe la remise depuis son appli, puis la compta signe la réception ici.</p>
+      <div id="bordereauxListe"><p class="muted">Chargement…</p></div>
     </div>`;
   genererBordereau();
+  chargerBordereauxCrees();
+}
+const STBORD={brouillon:['🕐 En attente livreur','#F59E0B'],remis:['✍️ En attente compta','#4E8BF0'],receptionne:['✅ Clôturé','#33C481']};
+async function chargerBordereauxCrees(){
+  const zone=document.getElementById('bordereauxListe'); if(!zone)return;
+  const r=await api('GET','/bordereaux').catch(e=>({error:e.message}));
+  if(!r||r.error){ zone.innerHTML='<p class="muted">❌ '+esc((r&&r.error)||'Erreur de chargement')+'</p>'; return; }
+  const L=r.bordereaux||[];
+  zone.innerHTML=L.length?'<div class="table-wrap"><table><thead><tr><th>N°</th><th>Livreur</th><th>Période</th><th>Statut</th><th></th></tr></thead><tbody>'+
+    L.map(b=>{const st=STBORD[b.statut]||[b.statut,'#888'];
+      return `<tr><td><b>${esc(b.numero)}</b></td><td>${esc(b.livreur)}</td><td>${b.date_debut} → ${b.date_fin}</td><td><span class="pill" style="background:${st[1]}22;color:${st[1]}">${st[0]}</span></td><td><button class="btn btn-gray btn-sm" onclick="ouvrirBordereauDetail('${b.id}')">Ouvrir</button></td></tr>`;
+    }).join('')+'</tbody></table></div>':'<p class="muted">Aucun bordereau créé pour l’instant.</p>';
+}
+async function creerBordereauSigne(){
+  const livreur=document.getElementById('bd-livreur').value;
+  const debut=document.getElementById('bd-debut').value;
+  const fin=document.getElementById('bd-fin').value;
+  if(!livreur){ toast('Choisis un livreur précis (pas "Tous") pour créer un bordereau à signer'); return; }
+  if(!confirm('Créer le bordereau de '+livreur+' du '+debut+' au '+fin+' ?\n\nLes chiffres seront figés à cet instant.')) return;
+  const r=await api('POST','/bordereaux',{livreur,debut,fin}).catch(e=>({error:e.message}));
+  if(!r||r.error){ toast('❌ '+((r&&r.error)||'Erreur')); return; }
+  toast('✅ Bordereau '+r.bordereau.numero+' créé — en attente de signature du livreur');
+  chargerBordereauxCrees();
 }
 let _bordereauData=[], _bordereauNbTotal=0;
 async function genererBordereau(){
@@ -3136,6 +3176,124 @@ async function genererBordereauPDF(){
 
   doc.save('Bordereau_remise_'+debutTxt.replace(/\//g,'-')+'_au_'+finTxt.replace(/\//g,'-')+'.pdf');
   toast('🖨️ PDF généré');
+}
+
+// ── Bordereaux créés (signature électronique livreur + compta) ──
+let _bordereauCourant=null;
+async function ouvrirBordereauDetail(id){
+  const r=await api('GET','/bordereaux/'+id).catch(e=>({error:e.message}));
+  if(!r||r.error){ toast('❌ '+((r&&r.error)||'Erreur')); return; }
+  const b=r.bordereau; _bordereauCourant=b;
+  const st=STBORD[b.statut]||[b.statut,'#888'];
+  document.getElementById('bd-det-titre').innerHTML=`📋 ${esc(b.numero)} <span class="pill" style="background:${st[1]}22;color:${st[1]}">${st[0]}</span>`;
+  const totaux=b.totaux||{}, regl=b.reglements||[];
+  let html=`<p class="muted">Livreur : <b style="color:var(--text)">${esc(b.livreur)}</b> · Période : ${b.date_debut} → ${b.date_fin}</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">
+      <div class="kpi"><b>${b.nb_livraisons_total}</b><span>Livraisons</span></div>
+      ${Object.entries(totaux).map(([m,t])=>`<div class="kpi"><b>${Number(t).toFixed(2)} €</b><span>${esc(m)}</span></div>`).join('')}
+    </div>
+    <div class="table-wrap" style="max-height:200px;overflow-y:auto"><table><thead><tr><th>Client</th><th>BL</th><th>Mode</th><th>Montant</th><th>N° chèque</th></tr></thead><tbody>
+      ${regl.map(x=>`<tr><td>${esc(x.client)}</td><td>${esc(x.bl||'—')}</td><td>${esc(x.reglement)}</td><td>${x.montant!=null?Number(x.montant).toFixed(2)+' €':'—'}</td><td>${esc(x.cheque_num||'—')}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Aucun</td></tr>'}
+    </tbody></table></div>`;
+  if(b.signature_livreur_base64){
+    html+=`<div style="margin-top:14px"><b>Signature livreur</b> — ${esc(b.signataire_livreur)} le ${new Date(b.date_signature_livreur).toLocaleString('fr-FR')}<br>
+      <img src="${b.signature_livreur_base64}" style="max-width:220px;border:1px solid var(--border);border-radius:8px;background:#fff;margin-top:6px"></div>`;
+  } else {
+    html+='<p class="muted" style="margin-top:14px">⏳ En attente de la signature du livreur (depuis son appli).</p>';
+  }
+  if(b.signature_compta_base64){
+    html+=`<div style="margin-top:14px"><b>Signature compta</b> — ${esc(b.signataire_compta)} le ${new Date(b.date_signature_compta).toLocaleString('fr-FR')}<br>
+      <img src="${b.signature_compta_base64}" style="max-width:220px;border:1px solid var(--border);border-radius:8px;background:#fff;margin-top:6px"></div>
+      <button class="btn btn-green btn-sm" style="margin-top:10px" onclick="genererBordereauSignePDF()">🖨️ Télécharger le PDF signé</button>`;
+  } else if(b.statut==='remis'){
+    html+=`<div style="margin-top:14px"><b>Signature compta (réception)</b>
+      <div style="border:2px solid var(--border);border-radius:8px;background:#fff;margin:8px 0"><canvas id="bdSigCanvas" style="width:100%;height:140px;display:block;touch-action:none"></canvas></div>
+      <div style="display:flex;gap:8px;margin-bottom:8px"><input id="bd-sig-nom" placeholder="Nom du signataire" style="flex:1"><button class="btn btn-gray btn-sm" onclick="effacerSignatureCompta()">Effacer</button></div>
+      <button class="btn btn-green btn-sm" onclick="validerSignatureCompta('${b.id}')">✍️ Signer (réception)</button></div>`;
+  }
+  document.getElementById('bdDetailCorps').innerHTML=html;
+  document.getElementById('modalBordereauDetail').classList.add('active');
+  if(b.statut==='remis' && !b.signature_compta_base64) setTimeout(initBordereauCanvas,50);
+}
+let _bdSigCtx=null, _bdSigDrawing=false, _bdSigSigned=false;
+function initBordereauCanvas(){
+  const canvas=document.getElementById('bdSigCanvas'); if(!canvas) return;
+  const ratio=window.devicePixelRatio||1;
+  const w=canvas.clientWidth||300;
+  canvas.width=Math.round(w*ratio); canvas.height=Math.round(140*ratio);
+  const ctx=canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.strokeStyle='#111827'; ctx.lineWidth=2.5*ratio; ctx.lineCap='round'; ctx.lineJoin='round';
+  _bdSigCtx=ctx; _bdSigSigned=false;
+  function pos(e){ const r=canvas.getBoundingClientRect(); const cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left; const cy=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+    const sx=canvas.width/r.width, sy=canvas.height/r.height; return {x:cx*sx,y:cy*sy}; }
+  canvas.onmousedown=e=>{ _bdSigDrawing=true; ctx.beginPath(); const p=pos(e); ctx.moveTo(p.x,p.y); };
+  canvas.onmousemove=e=>{ if(!_bdSigDrawing) return; const p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); _bdSigSigned=true; };
+  window.addEventListener('mouseup',()=>{_bdSigDrawing=false;});
+  canvas.ontouchstart=e=>{ e.preventDefault(); _bdSigDrawing=true; ctx.beginPath(); const p=pos(e); ctx.moveTo(p.x,p.y); };
+  canvas.ontouchmove=e=>{ e.preventDefault(); if(!_bdSigDrawing) return; const p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); _bdSigSigned=true; };
+  canvas.ontouchend=()=>{_bdSigDrawing=false;};
+}
+function effacerSignatureCompta(){ const c=document.getElementById('bdSigCanvas'); if(c&&_bdSigCtx) _bdSigCtx.clearRect(0,0,c.width,c.height); _bdSigSigned=false; }
+async function validerSignatureCompta(id){
+  const nom=document.getElementById('bd-sig-nom').value.trim();
+  if(!nom){ toast('Nom du signataire requis'); return; }
+  if(!_bdSigSigned){ toast('Signature requise (trace ta signature dans le cadre)'); return; }
+  const canvas=document.getElementById('bdSigCanvas');
+  const r=await api('PATCH','/bordereaux/'+id+'/signer-compta',{signature:canvas.toDataURL('image/png'),signataire:nom}).catch(e=>({error:e.message}));
+  if(!r||r.error){ toast('❌ '+((r&&r.error)||'Erreur')); return; }
+  toast('✅ Bordereau clôturé');
+  fermerModal('modalBordereauDetail');
+  chargerBordereauxCrees();
+}
+function genererBordereauSignePDF(){
+  const b=_bordereauCourant; if(!b){ toast('Aucun bordereau ouvert'); return; }
+  if(!window.jspdf){ toast('jsPDF non chargé'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const W=210, H=297, M=18, col2=110;
+  const f=(iso)=>{ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return d+'/'+m+'/'+y; };
+  let y=20;
+  doc.setTextColor(26,35,50); doc.setFont('helvetica','bold'); doc.setFontSize(20);
+  doc.text('BORDEREAU DE REMISE — AJCV', M, y); y+=6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(110,110,110);
+  doc.text('Service Logistique · 82C Rue Raphaël Babet · 97480 Saint-Joseph, La Réunion', M, y); y+=6;
+  doc.setFont('courier','bold'); doc.setFontSize(11); doc.setTextColor(184,134,11);
+  doc.text(b.numero, M, y); y+=4;
+  doc.setDrawColor(255,179,0); doc.setLineWidth(0.8); doc.line(M,y,W-M,y); y+=10;
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('PÉRIODE & LIVREUR', M, y); y+=6;
+  doc.setFontSize(11); doc.setTextColor(26,35,50); doc.setFont('helvetica','bold');
+  doc.text('Du '+f(b.date_debut)+' au '+f(b.date_fin)+'   —   Livreur : '+b.livreur, M, y); y+=10;
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('RÉSUMÉ', M, y); y+=6;
+  doc.setFontSize(10); doc.setTextColor(26,35,50); doc.setFont('helvetica','normal');
+  doc.text('Livraisons sur la période : '+b.nb_livraisons_total, M, y); y+=6;
+  Object.entries(b.totaux||{}).forEach(([mode,tot])=>{ doc.text(mode+' : '+Number(tot).toFixed(2)+' €', M, y); y+=6; });
+  y+=3; doc.setDrawColor(220,220,220); doc.setLineWidth(0.3); doc.line(M,y,W-M,y); y+=8;
+  doc.setFontSize(8); doc.setTextColor(140,140,140); doc.setFont('helvetica','bold');
+  doc.text('DÉTAIL DES RÈGLEMENTS', M, y); y+=6;
+  doc.setFontSize(8); doc.setTextColor(40,40,40); doc.setFont('helvetica','normal');
+  (b.reglements||[]).forEach(x=>{
+    if(y>H-70){ doc.addPage(); y=20; }
+    const row=(x.date_heure||'').slice(0,16)+' · '+(x.client||'')+' · BL '+(x.bl||'—')+' · '+(x.reglement||'')+' · '+(x.montant!=null?Number(x.montant).toFixed(2)+' €':'—')+(x.cheque_num?' · N° '+x.cheque_num:'');
+    doc.text(row, M, y); y+=5.5;
+  });
+  y+=14;
+  if(y>H-70) { doc.addPage(); y=20; }
+  doc.setFontSize(8); doc.setTextColor(110,110,110); doc.setFont('helvetica','normal');
+  doc.text('Remis par (livreur)', M, y);
+  doc.text('Reçu par (comptabilité)', col2, y); y+=3;
+  try{ if(b.signature_livreur_base64) doc.addImage(b.signature_livreur_base64,'PNG',M,y,70,26); }catch(_){}
+  try{ if(b.signature_compta_base64) doc.addImage(b.signature_compta_base64,'PNG',col2,y,70,26); }catch(_){}
+  y+=30;
+  doc.setFontSize(7.5); doc.setTextColor(120,120,120);
+  doc.text((b.signataire_livreur||'')+' — '+(b.date_signature_livreur?new Date(b.date_signature_livreur).toLocaleString('fr-FR'):''), M, y);
+  doc.text((b.signataire_compta||'')+' — '+(b.date_signature_compta?new Date(b.date_signature_compta).toLocaleString('fr-FR'):''), col2, y);
+  doc.setFontSize(7); doc.setTextColor(150,150,150);
+  doc.text('AJCV Service Logistique · '+b.numero+' · Signatures électroniques (valeur probatoire — art. 1366 du Code civil)', M, H-10);
+  doc.save(b.numero+'_signe.pdf');
+  toast('🖨️ PDF signé généré');
 }
 
 async function renderDocs(){

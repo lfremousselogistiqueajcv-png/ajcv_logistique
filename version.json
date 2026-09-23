@@ -1,7 +1,18 @@
 {
-  "version": "2026.07.04.76",
+  "version": "2026.07.04.77",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.77",
+      "date": "23/09/2026",
+      "titre": "Bordereau : signature électronique livreur + compta",
+      "notes": [
+        "📝 Depuis l'onglet Bordereau (admin) : « Créer le bordereau (à signer) » fige les chiffres d'un livreur sur une période dans un document numéroté (BORD-AAAA-NNNN).",
+        "✍️ Le livreur signe la remise depuis son appli (nouveau bouton 💰 dans l'en-tête, avec pastille si un bordereau attend sa signature).",
+        "✍️ La compta signe ensuite la réception depuis la console Admin — une fois les deux signatures posées, le bordereau est clôturé et un PDF signé (les deux signatures incluses) peut être téléchargé.",
+        "⚠️ Nécessite d'exécuter sql/bordereaux_signature.sql dans Supabase (test, puis prod à la promotion)."
+      ]
+    },
     {
       "v": "2026.07.04.76",
       "date": "23/09/2026",
