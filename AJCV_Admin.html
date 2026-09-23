@@ -1911,6 +1911,7 @@ async function renderClients(){
           <button class="btn btn-blue btn-sm" onclick="geocoderClients()">🌍 Géocoder GPS manquants</button>
           <button class="btn btn-sm" onclick="regeocoderTout()" title="Corrige aussi les clients mal placés (mauvaise commune)">🔁 Re-géocoder TOUT</button>
           <button class="btn btn-blue btn-sm" onclick="attribuerZones()">🎯 Réattribuer les zones (CP)</button>
+          <button class="btn btn-blue btn-sm" onclick="attribuerZonesLivraisons()" title="Corrige les livraisons dont la zone n'a jamais été renseignée ou ne correspond plus (surtout les anciennes)">🎯 Réattribuer les zones (livraisons)</button>
         </div></div>
       <input id="cl-search" placeholder="🔍 Rechercher un client, une ville ou un ID Odoo..." oninput="filtrerClients(true)" style="margin-bottom:8px;margin-top:12px">
       <select id="cl-zone" onchange="filtrerClients(true)" style="margin-bottom:14px">
@@ -2275,6 +2276,13 @@ async function attribuerZones(){
   toast('⏳ Attribution en cours...');
   const r=await api('POST','/admin/assign-zones',{force:true}).catch(()=>null);
   if(r&&r.success){toast('✅ '+r.updated+' zone(s) mises à jour — dont '+(r.corrected||0)+' corrigée(s)');_clients=null;renderClients();}
+  else toast('❌ '+((r&&r.error)||'Erreur'));
+}
+async function attribuerZonesLivraisons(){
+  if(!confirm('Réattribuer la zone des LIVRAISONS dont la zone est vide ou ne correspond plus (Nord/Sud/Est/Ouest) ?\n\nPeut prendre un peu de temps si la base est grosse (surtout les vieilles livraisons).')) return;
+  toast('⏳ Attribution en cours… (peut prendre un moment)');
+  const r=await api('POST','/admin/assign-zones-livraisons',{}).catch(()=>null);
+  if(r&&r.success) toast('✅ '+r.updated+' livraison(s) corrigée(s) sur '+r.total+' — '+r.skipped+' déjà bonnes/ignorées');
   else toast('❌ '+((r&&r.error)||'Erreur'));
 }
 

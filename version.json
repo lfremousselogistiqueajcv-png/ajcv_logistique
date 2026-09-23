@@ -1,7 +1,16 @@
 {
-  "version": "2026.07.04.73",
+  "version": "2026.07.04.74",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.74",
+      "date": "23/09/2026",
+      "titre": "Clients : réattribution des zones sur les livraisons existantes",
+      "notes": [
+        "🎯 Nouveau bouton « Réattribuer les zones (livraisons) » (onglet Clients) : corrige la zone des livraisons déjà créées dont la zone est vide ou obsolète (surtout les anciennes) — jusqu'ici, corriger la zone d'un client ne mettait pas à jour ses livraisons déjà enregistrées.",
+        "ℹ️ Explique le nombre élevé de livraisons en zone « — » vu dans le KPI (majoritairement de vieilles livraisons)."
+      ]
+    },
     {
       "v": "2026.07.04.73",
       "date": "23/09/2026",
