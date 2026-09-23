@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.78",
+  "version": "2026.07.04.79",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.79",
+      "date": "23/09/2026",
+      "titre": "Écran d'accueil : design premium",
+      "notes": [
+        "🎨 L'écran d'accueil (console Admin) passe en design premium : une couleur en dégradé par famille de modules (Exploitation, Catalogue, Imports, Équipe, Pilotage, Administration), cartes avec relief au survol, date du jour affichée. Toujours en tuiles façon Odoo, juste plus soigné."
+      ]
+    },
     {
       "v": "2026.07.04.78",
       "date": "23/09/2026",

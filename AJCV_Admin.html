@@ -60,14 +60,20 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center}
 .content-wrap{flex:1;overflow-y:auto;max-width:1300px;margin:0 auto;padding:20px 16px;width:100%}
 /* ACCUEIL */
-.acc-group{margin-bottom:22px}
-.acc-group-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);margin:0 2px 10px}
-.acc-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
-.acc-tile{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:transform .12s ease,border-color .12s ease}
-.acc-tile:hover{transform:translateY(-2px);border-color:var(--gold)}
-.acc-ic{flex:none;width:38px;height:38px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:19px}
-.acc-lbl{font-weight:700;font-size:13.5px}
-.acc-desc{font-size:11.5px;color:var(--text2);margin-top:2px}
+.acc-header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:28px;flex-wrap:wrap}
+.acc-header h3{font-size:22px;font-weight:800;letter-spacing:-.01em;color:var(--text)}
+.acc-header .acc-sub{color:var(--text2);font-size:13px;margin-top:4px}
+.acc-header .acc-date{font-size:12.5px;color:var(--text2);text-transform:capitalize;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:6px 14px}
+.acc-group{margin-bottom:28px}
+.acc-group-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin:0 2px 12px;display:flex;align-items:center;gap:10px}
+.acc-group-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.acc-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.acc-tile{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+.acc-tile:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.18);box-shadow:0 12px 28px -10px rgba(0,0,0,.35)}
+html[data-theme="light"] .acc-tile:hover{border-color:var(--border);box-shadow:0 12px 24px -12px rgba(20,30,50,.22)}
+.acc-ic{flex:none;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 6px 14px -6px rgba(0,0,0,.4)}
+.acc-lbl{font-weight:700;font-size:14px;color:var(--text)}
+.acc-desc{font-size:11.5px;color:var(--text2);margin-top:3px;line-height:1.45}
 @media(max-width:720px){
   .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;box-shadow:0 0 0 100vw rgba(0,0,0,0)}
   #app:not(.collapsed) .sidebar{box-shadow:0 0 0 100vw rgba(0,0,0,.45)}
@@ -595,43 +601,47 @@ function go(tab){
 // ── ACCUEIL ────────────────────────────────────────────────────────────────
 function renderAccueil(){
   const GROUPS=[
-    {label:'Exploitation', items:[
+    {label:'Exploitation', grad:'135deg,#FF9A56,#FF5D6C', items:[
       ['📦','Livraisons','livraisons','Bons de livraison, statuts, édition'],
       ['🧰','Préparation','prep','Suivi des préparations et photos'],
       ['🗺️','Plan de tournée','plan','Affectation des livreurs par zone'],
       ['🚚','Chargement','chargement','Camions, colis, plaques'],
       ['📍','Zones','zones','Secteurs de livraison'],
     ]},
-    {label:'Catalogue', items:[
+    {label:'Catalogue', grad:'135deg,#8B6CF2,#5B3FC7', items:[
       ['🏪','Clients','clients','Fiches, adresses, contraintes'],
       ['📦','Produits','boissons','Boissons, charbons, PLV, TPE'],
     ]},
-    {label:'Imports', items:[
+    {label:'Imports', grad:'135deg,#22C3B0,#1596B0', items:[
       ['📥','Import Livraisons','impLiv','Import CSV des bons de livraison'],
       ['📥','Import Clients','impCli','Import CSV du fichier clients'],
       ['🔄','Imports Odoo','odoo','Synchronisation catalogue Odoo'],
     ]},
-    {label:'Équipe', items:[
+    {label:'Équipe', grad:'135deg,#4CC97A,#1F9A5C', items:[
       ['🗓️','Planning','planning','Missions de la semaine, par personne'],
       ['⏱️','Pointage','pointage','Heures hebdomadaires et récap par salarié'],
       ['🏖️','Congés','conges','Soldes CP et RTT par salarié'],
     ]},
-    {label:'Pilotage', items:[
+    {label:'Pilotage', grad:'135deg,#F0BE6E,#E8A63C', items:[
       ['📊','KPI','kpi','Tableaux de bord et statistiques'],
       ['📄','Documents','docs','Bons de réception et signatures'],
       ['💰','Bordereau','bordereau','Règlements récupérés par les livreurs, pour la compta'],
     ]},
-    {label:'Administration', items:[
+    {label:'Administration', grad:'135deg,#6B7280,#374151', items:[
       ['🔐','Utilisateurs','users','Comptes, rôles, casquettes'],
       ['📋','Journal d’activité','journal','Historique des actions, filtrable'],
       ['🚐','Flotte','flotte','Véhicules, registre d’utilisation, carburant, alertes'],
       ['🔧','Maintenance','maint','Mise en pause des applis'],
     ]},
   ];
+  const dateTxt=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
   document.getElementById('content').innerHTML = `
-    <div style="margin-bottom:22px">
-      <h3 style="color:var(--text);font-size:19px;margin-bottom:4px">👋 Bonjour ${esc(S.prenom||'')}</h3>
-      <p class="muted">Voici les modules de l'administration AJCV.</p>
+    <div class="acc-header">
+      <div>
+        <h3>👋 Bonjour ${esc(S.prenom||'')}</h3>
+        <div class="acc-sub">Voici les modules de l'administration AJCV.</div>
+      </div>
+      <div class="acc-date">📅 ${dateTxt}</div>
     </div>
     ${GROUPS.map(g=>`
       <div class="acc-group">
@@ -639,7 +649,7 @@ function renderAccueil(){
         <div class="acc-tiles">
           ${g.items.map(([ic,label,tab,desc])=>`
             <div class="acc-tile" onclick="go('${tab}')">
-              <div class="acc-ic">${ic}</div>
+              <div class="acc-ic" style="background:linear-gradient(${g.grad})">${ic}</div>
               <div><div class="acc-lbl">${label}</div><div class="acc-desc">${desc}</div></div>
             </div>`).join('')}
         </div>
