@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.74",
+  "version": "2026.07.04.75",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.75",
+      "date": "23/09/2026",
+      "titre": "KPI : le total colle enfin exactement à la somme des catégories",
+      "notes": [
+        "🐞 Une livraison déjà « Livrée »/« Non livrée » qui avait aussi été reportée un jour pouvait être comptée deux fois (Livrées + Reportées, ou En attente + Reportées) — chaque livraison n'appartient désormais qu'à une seule catégorie (priorité Livré > Non livré > Reporté > En attente), donc Livrées + Non livrées + Reportées + En attente = Total, toujours."
+      ]
+    },
     {
       "v": "2026.07.04.74",
       "date": "23/09/2026",
