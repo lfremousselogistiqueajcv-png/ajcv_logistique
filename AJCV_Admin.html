@@ -1477,7 +1477,7 @@ async function confirmerReport(){
   if(!nv){ err.textContent='Choisis une date.'; err.style.display='block'; return; }
   const btn=document.getElementById('rp-ok'); if(btn){ btn.disabled=true; btn.textContent='⏳…'; }
   try{
-    const r=await api('PATCH','/livraisons/id/'+_reportId,{date_livraison:nv});
+    const r=await api('PATCH','/livraisons/id/'+_reportId,{date_livraison:nv,reportee:true});
     if(r&&r.success){
       fermerModal('modalReport');
       const [y,m,d]=nv.split('-');

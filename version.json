@@ -1,7 +1,19 @@
 {
-  "version": "2026.07.04.72",
+  "version": "2026.07.04.73",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.73",
+      "date": "23/09/2026",
+      "titre": "Correctifs KPI : plusieurs totaux du tableau de bord étaient faux",
+      "notes": [
+        "🐞 Le filtre de date du KPI excluait une bonne partie des livraisons du dernier jour de la période (surtout visible sur « Aujourd'hui ») — même correctif que celui déjà appliqué à Livraisons/Planning/Pointage.",
+        "🐞 Le tableau « Par zone » éclatait une même zone en plusieurs lignes selon le libellé exact enregistré — regroupé maintenant sur les 4 zones, comme « Par livreur ».",
+        "🐞 Le compteur « En attente » ne comptait presque jamais les livraisons réellement « à livrer » (comparaison sans l'emoji) — corrigé, et les « À rappeler » y sont désormais inclus.",
+        "🐞 Le compteur « Reportées » restait bloqué à 0 pour les livraisons reportées via le bouton 📅 (aucune trace posée) — un marqueur est maintenant enregistré à chaque report.",
+        "⚠️ Nécessite d'exécuter sql/livraisons_reportee.sql dans Supabase (test, puis prod à la promotion)."
+      ]
+    },
     {
       "v": "2026.07.04.72",
       "date": "22/09/2026",
