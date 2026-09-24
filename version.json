@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.80",
+  "version": "2026.07.04.81",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.81",
+      "date": "24/09/2026",
+      "titre": "Portail : tuile Pilotage Budgétaire",
+      "notes": [
+        "💶 Nouvelle tuile « Pilotage Budgétaire » sur le portail, dans la section Pilotage. Ouvre la nouvelle appli de suivi budgétaire (dépôt GitHub séparé, exécutée en local sur le PC) : budget, demandes d'achat/travaux, devis, commandes, factures et paiements."
+      ]
+    },
     {
       "v": "2026.07.04.80",
       "date": "23/09/2026",
