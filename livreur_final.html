@@ -346,6 +346,9 @@ html[data-theme="light"]{
     <div class="tab" onclick="switchTab('done')">
       <span class="tab-icon">✅</span>Effectuées
     </div>
+    <div class="tab" onclick="switchTab('carte')">
+      <span class="tab-icon">🗺️</span>Carte
+    </div>
   </div>
 
   <div class="content" id="content">
@@ -601,7 +604,7 @@ let state = {
   ordreOptimise: null, routeInfo: null,
   lastCount: 0, mapInited: false,
 };
-let map, markersLayer;
+let map, markersLayer, livreurMarker;
 
 // ════════════════════════════════════════
 // SPLASH + INIT
@@ -1126,7 +1129,7 @@ function switchTab(tab) {
   state.activeTab = tab;
   if (tab === 'chargement') state._camionStatutDate = null;
   document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['livraisons','chargement','done'][i] === tab);
+    t.classList.toggle('active', ['livraisons','chargement','done','carte'][i] === tab);
   });
   renderTab();
 }
@@ -1135,6 +1138,7 @@ function renderTab() {
   if (state.activeTab === 'livraisons') renderLivraisons(false);
   else if (state.activeTab === 'chargement') renderChargement();
   else if (state.activeTab === 'done') renderLivraisons(true);
+  else if (state.activeTab === 'carte') renderCarte();
 }
 
 // ════════════════════════════════════════
@@ -1882,6 +1886,33 @@ function renderCarte() {
     badge.style.display = 'none';
   }
 
+  // Légende des couleurs de marqueurs
+  if (!document.getElementById('map-legend')) {
+    const legend = document.createElement('div');
+    legend.id = 'map-legend';
+    legend.style.cssText = 'position:absolute;bottom:10px;left:10px;z-index:1000;background:rgba(24,28,35,.88);color:#fff;border-radius:10px;padding:8px 10px;font-size:10.5px;line-height:1.7;box-shadow:0 2px 8px rgba(0,0,0,.35)';
+    legend.innerHTML = [
+      ['#E8A63C', 'À livrer'], ['#33C481', 'Livré'], ['#F0555A', 'Non livré'], ['#8B6CF2', 'Reporté'],
+    ].map(([c, l]) => `<div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:${c};flex:none"></span>${l}</div>`).join('');
+    mapContainer.appendChild(legend);
+  }
+
+  // Bouton recentrer sur les livraisons
+  if (!document.getElementById('map-recentrer')) {
+    const btn = document.createElement('button');
+    btn.id = 'map-recentrer';
+    btn.textContent = '🎯';
+    btn.title = 'Recentrer sur les livraisons';
+    btn.style.cssText = 'position:absolute;bottom:14px;right:10px;z-index:1000;width:40px;height:40px;border-radius:50%;border:none;background:#181C23;color:#fff;font-size:17px;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer';
+    btn.onclick = () => {
+      try {
+        const bounds = markersLayer.getBounds();
+        if (bounds.isValid()) map.fitBounds(bounds, { padding: [30,30] });
+      } catch(_) {}
+    };
+    mapContainer.appendChild(btn);
+  }
+
   setTimeout(async () => {
     if (map) { map.invalidateSize(true); }
     if (!state.mapInited) {
@@ -1910,6 +1941,27 @@ function renderCarte() {
         .addTo(map);
 
       state.mapInited = true;
+
+      // Position GPS du livreur en direct (point bleu) — dégrade en silence si refusé/indisponible
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
+            if (!livreurMarker) {
+              const icon = L.divIcon({
+                html: '<div style="width:16px;height:16px;border-radius:50%;background:#3B82F6;border:3px solid #fff;box-shadow:0 0 0 3px rgba(59,130,246,.35)"></div>',
+                iconSize: [16,16], iconAnchor: [8,8], className: ''
+              });
+              livreurMarker = L.marker([latitude, longitude], { icon, zIndexOffset: 1000 })
+                .bindTooltip('Ma position', { direction:'top' }).addTo(map);
+            } else {
+              livreurMarker.setLatLng([latitude, longitude]);
+            }
+          },
+          () => { /* permission refusée ou indisponible : pas de point, pas d'erreur bloquante */ },
+          { enableHighAccuracy: true, maximumAge: 15000 }
+        );
+      }
 
       // Fix iframe — redimensionnement
       setTimeout(() => { map.invalidateSize(); }, 300);

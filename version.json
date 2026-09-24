@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.82",
+  "version": "2026.07.04.83",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.83",
+      "date": "24/09/2026",
+      "titre": "Livreur : onglet Carte rétabli et amélioré",
+      "notes": [
+        "🗺️ L'onglet Carte, qui n'était plus accessible dans l'appli Livreur, est de retour. Ajouts : légende des couleurs de statut, bouton pour recentrer sur les livraisons, et point bleu de ta position GPS en direct sur la carte."
+      ]
+    },
     {
       "v": "2026.07.04.82",
       "date": "24/09/2026",
