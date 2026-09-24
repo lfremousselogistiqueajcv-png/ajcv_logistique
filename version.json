@@ -1,7 +1,15 @@
 {
-  "version": "2026.07.04.81",
+  "version": "2026.07.04.82",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.82",
+      "date": "24/09/2026",
+      "titre": "Portail : Pilotage Budgétaire en ligne",
+      "notes": [
+        "☁️ La tuile « Pilotage Budgétaire » pointe maintenant vers l'appli hébergée en ligne (Railway + Supabase) au lieu du PC local — accessible depuis n'importe où, plus besoin de lancer le serveur soi-même."
+      ]
+    },
     {
       "v": "2026.07.04.81",
       "date": "24/09/2026",
