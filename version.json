@@ -1,7 +1,17 @@
 {
-  "version": "2026.07.04.84",
+  "version": "2026.07.04.85",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.85",
+      "date": "25/09/2026",
+      "titre": "Étiquettes colis : nouveau design",
+      "notes": [
+        "🎨 Étiquette entièrement redessinée : les grands espaces vides au milieu (entre l'adresse, le QR et la date) ont disparu, le contenu s'enchaîne proprement quel que soit ce qu'il y a à afficher.",
+        "⚠️ Le rappel boissons/PLV/charbon est maintenant un bandeau noir bien visible juste sous l'adresse, avec les quantités.",
+        "🏷️ Bandeaux noirs en en-tête et en pied de page, cadre général, section « Instructions » et « Contenu » bien identifiées."
+      ]
+    },
     {
       "v": "2026.07.04.84",
       "date": "25/09/2026",
