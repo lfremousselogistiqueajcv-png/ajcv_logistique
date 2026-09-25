@@ -128,6 +128,11 @@ html[data-theme="light"]{
 .etiq-client{font-size:18px;font-weight:900;line-height:1.1;margin-bottom:1.5mm}
 .etiq-adr{font-size:12px;line-height:1.3;margin-bottom:2.5mm}
 .etiq-colis{font-size:24px;font-weight:900;text-align:center;border:3px solid #000;border-radius:6px;padding:2mm;margin-bottom:2.5mm;letter-spacing:1px}
+.etiq-colis-row{display:flex;align-items:center;gap:3mm;border:3px solid #000;border-radius:6px;padding:2mm;margin-bottom:2.5mm}
+.etiq-qr{width:22mm;height:22mm;flex:none;image-rendering:pixelated}
+.etiq-colis-txt{flex:1;text-align:center}
+.etiq-colis-txt .n{font-size:22px;font-weight:900;letter-spacing:1px;display:block}
+.etiq-colis-txt .c{font-size:10px;font-weight:600;color:#333;font-family:'Courier New',monospace;margin-top:1mm;display:block}
 .etiq-prods{font-size:11.5px;line-height:1.45;flex:1}
 .etiq-foot{font-size:9.5px;text-align:right;border-top:1px solid #000;padding-top:1.5mm;margin-top:2mm}
 @media print{
@@ -216,6 +221,7 @@ html[data-theme="light"]{
 <div id="lightbox" onclick="this.style.display='none'"><img id="lightboxImg" src="" alt=""></div>
 <div id="toast"></div>
 
+<script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"></script>
 <script>
 const CFG = { API_URL: 'https://ajcvbackend-production.up.railway.app' };
 const VERSION_URL = 'version.json';
@@ -827,18 +833,25 @@ async function envoyerEtiquettes(id){
     else showToast('❌ Étiquettes : '+((r&&r.error)||'erreur'),'error');
   }catch(_){ showToast('❌ Étiquettes : réseau — réessaie via 🏷️','error'); }
 }
+function qrDataUrl(data){
+  try{ const qr=qrcode(0,'M'); qr.addData(String(data)); qr.make(); return qr.createDataURL(6,4); }
+  catch(_){ return ''; }
+}
 function imprimerEtiquettes(id){
   const l=(state.orders||[]).find(x=>String(x.id)===String(id));
   if(!l){ showToast('Commande introuvable','error'); return; }
   const n=Math.max(1,parseInt(l.nb_colis)||1);
   const prods=etiqProduits(l);
+  const bl=l.bl||id;
   const cartes=[];
   for(let i=1;i<=n;i++){
+    const code=bl+'-'+i;
+    const qrSrc=qrDataUrl(code);
     cartes.push(`<div class="etiq">
       <div class="etiq-head"><b>${ETIQ_CFG.entreprise}</b><span>BL ${esc(l.bl||'—')}</span></div>
       <div class="etiq-client">${esc(l.client_nom||l.client||'')}</div>
       <div class="etiq-adr">${esc(l.adresse||'')}${l.adresse?'<br>':''}${esc(l.ville||'')}${(l.tel1||l.tel2)?'<br>\u260e '+esc([l.tel1,l.tel2].filter(Boolean).join(' / ')):''}</div>
-      <div class="etiq-colis">COLIS ${i} / ${n}</div>
+      <div class="etiq-colis-row">${qrSrc?`<img class="etiq-qr" src="${qrSrc}" alt="QR colis ${i}">`:''}<div class="etiq-colis-txt"><span class="n">COLIS ${i} / ${n}</span><span class="c">${esc(code)}</span></div></div>
       <div class="etiq-prods">${prods.map(p=>'<div>'+esc(p)+'</div>').join('')||'<div>—</div>'}</div>
       <div class="etiq-foot">Livraison ${esc(l.date_livraison||'')}</div>
     </div>`);

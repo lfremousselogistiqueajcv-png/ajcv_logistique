@@ -236,6 +236,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .stp-lbl{font-size:11px;font-weight:600;color:var(--text2);margin-right:2px;white-space:nowrap}
 .stp button{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;line-height:1}
 .stp button:active{background:rgba(255,255,255,.18)}
+.charge-alert{background:rgba(232,166,60,.14);border:1px solid var(--gold);color:var(--gold2);font-size:12px;font-weight:600;padding:8px 10px;border-radius:10px;line-height:1.4}
+.charge-scan-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:12.5px;color:var(--text2)}
+.charge-scan-row.ok{border-color:var(--green);color:var(--green)}
+.charge-scan-row b{color:var(--text)}
+.charge-scan-row.ok b{color:var(--green)}
+.charge-scan-btn{background:var(--gold);color:var(--navy);border:none;font-size:12px;font-weight:700;padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.charge-scan-row.ok .charge-scan-btn{background:var(--surface);color:var(--green);border:1px solid var(--green)}
+
+/* ── Modal scan colis (QR, chargement camion) ── */
+.scan-modal-bg.active{align-items:stretch}
+.scan-modal-sheet{background:var(--dark);width:100%;height:100%;max-width:100%;border-radius:0;padding:0;display:flex;flex-direction:column}
+.scan-top{display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 12px;flex:none}
+.scan-x{background:rgba(255,255,255,.1);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer}
+.scan-ttl{font-size:14px;font-weight:700;color:var(--text)}
+.scan-cam-wrap{position:relative;flex:none;height:46vh;min-height:220px;background:#000;overflow:hidden}
+#scanVideo{width:100%;height:100%;object-fit:cover}
+.scan-viewfinder{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:62%;aspect-ratio:1/1;pointer-events:none}
+.scan-viewfinder .vf-corner{position:absolute;width:26px;height:26px;border:3px solid var(--gold)}
+.scan-viewfinder .vf-corner.tl{top:0;left:0;border-right:none;border-bottom:none;border-radius:6px 0 0 0}
+.scan-viewfinder .vf-corner.tr{top:0;right:0;border-left:none;border-bottom:none;border-radius:0 6px 0 0}
+.scan-viewfinder .vf-corner.bl{bottom:0;left:0;border-right:none;border-top:none;border-radius:0 0 0 6px}
+.scan-viewfinder .vf-corner.br{bottom:0;right:0;border-left:none;border-top:none;border-radius:0 0 6px 0}
+.scan-cam-error{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;color:var(--text2);font-size:13px;background:var(--dark)}
+.scan-list{flex:1;overflow-y:auto;padding:14px 16px}
+.scan-row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:9px}
+.scan-row.done{border-color:var(--green);background:rgba(51,196,129,.1)}
+.scan-row .ic{width:34px;height:34px;border-radius:9px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+.scan-row.done .ic{background:rgba(51,196,129,.18)}
+.scan-row .mid{flex:1;min-width:0}
+.scan-row .mid .t{font-size:13.5px;font-weight:700;color:var(--text)}
+.scan-row .mid .s{font-size:11px;color:var(--text3);font-family:monospace;margin-top:1px}
+.scan-row.done .mid .s{color:var(--green)}
+.scan-row .chk{width:24px;height:24px;border-radius:50%;background:var(--green);color:var(--dark);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex:none}
+.scan-bottom{padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 16px);flex:none;border-top:1px solid var(--border)}
 .stp b{min-width:20px;text-align:center;font-size:15px;color:var(--gold)}
 .kpi-banner.cols3{grid-template-columns:repeat(3,1fr)}
 .charge-colis{display:flex;align-items:center;gap:8px}
@@ -409,6 +443,30 @@ html[data-theme="light"]{
   </div>
 </div>
 
+<!-- MODAL SCAN COLIS (chargement camion) -->
+<div class="modal-bg scan-modal-bg" id="modalScanColis">
+  <div class="scan-modal-sheet">
+    <div class="scan-top">
+      <button class="scan-x" onclick="fermerScanColis()" aria-label="Fermer">✕</button>
+      <div class="scan-ttl" id="scanColisTitre">Scanner les colis</div>
+      <div style="width:30px"></div>
+    </div>
+    <div class="scan-cam-wrap">
+      <video id="scanVideo" playsinline muted autoplay></video>
+      <canvas id="scanCanvas" style="display:none"></canvas>
+      <div class="scan-viewfinder">
+        <div class="vf-corner tl"></div><div class="vf-corner tr"></div>
+        <div class="vf-corner bl"></div><div class="vf-corner br"></div>
+      </div>
+      <div class="scan-cam-error" id="scanCamError" style="display:none">📷 Caméra indisponible — vérifie l'autorisation ou utilise « continuer sans scanner ».</div>
+    </div>
+    <div class="scan-list" id="scanListColis"></div>
+    <div class="scan-bottom">
+      <button type="button" class="btn-cancel" style="width:100%" onclick="fermerScanColis()">Continuer sans tout scanner</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL SIGNATURE -->
 <div id="sig-modal">
   <div class="sig-header">
@@ -561,6 +619,7 @@ html[data-theme="light"]{
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
 // ════════════════════════════════════════
 // CONFIG — À modifier
@@ -1205,6 +1264,7 @@ function boissonsDe(l) {
 function charbonsDe(l) { return Math.max(0, parseInt(l.nb_charbons) || 0); }
 function plvDe(l) { return Math.max(0, parseInt(l.nb_plv) || 0); }
 function tpeDe(l) { return Math.max(0, parseInt(l.nb_tpe) || 0); }
+function colisChargesDe(l) { return Array.isArray(l.colis_charges) ? l.colis_charges.filter(n => Number.isFinite(n)) : []; }
 
 // ── Catalogue des références boissons (géré dans l'admin) ──
 async function fetchBoissonsRef(){
@@ -1477,6 +1537,14 @@ function renderChargement() {
   html += `<div class="list-section"><div class="section-label">${charges}/${livs.length} commandes chargées</div>`;
   livs.forEach(l => {
     const ok = estCharge(l);
+    const nbColisL = colisDe(l);
+    const nbScanned = colisChargesDe(l).filter(n => n >= 1 && n <= nbColisL).length;
+    const allScanned = nbScanned >= nbColisL;
+    const extras = [];
+    if (boissonsDe(l)) extras.push(`🥤 ${boissonsDe(l)} boisson${boissonsDe(l)>1?'s':''}`);
+    if (charbonsDe(l)) extras.push(`🔥 ${charbonsDe(l)} charbon${charbonsDe(l)>1?'s':''}`);
+    if (plvDe(l)) extras.push(`🪧 ${plvDe(l)} PLV`);
+    const alerteExtras = extras.length ? `<div class="charge-alert">⚠️ Vérifie aussi : ${extras.join(' · ')} — pas comptés dans les colis</div>` : '';
     html += `<div class="charge-card${ok ? ' charge-ok' : ''}" data-search="${(String(l.client||'')+' '+String(l.ville||'')+' '+String(l.bl||'')).toLowerCase().replace(/"/g,'&quot;')}">
       <div class="charge-top">
         <div class="charge-check" onclick="toggleCharge('${l.id}')">${ok ? '✅' : '⬜'}</div>
@@ -1488,12 +1556,17 @@ function renderChargement() {
           ? `<div onclick="window.open('${l.photo_preparation||''}','_blank')" style="margin-left:auto;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap" title="Voir la photo de préparation">🧰&nbsp;✓</div>`
           : `<div style="margin-left:auto;color:var(--text2);font-size:12px;white-space:nowrap" title="Pas encore préparé">🧰&nbsp;⬜</div>`}
       </div>
+      ${alerteExtras}
       <div class="charge-steppers">
         <div class="stp"><span class="stp-lbl">📦 Colis</span><button onclick="ajusterColisCharge('${l.id}',-1)">−</button><b>${colisDe(l)}</b><button onclick="ajusterColisCharge('${l.id}',1)">+</button></div>
         <div class="stp"><span class="stp-lbl">🥤 Boissons</span><button onclick="ouvrirBoissons('${l.id}','chargement')" style="border:1px solid var(--border);background:var(--surface);color:var(--gold);font-weight:700;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer">${boissonsDe(l)} ▸</button></div>
         <div class="stp"><span class="stp-lbl">🔥 Charbons</span><button onclick="ouvrirBoissons('${l.id}','chargement','CHARBON')" style="border:1px solid var(--border);background:var(--surface);color:var(--gold);font-weight:700;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer">${charbonsDe(l)} ▸</button></div>
         <div class="stp"><span class="stp-lbl">🪧 PLV</span><button onclick="ouvrirBoissons('${l.id}','chargement','PLV')" style="border:1px solid var(--border);background:var(--surface);color:var(--gold);font-weight:700;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer">${plvDe(l)} ▸</button></div>
         <div class="stp"><span class="stp-lbl">💳 TPE</span><button onclick="ouvrirBoissons('${l.id}','chargement','TPE')" style="border:1px solid var(--border);background:var(--surface);color:var(--gold);font-weight:700;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer">${tpeDe(l)} ▸</button></div>
+      </div>
+      <div class="charge-scan-row${allScanned?' ok':''}">
+        <span>📦 Colis scannés : <b>${nbScanned}/${nbColisL}</b></span>
+        <button type="button" class="charge-scan-btn" onclick="ouvrirScanColis('${l.id}')">${allScanned?'✅ Revoir':'📷 Scanner'}</button>
       </div>
     </div>`;
   });
@@ -1660,9 +1733,107 @@ async function envoyerChargement(l, charge) {
     await fetch(`${CFG.API_URL}/livraisons/chargement`, {
       method: 'POST',
       headers: {'Content-Type':'application/json','Authorization':`Bearer ${state.token||''}`},
-      body: JSON.stringify({ id: l.id, charge, colis: colisDe(l), boissons: boissonsDe(l), boissons_detail: boissonsDetailDe(l), charbons: charbonsDe(l), plv: plvDe(l), tpe: tpeDe(l), charbons_detail: detailDe(l,'charbons_detail'), plv_detail: detailDe(l,'plv_detail'), tpe_detail: detailDe(l,'tpe_detail') }),
+      body: JSON.stringify({ id: l.id, charge, colis: colisDe(l), boissons: boissonsDe(l), boissons_detail: boissonsDetailDe(l), charbons: charbonsDe(l), plv: plvDe(l), tpe: tpeDe(l), charbons_detail: detailDe(l,'charbons_detail'), plv_detail: detailDe(l,'plv_detail'), tpe_detail: detailDe(l,'tpe_detail'), colis_charges: colisChargesDe(l) }),
     });
   } catch(_) { /* le localStorage conserve l'état côté livreur */ }
+}
+
+// ════════════════════════════════════════
+// SCAN COLIS (QR) — pointage au chargement du camion
+// ════════════════════════════════════════
+let _scanColis = { id: null, bl: null, total: 0, scanned: [], stream: null, raf: null, lastCode: null, lastAt: 0 };
+
+function _renderScanListColis(){
+  const wrap = document.getElementById('scanListColis'); if (!wrap) return;
+  let html = '';
+  for (let i = 1; i <= _scanColis.total; i++) {
+    const done = _scanColis.scanned.includes(i);
+    html += `<div class="scan-row${done?' done':''}">
+      <div class="ic">📦</div>
+      <div class="mid"><div class="t">Colis ${i} / ${_scanColis.total}</div><div class="s">${_scanColis.bl}-${i}${done?' · scanné':''}</div></div>
+      ${done ? '<div class="chk">✓</div>' : ''}
+    </div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+async function ouvrirScanColis(id){
+  const l = trouverLiv(id); if (!l) return;
+  _scanColis = { id, bl: l.bl || id, total: colisDe(l), scanned: colisChargesDe(l).slice(), stream: null, raf: null, lastCode: null, lastAt: 0 };
+  const titre = document.getElementById('scanColisTitre'); if (titre) titre.textContent = 'Colis — BL ' + (l.bl || '—');
+  _renderScanListColis();
+  const err = document.getElementById('scanCamError'); if (err) err.style.display = 'none';
+  document.getElementById('modalScanColis').classList.add('active');
+  await _demarrerCameraScan();
+}
+
+async function _demarrerCameraScan(){
+  const video = document.getElementById('scanVideo');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    _scanColis.stream = stream;
+    video.srcObject = stream;
+    await video.play();
+    _scanColis.raf = requestAnimationFrame(_boucleScanColis);
+  } catch(_) {
+    const err = document.getElementById('scanCamError'); if (err) err.style.display = 'flex';
+  }
+}
+
+function _boucleScanColis(){
+  const video = document.getElementById('scanVideo');
+  const canvas = document.getElementById('scanCanvas');
+  if (video && canvas && video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    try {
+      const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const res = (typeof jsQR === 'function') ? jsQR(img.data, img.width, img.height) : null;
+      if (res && res.data) _traiterCodeColisScanne(res.data);
+    } catch(_) {}
+  }
+  _scanColis.raf = requestAnimationFrame(_boucleScanColis);
+}
+
+function _traiterCodeColisScanne(data){
+  const now = Date.now();
+  if (data === _scanColis.lastCode && now - _scanColis.lastAt < 1500) return; // anti-doublon (meme code vu en rafale)
+  _scanColis.lastCode = data; _scanColis.lastAt = now;
+  const m = /^(.+)-(\d+)$/.exec(String(data).trim());
+  const idx = m ? parseInt(m[2]) : NaN;
+  const blScanne = m ? m[1] : null;
+  if (!m || blScanne !== String(_scanColis.bl) || idx < 1 || idx > _scanColis.total) {
+    showToast('❌ Ce colis ne correspond pas à cette commande', '');
+    return;
+  }
+  if (_scanColis.scanned.includes(idx)) return; // deja confirme
+  _scanColis.scanned.push(idx);
+  _renderScanListColis();
+  showToast(`✅ Colis ${idx}/${_scanColis.total} confirmé`, 'success');
+  _sauvegarderScanColis();
+  if (_scanColis.scanned.length >= _scanColis.total) setTimeout(fermerScanColis, 700);
+}
+
+function _sauvegarderScanColis(){
+  const l = trouverLiv(_scanColis.id); if (!l) return;
+  l.colis_charges = _scanColis.scanned.slice();
+  const complet = _scanColis.scanned.length >= _scanColis.total;
+  if (complet) { l.charge = true; const set = chargeSet(); set.add(String(l.id)); chargeSave(set); }
+  renderChargement();
+  envoyerChargement(l, complet ? true : estCharge(l));
+}
+
+function _arreterCameraScan(){
+  if (_scanColis.raf) cancelAnimationFrame(_scanColis.raf);
+  _scanColis.raf = null;
+  if (_scanColis.stream) { _scanColis.stream.getTracks().forEach(t => t.stop()); _scanColis.stream = null; }
+  const video = document.getElementById('scanVideo'); if (video) video.srcObject = null;
+}
+
+function fermerScanColis(){
+  _arreterCameraScan();
+  const modal = document.getElementById('modalScanColis'); if (modal) modal.classList.remove('active');
 }
 
 // ════════════════════════════════════════

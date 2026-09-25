@@ -1,7 +1,17 @@
 {
-  "version": "2026.07.04.83",
+  "version": "2026.07.04.84",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.84",
+      "date": "25/09/2026",
+      "titre": "QR code sur les étiquettes + pointage au chargement",
+      "notes": [
+        "🏷️ Chaque étiquette colis a maintenant son propre QR code, plus grand et plus facile à scanner — le détail boissons/PLV/charbons reste affiché comme avant.",
+        "📷 Dans Chargement, un bouton « Scanner » permet de pointer chaque colis un par un avant de partir en tournée — jamais bloquant, le pointage manuel reste toujours possible.",
+        "⚠️ Une alerte apparaît sur chaque commande contenant des boissons, du PLV ou du charbon, pour ne pas les oublier au chargement (ils ne sont pas comptés dans les colis)."
+      ]
+    },
     {
       "v": "2026.07.04.83",
       "date": "24/09/2026",
