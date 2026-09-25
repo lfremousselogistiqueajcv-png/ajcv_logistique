@@ -1,7 +1,18 @@
 {
-  "version": "2026.07.04.85",
+  "version": "2026.07.04.86",
   "app": "AJCV Logistique",
   "historique": [
+    {
+      "v": "2026.07.04.86",
+      "date": "25/09/2026",
+      "titre": "Étiquette colis : corrections suite aux premiers tests",
+      "notes": [
+        "🔧 L'adresse et le téléphone ne se chevauchaient plus proprement dans certains cas — corrigé.",
+        "📦 Le QR code ne déborde plus du cadre qui l'entoure.",
+        "📋 Le contenu (boissons/PLV/charbons détaillés) s'affiche désormais toujours en entier, en 2 colonnes, avec une police qui rétrécit automatiquement s'il y a beaucoup de références plutôt que de couper la liste.",
+        "🎨 Retrait du cadre décoratif autour de l'étiquette."
+      ]
+    },
     {
       "v": "2026.07.04.85",
       "date": "25/09/2026",
